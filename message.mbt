@@ -93,7 +93,7 @@ pub fn format_mf2_message(
   formatter : Formatter,
 ) -> Result[String, String] {
   if source.trim().has_prefix(".") {
-    Err("MF2 declarations and match messages are not supported yet")
+    format_match_message(source, locale, args, formatter)
   } else {
     format_pattern(source, locale, args, formatter)
   }
@@ -227,6 +227,189 @@ fn format_value(
       }
     _ => Err("unsupported function: :\{function_name}")
   }
+}
+
+///|
+fn format_match_message(
+  source : String,
+  locale : String,
+  args : Array[MessageArg],
+  formatter : Formatter,
+) -> Result[String, String] {
+  let selectors : Array[(String, String, Array[FormatOption])] = []
+  let match_names : Array[String] = []
+  let variants : Array[(Array[String], String)] = []
+  let resolved_args = args.copy()
+  let mut standalone_pattern : String? = None
+  for raw_line in source.split("\n") {
+    let line = raw_line.to_owned().trim().to_owned()
+    if line.is_empty() {
+      continue
+    }
+    if line.has_prefix(".input") {
+      let open = match line.find("{") {
+        Some(value) => value
+        None => return Err("invalid .input declaration")
+      }
+      let close = match line.rev_find("}") {
+        Some(value) => value
+        None => return Err("invalid .input declaration")
+      }
+      let expression = line[open + 1:close].to_owned()
+      let tokens = whitespace_tokens(expression)
+      if tokens.is_empty() || !tokens[0].has_prefix("$") {
+        return Err("invalid .input variable")
+      }
+      let name = tokens[0][1:].to_owned()
+      let mut function_name = "string"
+      let options : Array[FormatOption] = []
+      for i = 1; i < tokens.length(); i = i + 1 {
+        if tokens[i].has_prefix(":") {
+          function_name = tokens[i][1:].to_owned()
+        } else {
+          match tokens[i].split_once("=") {
+            Some((key, value)) =>
+              options.push({
+                name: key.to_owned(),
+                value: unquote_literal(value.to_owned()),
+              })
+            None => return Err("invalid .input option")
+          }
+        }
+      }
+      selectors.push((name, function_name, options))
+    } else if line.has_prefix(".local") {
+      let assignment = line[".local".length():].to_owned().trim().to_owned()
+      let (name_part, expression_part) = match assignment.split_once("=") {
+        Some(value) => value
+        None => return Err("invalid .local declaration")
+      }
+      let name_token = name_part.to_owned().trim().to_owned()
+      if !name_token.has_prefix("$") || name_token.length() == 1 {
+        return Err("invalid .local variable")
+      }
+      let expression = expression_part.to_owned().trim().to_owned()
+      if !expression.has_prefix("{") || !expression.has_suffix("}") {
+        return Err("invalid .local expression")
+      }
+      let content = expression[1:expression.length() - 1].to_owned()
+      let value = match
+        format_expression(content, locale, resolved_args, formatter) {
+        Ok(value) => value
+        Err(message) => return Err(message)
+      }
+      resolved_args.push({
+        name: name_token[1:].to_owned(),
+        value: TextValue(value),
+      })
+    } else if line.has_prefix(".match") {
+      let tokens = whitespace_tokens(line[".match".length():].to_owned())
+      for token in tokens {
+        if !token.has_prefix("$") {
+          return Err("invalid .match selector")
+        }
+        match_names.push(token[1:].to_owned())
+      }
+    } else if line.has_prefix("{{") &&
+      line.has_suffix("}}") &&
+      match_names.is_empty() {
+      standalone_pattern = Some(line[2:line.length() - 2].to_owned())
+    } else {
+      let open = match line.find("{{") {
+        Some(value) => value
+        None => return Err("invalid match variant")
+      }
+      let close = match line.rev_find("}}") {
+        Some(value) => value
+        None => return Err("invalid match variant")
+      }
+      if close < open + 2 {
+        return Err("invalid match variant")
+      }
+      let keys = whitespace_tokens(line[:open].to_owned())
+      let pattern = line[open + 2:close].to_owned()
+      variants.push((keys, pattern))
+    }
+  }
+  if match_names.is_empty() {
+    return match standalone_pattern {
+      Some(pattern) => format_pattern(pattern, locale, resolved_args, formatter)
+      None => Err("complex message requires a pattern or matcher")
+    }
+  }
+  if variants.is_empty() {
+    return Err("match message requires selectors and variants")
+  }
+  for variant in variants {
+    let (keys, pattern) = variant
+    if keys.length() != match_names.length() {
+      return Err("match variant key count mismatch")
+    }
+    let mut matches = true
+    for i = 0; i < match_names.length(); i = i + 1 {
+      if keys[i] == "*" {
+        continue
+      }
+      let selector = match find_selector(selectors, match_names[i]) {
+        Some(value) => value
+        None =>
+          return Err("matched variable requires .input: \{match_names[i]}")
+      }
+      let arg = match find_arg(resolved_args, match_names[i]) {
+        Some(value) => value
+        None => return Err("unknown variable: \{match_names[i]}")
+      }
+      if !selector_matches(
+          keys[i],
+          arg.value,
+          selector.1,
+          selector.2,
+          locale,
+          formatter,
+        ) {
+        matches = false
+        break
+      }
+    }
+    if matches {
+      return format_pattern(pattern, locale, resolved_args, formatter)
+    }
+  }
+  Err("no match variant selected")
+}
+
+///|
+fn selector_matches(
+  key : String,
+  value : MessageValue,
+  function_name : String,
+  options : Array[FormatOption],
+  locale : String,
+  formatter : Formatter,
+) -> Bool {
+  if function_name == "number" || function_name == "integer" {
+    guard message_value_to_double(value) is Some(number) else { return false }
+    if key == number.to_string() || key == number.to_int().to_string() {
+      return true
+    }
+    let ordinal = option_value(options, "select") == Some("ordinal")
+    (formatter.plural_category)(locale, number, ordinal) == key
+  } else {
+    message_value_to_string(value) == unquote_literal(key)
+  }
+}
+
+///|
+fn find_selector(
+  selectors : Array[(String, String, Array[FormatOption])],
+  name : String,
+) -> (String, String, Array[FormatOption])? {
+  for selector in selectors {
+    if selector.0 == name {
+      return Some(selector)
+    }
+  }
+  None
 }
 
 ///|

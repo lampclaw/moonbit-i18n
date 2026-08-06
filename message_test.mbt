@@ -84,3 +84,63 @@ test "reports malformed MF2 patterns" {
     is Err("unmatched closing brace"),
   )
 }
+
+///|
+test "formats cardinal and ordinal match messages" {
+  let cardinal = ".input {$count :number}\n.match $count\n0 {{No items.}}\none {{One item.}}\n* {{{$count} items.}}"
+  assert_true(
+    format_mf2_message(
+      cardinal,
+      "en-US",
+      [{ name: "count", value: IntValue(2) }],
+      Formatter::basic(),
+    ) ==
+    Ok("2 items."),
+  )
+  let ordinal = ".input {$count :number select=ordinal}\n.match $count\none {{{$count}st}}\ntwo {{{$count}nd}}\nfew {{{$count}rd}}\n* {{{$count}th}}"
+  assert_true(
+    format_mf2_message(
+      ordinal,
+      "en-US",
+      [{ name: "count", value: IntValue(3) }],
+      Formatter::basic(),
+    ) ==
+    Ok("3rd"),
+  )
+}
+
+///|
+test "formats local declarations" {
+  let message = ".local $formatted = {$count :number}\n{{There are {$formatted} items.}}"
+  assert_true(
+    format_mf2_message(
+      message,
+      "en-US",
+      [{ name: "count", value: IntValue(12) }],
+      Formatter::basic(),
+    ) ==
+    Ok("There are 12 items."),
+  )
+}
+
+///|
+test "reports invalid MF2 declarations and variants" {
+  assert_true(
+    format_mf2_message(
+      ".input {missing}\n{{value}}",
+      "en-US",
+      [],
+      Formatter::basic(),
+    )
+    is Err("invalid .input variable"),
+  )
+  assert_true(
+    format_mf2_message(
+      ".match $count",
+      "en-US",
+      [{ name: "count", value: IntValue(1) }],
+      Formatter::basic(),
+    )
+    is Err("match message requires selectors and variants"),
+  )
+}
