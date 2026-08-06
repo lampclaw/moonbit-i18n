@@ -7,7 +7,7 @@ import {
   "moonbit-community/rabbita@0.13.1",
 }
 
-readme = "README.md"
+readme = "README.mbt.md"
 
 repository = ""
 

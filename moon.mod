@@ -6,7 +6,7 @@ preferred_target = "js"
 
 source = "."
 
-readme = "README.md"
+readme = "README.mbt.md"
 
 repository = "https://github.com/lampclaw/moonbit-i18n"
 
