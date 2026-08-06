@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "lampclaw/i18n/examples/typed"
+
+// Values
+pub fn locale_from_code(String, Locale) -> Locale
+
+// Errors
+
+// Types and methods
+pub(all) enum Locale {
+  EnUS
+  ZhCN
+} derive(Eq)
+pub fn Locale::code(Self) -> String
+
+// Type aliases
+
+// Traits
