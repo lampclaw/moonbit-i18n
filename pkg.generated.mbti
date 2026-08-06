@@ -2,6 +2,7 @@
 package "lampclaw/i18n"
 
 // Values
+pub fn normalize_locale_code(String) -> Result[String, String]
 
 // Errors
 

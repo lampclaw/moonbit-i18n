@@ -15,7 +15,13 @@ pub fn Catalog::new(
   locale_code~ : String,
   entries~ : Array[CatalogEntry],
 ) -> Catalog {
-  { locale_code, entries }
+  {
+    locale_code: match normalize_locale_code(locale_code) {
+      Ok(value) => value
+      Err(_) => locale_code
+    },
+    entries,
+  }
 }
 
 ///|
@@ -41,7 +47,13 @@ pub struct I18n {
 
 ///|
 pub fn I18n::new(fallback_locale_code~ : String) -> I18n {
-  { fallback_locale_code, catalogs: [] }
+  {
+    fallback_locale_code: match normalize_locale_code(fallback_locale_code) {
+      Ok(value) => value
+      Err(_) => fallback_locale_code
+    },
+    catalogs: [],
+  }
 }
 
 ///|
@@ -82,7 +94,13 @@ pub struct Translator {
 
 ///|
 pub fn I18n::translator(self : I18n, locale_code : String) -> Translator {
-  { i18n: self, locale_code }
+  {
+    i18n: self,
+    locale_code: match normalize_locale_code(locale_code) {
+      Ok(value) => value
+      Err(_) => self.fallback_locale_code
+    },
+  }
 }
 
 ///|
