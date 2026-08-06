@@ -32,6 +32,13 @@ pub(all) enum CommonText {
   Save
 } derive(Eq)
 
+pub struct I18n {
+  runtime : @i18n.I18n
+}
+pub fn I18n::fallback_locale(Self) -> Locale
+pub fn I18n::new(fallback_locale~ : Locale) -> Self
+pub fn I18n::translator(Self, Locale) -> @i18n.Translator
+
 pub(all) enum I18nText {
   Common(CommonText)
   Auth(AuthText)
