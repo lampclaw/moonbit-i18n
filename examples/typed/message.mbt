@@ -1,23 +1,39 @@
 ///|
-pub(all) enum MessageKey {
-  CommonHello
-  CommonSave
-  AuthLogin
+pub(all) enum I18nText {
+  Common(CommonText)
+  Auth(AuthText)
 } derive(Eq)
 
 ///|
-pub fn message_id(key : MessageKey) -> String {
-  match key {
-    CommonHello => "common.hello"
-    CommonSave => "common.save"
-    AuthLogin => "auth.login"
+pub(all) enum CommonText {
+  Hello
+  Save
+} derive(Eq)
+
+///|
+pub(all) enum AuthText {
+  Login
+} derive(Eq)
+
+///|
+pub fn message_id(text : I18nText) -> String {
+  match text {
+    Common(common) =>
+      match common {
+        Hello => "common.hello"
+        Save => "common.save"
+      }
+    Auth(auth) =>
+      match auth {
+        Login => "auth.login"
+      }
   }
 }
 
 ///|
-pub fn translate_key(
+pub fn translate_text(
   translator : @i18n.Translator,
-  key : MessageKey,
+  text : I18nText,
 ) -> String? {
-  translator.translate(message_id(key))
+  translator.translate(message_id(text))
 }

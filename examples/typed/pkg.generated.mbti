@@ -8,24 +8,32 @@ import {
 // Values
 pub fn locale_from_code(String, Locale) -> Locale
 
-pub fn message_id(MessageKey) -> String
+pub fn message_id(I18nText) -> String
 
-pub fn translate_key(@i18n.Translator, MessageKey) -> String?
+pub fn translate_text(@i18n.Translator, I18nText) -> String?
 
 // Errors
 
 // Types and methods
+pub(all) enum AuthText {
+  Login
+} derive(Eq)
+
+pub(all) enum CommonText {
+  Hello
+  Save
+} derive(Eq)
+
+pub(all) enum I18nText {
+  Common(CommonText)
+  Auth(AuthText)
+} derive(Eq)
+
 pub(all) enum Locale {
   EnUS
   ZhCN
 } derive(Eq)
 pub fn Locale::code(Self) -> String
-
-pub(all) enum MessageKey {
-  CommonHello
-  CommonSave
-  AuthLogin
-} derive(Eq)
 
 // Type aliases
 

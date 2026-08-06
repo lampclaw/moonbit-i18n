@@ -25,8 +25,8 @@ fn main {
   )
   let locale = ZhCN
   let translator = i18n.translator(locale.code())
-  let key = CommonHello
+  let text : I18nText = Common(Hello)
   println(
-    "typed key \{message_id(key)}: \{required_message(translator, message_id(key))}",
+    "nested enum \{message_id(text)}: \{required_message(translator, message_id(text))}",
   )
 }
