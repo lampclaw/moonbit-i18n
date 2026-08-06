@@ -3,8 +3,8 @@
 A minimal internationalization runtime for MoonBit.
 
 Version 0.0.1 provides in-memory catalogs, normalized locale lookup, parent
-locale matching, and one fallback locale. Messages are returned as plain
-strings.
+locale matching, and one fallback locale. The core runtime uses string message
+IDs, while applications can put a typed enum layer in front of it.
 
 ```moonbit
 let i18n = @i18n.I18n::new(fallback_locale_code="en-US")
@@ -17,8 +17,8 @@ i18n.install_catalog(
 let message = i18n.translator("en-US").translate("common.hello")
 ```
 
-JSON resources, locale normalization, message formatting, and code generation
-are intentionally outside the first MVP.
+JSON resources, message formatting, and code generation are intentionally
+outside this MVP.
 
 ## Example
 
@@ -29,6 +29,25 @@ moon run --target js examples/basic
 ```text
 zh-CN common.hello: 你好
 zh-CN common.save (fallback en-US): Save
+```
+
+The typed example defines application-owned locale and message enums, then
+bridges their exhaustive translations into the runtime:
+
+```moonbit
+let i18n = I18n::new(fallback_locale=EnUS)
+let t = i18n.translator(ZhCN)
+t.t(Common(Hello))
+t.t(Auth(Login))
+```
+
+```bash
+moon run --target js examples/typed
+```
+
+```text
+你好
+登录
 ```
 
 ## Development

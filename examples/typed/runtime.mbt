@@ -4,6 +4,11 @@ pub struct I18n {
 }
 
 ///|
+pub struct Translator {
+  runtime : @i18n.Translator
+}
+
+///|
 fn catalog_for_locale(locale : Locale) -> @i18n.Catalog {
   let entries : Array[@i18n.CatalogEntry] = all_texts().map(text => {
     id: message_id(text),
@@ -26,6 +31,20 @@ pub fn I18n::fallback_locale(self : I18n) -> Locale {
 }
 
 ///|
-pub fn I18n::translator(self : I18n, locale : Locale) -> @i18n.Translator {
-  self.runtime.translator(locale.code())
+pub fn I18n::translator(self : I18n, locale : Locale) -> Translator {
+  { runtime: self.runtime.translator(locale.code()) }
+}
+
+///|
+pub fn Translator::locale(self : Translator) -> Locale {
+  locale_from_code(self.runtime.locale_code(), EnUS)
+}
+
+///|
+pub fn Translator::t(self : Translator, text : I18nText) -> String {
+  let id = message_id(text)
+  match self.runtime.translate(id) {
+    Some(message) => message
+    None => "[missing: \{id}]"
+  }
 }

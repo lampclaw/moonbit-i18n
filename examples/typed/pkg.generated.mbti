@@ -37,7 +37,7 @@ pub struct I18n {
 }
 pub fn I18n::fallback_locale(Self) -> Locale
 pub fn I18n::new(fallback_locale~ : Locale) -> Self
-pub fn I18n::translator(Self, Locale) -> @i18n.Translator
+pub fn I18n::translator(Self, Locale) -> Translator
 
 pub(all) enum I18nText {
   Common(CommonText)
@@ -49,6 +49,12 @@ pub(all) enum Locale {
   ZhCN
 } derive(Eq)
 pub fn Locale::code(Self) -> String
+
+pub struct Translator {
+  runtime : @i18n.Translator
+}
+pub fn Translator::locale(Self) -> Locale
+pub fn Translator::t(Self, I18nText) -> String
 
 // Type aliases
 
