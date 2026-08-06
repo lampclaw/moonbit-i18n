@@ -1,7 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "lampclaw/i18n"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
+pub fn format_mf2_message(String, String, Array[MessageArg], Formatter) -> Result[String, String]
+
 pub fn locale_lookup_chain(String) -> Array[String]
 
 pub fn normalize_locale_code(String) -> Result[String, String]
@@ -9,6 +15,10 @@ pub fn normalize_locale_code(String) -> Result[String, String]
 pub fn parse_catalog(String) -> Result[Catalog, String]
 
 pub fn resolve_locale_code(Array[String], Array[String], String) -> String
+
+pub fn validate_mf2_message(String, Array[String]) -> Result[Unit, String]
+
+pub fn validate_mf2_message_with_args(String, Array[MessageArg]) -> Result[Unit, String]
 
 // Errors
 
@@ -34,6 +44,18 @@ pub(all) struct CatalogEntry {
   message : String
 }
 
+pub(all) struct FormatOption {
+  name : String
+  value : String
+} derive(@debug.Debug)
+
+pub(all) struct Formatter {
+  format_number : (String, Double, Array[FormatOption]) -> String
+  format_datetime : (String, String, Array[FormatOption]) -> String
+  plural_category : (String, Double, Bool) -> String
+}
+pub fn Formatter::basic() -> Self
+
 pub struct I18n {
   fallback_locale_code : String
   catalogs : Array[Catalog]
@@ -43,6 +65,19 @@ pub fn I18n::install_catalog(Self, Catalog) -> Unit
 pub fn I18n::new(fallback_locale_code~ : String) -> Self
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
+
+pub(all) struct MessageArg {
+  name : String
+  value : MessageValue
+}
+
+pub(all) enum MessageValue {
+  TextValue(String)
+  IntValue(Int)
+  DoubleValue(Double)
+  BoolValue(Bool)
+  DateTimeValue(String)
+} derive(Eq, @debug.Debug)
 
 pub struct Translator {
   i18n : I18n
