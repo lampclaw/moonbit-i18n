@@ -1,8 +1,16 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "lampclaw/i18n/examples/typed"
 
+import {
+  "lampclaw/i18n",
+}
+
 // Values
 pub fn locale_from_code(String, Locale) -> Locale
+
+pub fn message_id(MessageKey) -> String
+
+pub fn translate_key(@i18n.Translator, MessageKey) -> String?
 
 // Errors
 
@@ -12,6 +20,12 @@ pub(all) enum Locale {
   ZhCN
 } derive(Eq)
 pub fn Locale::code(Self) -> String
+
+pub(all) enum MessageKey {
+  CommonHello
+  CommonSave
+  AuthLogin
+} derive(Eq)
 
 // Type aliases
 

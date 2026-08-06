@@ -12,16 +12,21 @@ fn main {
   i18n.install_catalog(
     @i18n.Catalog::new(locale_code=EnUS.code(), entries=[
       { id: "common.hello", message: "Hello" },
+      { id: "common.save", message: "Save" },
+      { id: "auth.login", message: "Log in" },
     ]),
   )
   i18n.install_catalog(
     @i18n.Catalog::new(locale_code=ZhCN.code(), entries=[
       { id: "common.hello", message: "你好" },
+      { id: "common.save", message: "保存" },
+      { id: "auth.login", message: "登录" },
     ]),
   )
   let locale = ZhCN
   let translator = i18n.translator(locale.code())
+  let key = CommonHello
   println(
-    "typed locale \{locale.code()}: \{required_message(translator, "common.hello")}",
+    "typed key \{message_id(key)}: \{required_message(translator, message_id(key))}",
   )
 }
