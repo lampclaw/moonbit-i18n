@@ -10,13 +10,13 @@ fn message_or_placeholder(translator : @i18n.Translator, id : String) -> String 
 fn main {
   let i18n = @i18n.I18n::new(fallback_locale_code="en-US")
   i18n.install_catalog(
-    @i18n.Catalog::new(locale_code="en-US", entries=[
+    @i18n.Catalog::new(locale_code="en-US", schema_hash="example-v1", entries=[
       { id: "common.hello", message: "Hello" },
       { id: "common.save", message: "Save" },
     ]),
   )
   i18n.install_catalog(
-    @i18n.Catalog::new(locale_code="zh-CN", entries=[
+    @i18n.Catalog::new(locale_code="zh-CN", schema_hash="example-v1", entries=[
       { id: "common.hello", message: "你好" },
     ]),
   )

@@ -9,7 +9,7 @@ test "nested message enums map to stable ids" {
 test "translate_text uses the runtime translator" {
   let i18n = @i18n.I18n::new(fallback_locale_code="en-US")
   i18n.install_catalog(
-    @i18n.Catalog::new(locale_code="en-US", entries=[
+    @i18n.Catalog::new(locale_code="en-US", schema_hash="typed-example-v1", entries=[
       { id: "auth.login", message: "Log in" },
     ]),
   )

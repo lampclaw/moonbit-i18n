@@ -6,17 +6,28 @@ pub fn locale_lookup_chain(String) -> Array[String]
 
 pub fn normalize_locale_code(String) -> Result[String, String]
 
+pub fn parse_catalog(String) -> Result[Catalog, String]
+
 pub fn resolve_locale_code(Array[String], Array[String], String) -> String
 
 // Errors
 
 // Types and methods
 pub struct Catalog {
+  catalog_version : Int
+  schema_hash : String
   locale_code : String
+  direction : String
   entries : Array[CatalogEntry]
 }
+pub fn Catalog::catalog_version(Self) -> Int
+pub fn Catalog::coverage(Self, Array[String]) -> Double
+pub fn Catalog::direction(Self) -> String
+pub fn Catalog::find(Self, String) -> String?
 pub fn Catalog::locale_code(Self) -> String
-pub fn Catalog::new(locale_code~ : String, entries~ : Array[CatalogEntry]) -> Self
+pub fn Catalog::new(locale_code~ : String, schema_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
+pub fn Catalog::schema_hash(Self) -> String
+pub fn Catalog::to_json_string(Self) -> String
 
 pub(all) struct CatalogEntry {
   id : String

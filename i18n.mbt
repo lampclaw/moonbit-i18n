@@ -1,45 +1,4 @@
 ///|
-pub(all) struct CatalogEntry {
-  id : String
-  message : String
-}
-
-///|
-pub struct Catalog {
-  locale_code : String
-  entries : Array[CatalogEntry]
-}
-
-///|
-pub fn Catalog::new(
-  locale_code~ : String,
-  entries~ : Array[CatalogEntry],
-) -> Catalog {
-  {
-    locale_code: match normalize_locale_code(locale_code) {
-      Ok(value) => value
-      Err(_) => locale_code
-    },
-    entries,
-  }
-}
-
-///|
-pub fn Catalog::locale_code(self : Catalog) -> String {
-  self.locale_code
-}
-
-///|
-fn Catalog::find(self : Catalog, id : String) -> String? {
-  for entry in self.entries {
-    if entry.id == id {
-      return Some(entry.message)
-    }
-  }
-  None
-}
-
-///|
 pub struct I18n {
   fallback_locale_code : String
   catalogs : Array[Catalog]

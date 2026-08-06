@@ -1,6 +1,6 @@
 ///|
 fn catalog(locale_code : String, entries : Array[CatalogEntry]) -> Catalog {
-  Catalog::new(locale_code~, entries~)
+  Catalog::new(locale_code~, schema_hash="test-schema", entries~)
 }
 
 ///|

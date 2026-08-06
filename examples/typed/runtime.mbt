@@ -14,7 +14,11 @@ fn catalog_for_locale(locale : Locale) -> @i18n.Catalog {
     id: message_id(text),
     message: translate_for_locale(locale, text),
   })
-  @i18n.Catalog::new(locale_code=locale.code(), entries~)
+  @i18n.Catalog::new(
+    locale_code=locale.code(),
+    schema_hash="typed-example-v1",
+    entries~,
+  )
 }
 
 ///|

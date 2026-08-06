@@ -97,7 +97,11 @@ fn catalog_for(locale : Locale) -> @i18n.Catalog {
     id: message_id(text),
     message: message_for(locale, text),
   })
-  @i18n.Catalog::new(locale_code=locale.code(), entries~)
+  @i18n.Catalog::new(
+    locale_code=locale.code(),
+    schema_hash="rabbita-example-v1",
+    entries~,
+  )
 }
 
 ///|
