@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -> Result[Artifacts, String]
+
 pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
 
 pub fn parse_config(String) -> Result[I18nConfig, String]
@@ -17,6 +19,13 @@ pub fn parse_schema(String) -> Result[Schema, String]
 // Errors
 
 // Types and methods
+pub(all) struct Artifacts {
+  code : String
+  catalogs : Array[(String, String)]
+  coverage_report : String
+  schema_hash : String
+} derive(Eq, @debug.Debug)
+
 pub(all) struct Entry {
   group : String
   key : String
