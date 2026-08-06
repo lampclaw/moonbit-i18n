@@ -2,8 +2,9 @@
 
 A minimal internationalization runtime for MoonBit.
 
-Version 0.0.1 provides in-memory catalogs, exact locale matching, and one
-fallback locale. Messages are returned as plain strings.
+Version 0.0.1 provides in-memory catalogs, normalized locale lookup, parent
+locale matching, and one fallback locale. Messages are returned as plain
+strings.
 
 ```moonbit
 let i18n = @i18n.I18n::new(fallback_locale_code="en-US")

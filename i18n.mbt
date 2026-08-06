@@ -104,19 +104,34 @@ pub fn I18n::translator(self : I18n, locale_code : String) -> Translator {
 }
 
 ///|
+pub fn I18n::translator_from_code(
+  self : I18n,
+  locale_code : String,
+) -> Translator {
+  let supported = self.catalogs.map(catalog => catalog.locale_code)
+  self.translator(
+    resolve_locale_code([locale_code], supported, self.fallback_locale_code),
+  )
+}
+
+///|
 pub fn Translator::locale_code(self : Translator) -> String {
   self.locale_code
 }
 
 ///|
 pub fn Translator::translate(self : Translator, id : String) -> String? {
-  match self.i18n.find_message(self.locale_code, id) {
-    Some(message) => Some(message)
-    None =>
-      if self.locale_code == self.i18n.fallback_locale_code {
-        None
-      } else {
-        self.i18n.find_message(self.i18n.fallback_locale_code, id)
-      }
+  let chain = locale_lookup_chain(self.locale_code)
+  for code in locale_lookup_chain(self.i18n.fallback_locale_code) {
+    if !chain.contains(code) {
+      chain.push(code)
+    }
   }
+  for code in chain {
+    match self.i18n.find_message(code, id) {
+      Some(message) => return Some(message)
+      None => ()
+    }
+  }
+  None
 }

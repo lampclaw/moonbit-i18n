@@ -2,7 +2,11 @@
 package "lampclaw/i18n"
 
 // Values
+pub fn locale_lookup_chain(String) -> Array[String]
+
 pub fn normalize_locale_code(String) -> Result[String, String]
+
+pub fn resolve_locale_code(Array[String], Array[String], String) -> String
 
 // Errors
 
@@ -27,6 +31,7 @@ pub fn I18n::fallback_locale_code(Self) -> String
 pub fn I18n::install_catalog(Self, Catalog) -> Unit
 pub fn I18n::new(fallback_locale_code~ : String) -> Self
 pub fn I18n::translator(Self, String) -> Translator
+pub fn I18n::translator_from_code(Self, String) -> Translator
 
 pub struct Translator {
   i18n : I18n

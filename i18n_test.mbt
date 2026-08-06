@@ -54,3 +54,27 @@ test "installing a locale again replaces its catalog" {
   )
   assert_eq(i18n.translator("en-US").translate("common.hello"), Some("Hi"))
 }
+
+///|
+test "translator searches parent locale catalogs" {
+  let i18n = I18n::new(fallback_locale_code="en-US")
+  i18n.install_catalog(
+    catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
+  )
+  i18n.install_catalog(
+    catalog("zh", [{ id: "common.hello", message: "你好" }]),
+  )
+  assert_eq(
+    i18n.translator("zh-Hans-CN").translate("common.hello"),
+    Some("你好"),
+  )
+}
+
+///|
+test "translator_from_code resolves to an installed parent locale" {
+  let i18n = I18n::new(fallback_locale_code="en-US")
+  i18n.install_catalog(catalog("en-US", []))
+  i18n.install_catalog(catalog("fr", []))
+  assert_eq(i18n.translator_from_code("fr-CA").locale_code(), "fr")
+  assert_eq(i18n.translator_from_code("de-DE").locale_code(), "en-US")
+}

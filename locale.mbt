@@ -25,6 +25,54 @@ pub fn normalize_locale_code(code : String) -> Result[String, String] {
 }
 
 ///|
+pub fn locale_lookup_chain(code : String) -> Array[String] {
+  let normalized = match normalize_locale_code(code) {
+    Ok(value) => value
+    Err(_) => return []
+  }
+  let parts = normalized.split("-").map(part => part.to_owned()).collect()
+  let result : Array[String] = []
+  for end = parts.length(); end > 0; end = end - 1 {
+    let candidate = parts[:end].to_owned().join("-")
+    if !result.contains(candidate) {
+      result.push(candidate)
+    }
+  }
+  result
+}
+
+///|
+pub fn resolve_locale_code(
+  requested : Array[String],
+  supported : Array[String],
+  fallback : String,
+) -> String {
+  let normalized_supported : Array[String] = []
+  for code in supported {
+    match normalize_locale_code(code) {
+      Ok(value) => normalized_supported.push(value)
+      Err(_) => ()
+    }
+  }
+  for code in requested {
+    for candidate in locale_lookup_chain(code) {
+      if normalized_supported.contains(candidate) {
+        return candidate
+      }
+    }
+  }
+  match normalize_locale_code(fallback) {
+    Ok(value) if normalized_supported.contains(value) => value
+    _ =>
+      if normalized_supported.is_empty() {
+        fallback
+      } else {
+        normalized_supported[0]
+      }
+  }
+}
+
+///|
 fn locale_part_is_ascii_alnum(value : String) -> Bool {
   for c in value.to_array() {
     if !(locale_is_ascii_letter(c) || locale_is_ascii_digit(c)) {
