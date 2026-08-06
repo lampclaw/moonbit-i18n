@@ -8,6 +8,8 @@ import {
 // Values
 pub fn format_mf2_message(String, String, Array[MessageArg], Formatter) -> Result[String, String]
 
+pub fn format_mf2_rich(String, String, Array[MessageArg], Formatter) -> Result[Array[RichPart], String]
+
 pub fn locale_lookup_chain(String) -> Array[String]
 
 pub fn normalize_locale_code(String) -> Result[String, String]
@@ -19,6 +21,8 @@ pub fn resolve_locale_code(Array[String], Array[String], String) -> String
 pub fn validate_mf2_message(String, Array[String]) -> Result[Unit, String]
 
 pub fn validate_mf2_message_with_args(String, Array[MessageArg]) -> Result[Unit, String]
+
+pub fn validate_rich_tags(Array[RichPart], Array[String]) -> Result[Unit, String]
 
 // Errors
 
@@ -78,6 +82,13 @@ pub(all) enum MessageValue {
   BoolValue(Bool)
   DateTimeValue(String)
 } derive(Eq, @debug.Debug)
+
+pub(all) enum RichPart {
+  RichText(String)
+  RichOpen(String, Array[FormatOption])
+  RichClose(String)
+  RichStandalone(String, Array[FormatOption])
+} derive(@debug.Debug)
 
 pub struct Translator {
   i18n : I18n
