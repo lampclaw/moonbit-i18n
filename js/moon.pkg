@@ -1,0 +1,5 @@
+import {
+  "lampclaw/i18n" @runtime,
+}
+
+supported_targets = "js"
