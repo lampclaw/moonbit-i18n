@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: MoonBit environment
+        run: |
+          moon update
+          version_output="$(moon version --all)"
+          printf '%s\n' "$version_output"
+          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
+          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
+          version_at_least() {
+            [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n 1)" = "$1" ]
+          }
+          version_at_least "0.1.20260803" "$installed_moon" || {
+            echo "moon $installed_moon is below the supported floor 0.1.20260803" >&2
+            exit 1
+          }
+          version_at_least "0.10.6" "$installed_moonc" || {
+            echo "moonc $installed_moonc is below the supported floor 0.10.6" >&2
+            exit 1
+          }
+
+      - name: Project checks
+        run: |
+          moon info
+          moon fmt --check
+          moon check --target js
+          moon test --target native
+          moon test --target js
+          moon build --target js
+          git diff --check
+
+      - name: Generated and interface drift
+        run: |
+          git diff --exit-code
+          git status --short
