@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
+
 pub fn parse_config(String) -> Result[I18nConfig, String]
 
 pub fn parse_locale(String, String, Schema) -> Result[LocaleResource, String]
