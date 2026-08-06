@@ -6,11 +6,19 @@ import {
 }
 
 // Values
+pub fn all_texts() -> Array[I18nText]
+
 pub fn locale_from_code(String, Locale) -> Locale
 
 pub fn message_id(I18nText) -> String
 
+pub fn translate_en_us(I18nText) -> String
+
+pub fn translate_for_locale(Locale, I18nText) -> String
+
 pub fn translate_text(@i18n.Translator, I18nText) -> String?
+
+pub fn translate_zh_cn(I18nText) -> String
 
 // Errors
 
