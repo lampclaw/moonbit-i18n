@@ -1,0 +1,7 @@
+import {
+  "lampclaw/i18n",
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "executable")

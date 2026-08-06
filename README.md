@@ -19,6 +19,17 @@ let message = i18n.translator("en-US").translate("common.hello")
 JSON resources, locale normalization, message formatting, and code generation
 are intentionally outside the first MVP.
 
+## Example
+
+```bash
+moon run --target js examples/basic
+```
+
+```text
+zh-CN common.hello: 你好
+zh-CN common.save (fallback en-US): Save
+```
+
 ## Development
 
 ```bash
