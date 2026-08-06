@@ -1,0 +1,39 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "lampclaw/i18n"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Catalog {
+  locale_code : String
+  entries : Array[CatalogEntry]
+}
+pub fn Catalog::locale_code(Self) -> String
+pub fn Catalog::new(locale_code~ : String, entries~ : Array[CatalogEntry]) -> Self
+
+pub(all) struct CatalogEntry {
+  id : String
+  message : String
+}
+
+pub struct I18n {
+  fallback_locale_code : String
+  catalogs : Array[Catalog]
+}
+pub fn I18n::fallback_locale_code(Self) -> String
+pub fn I18n::install_catalog(Self, Catalog) -> Unit
+pub fn I18n::new(fallback_locale_code~ : String) -> Self
+pub fn I18n::translator(Self, String) -> Translator
+
+pub struct Translator {
+  i18n : I18n
+  locale_code : String
+}
+pub fn Translator::locale_code(Self) -> String
+pub fn Translator::translate(Self, String) -> String?
+
+// Type aliases
+
+// Traits
