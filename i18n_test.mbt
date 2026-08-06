@@ -1,80 +1,139 @@
 ///|
-fn catalog(locale_code : String, entries : Array[CatalogEntry]) -> Catalog {
-  Catalog::new(locale_code~, schema_hash="test-schema", entries~)
+fn runtime_catalog(locale : String, messages : Array[CatalogEntry]) -> Catalog {
+  Catalog::new(locale_code=locale, schema_hash="schema-1", entries=messages)
 }
 
 ///|
-test "translator returns a message from the requested locale" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
-  )
-  i18n.install_catalog(
-    catalog("zh-CN", [{ id: "common.hello", message: "你好" }]),
-  )
-  assert_eq(i18n.translator("zh-CN").translate("common.hello"), Some("你好"))
+fn install_for_test(i18n : I18n, catalog : Catalog) -> Unit {
+  guard i18n.install_catalog(catalog) is Ok(_) else {
+    abort("catalog installation failed")
+  }
 }
 
 ///|
-test "translator falls back for a missing message" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.save", message: "Save" }]),
+test "translator formats parameters and falls back per message" {
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  install_for_test(
+    i18n,
+    runtime_catalog("en-US", [
+      { id: "common.save", message: "Save" },
+      { id: "auth.welcome", message: "Hello {$name}" },
+    ]),
   )
-  i18n.install_catalog(
-    catalog("fr-FR", [{ id: "common.hello", message: "Bonjour" }]),
+  install_for_test(
+    i18n,
+    runtime_catalog("fr", [{ id: "auth.welcome", message: "Bonjour {$name}" }]),
   )
-  assert_eq(i18n.translator("fr-FR").translate("common.save"), Some("Save"))
+  let translator = i18n.translator_from_code("fr-FR")
+  assert_true(
+    translator.translate("auth.welcome", [
+      { name: "name", value: TextValue("Luca") },
+    ]) ==
+    Some("Bonjour Luca"),
+  )
+  assert_eq(translator.translate("common.save", []), Some("Save"))
+  assert_true(
+    i18n.take_diagnostics() == [MessageFallback("fr", "en-US", "common.save")],
+  )
+  assert_true(i18n.take_diagnostics().is_empty())
 }
 
 ///|
-test "translator falls back when the requested locale is not installed" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
+test "runtime rejects stale and mismatched catalogs" {
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-2")
+  assert_true(
+    i18n.install_catalog(runtime_catalog("en-US", []))
+    is Err(
+      "catalog schema hash mismatch for en-US: expected schema-2, got schema-1"
+    ),
   )
-  assert_eq(i18n.translator("de-DE").translate("common.hello"), Some("Hello"))
+  let matching = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  let source = runtime_catalog("zh-CN", []).to_json_string()
+  assert_true(
+    matching.install_catalog_source_for("en-us", source)
+    is Err("catalog locale mismatch: expected en-US, got zh-CN"),
+  )
+  assert_true(!matching.has_catalog("zh-CN"))
 }
 
 ///|
-test "translator returns none when a message is unavailable" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(catalog("en-US", []))
-  assert_eq(i18n.translator("zh-CN").translate("common.missing"), None)
+test "runtime installs catalog JSON for a normalized locale" {
+  let i18n = I18n::new(fallback_locale_code="zh-CN", schema_hash="schema-1")
+  let source = runtime_catalog("en-US", [
+    { id: "common.hello", message: "Hello" },
+  ]).to_json_string()
+  assert_true(i18n.install_catalog_source_for("en_us", source) is Ok(_))
+  assert_true(i18n.has_catalog("EN-us"))
+  assert_true(i18n.find_catalog("en-US") is Some(_))
+  assert_eq(i18n.catalog_locale_codes(), ["en-US"])
+  assert_eq(
+    i18n.translator_from_code("en-US").translate("common.hello", []),
+    Some("Hello"),
+  )
+}
+
+///|
+test "runtime rejects invalid catalog sources and locale requests" {
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  assert_true(
+    i18n.install_catalog_source("not json") is Err("invalid catalog JSON"),
+  )
+  assert_true(
+    i18n.install_catalog_source_for("bad!locale", "{}")
+    is Err("invalid locale code: bad!locale"),
+  )
+  assert_true(!i18n.has_catalog("bad!locale"))
+  install_for_test(i18n, runtime_catalog("en-US", []))
+  assert_eq(i18n.translator("bad!locale").locale_code(), "en-US")
 }
 
 ///|
 test "installing a locale again replaces its catalog" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  install_for_test(
+    i18n,
+    runtime_catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
   )
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.hello", message: "Hi" }]),
+  install_for_test(
+    i18n,
+    runtime_catalog("en-US", [{ id: "common.hello", message: "Hi" }]),
   )
-  assert_eq(i18n.translator("en-US").translate("common.hello"), Some("Hi"))
+  assert_eq(i18n.translator("en-US").translate("common.hello", []), Some("Hi"))
+}
+
+///|
+test "runtime records missing and malformed message diagnostics" {
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  install_for_test(
+    i18n,
+    runtime_catalog("en-US", [{ id: "auth.welcome", message: "Hello {$name}" }]),
+  )
+  let translator = i18n.translator("en-US")
+  assert_eq(translator.translate("common.missing", []), None)
+  assert_eq(translator.translate("auth.welcome", []), None)
+  assert_true(
+    i18n.take_diagnostics() ==
+    [
+      MissingMessage("en-US", "common.missing"),
+      MessageFormatFailed("en-US", "auth.welcome", "unknown variable: name"),
+    ],
+  )
 }
 
 ///|
 test "translator searches parent locale catalogs" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    catalog("en-US", [{ id: "common.hello", message: "Hello" }]),
-  )
-  i18n.install_catalog(
-    catalog("zh", [{ id: "common.hello", message: "你好" }]),
+  let i18n = I18n::new(fallback_locale_code="en-US", schema_hash="schema-1")
+  install_for_test(i18n, runtime_catalog("en-US", []))
+  install_for_test(
+    i18n,
+    runtime_catalog("zh", [{ id: "common.hello", message: "你好" }]),
   )
   assert_eq(
-    i18n.translator("zh-Hans-CN").translate("common.hello"),
+    i18n.translator("zh-Hans-CN").translate("common.hello", []),
     Some("你好"),
   )
-}
-
-///|
-test "translator_from_code resolves to an installed parent locale" {
-  let i18n = I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(catalog("en-US", []))
-  i18n.install_catalog(catalog("fr", []))
-  assert_eq(i18n.translator_from_code("fr-CA").locale_code(), "fr")
-  assert_eq(i18n.translator_from_code("de-DE").locale_code(), "en-US")
+  assert_true(
+    i18n.take_diagnostics() ==
+    [MessageFallback("zh-Hans-CN", "zh", "common.hello")],
+  )
 }

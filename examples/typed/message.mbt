@@ -35,5 +35,5 @@ pub fn translate_text(
   translator : @i18n.Translator,
   text : I18nText,
 ) -> String? {
-  translator.translate(message_id(text))
+  translator.translate(message_id(text), [])
 }

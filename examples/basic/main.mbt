@@ -1,6 +1,6 @@
 ///|
 fn message_or_placeholder(translator : @i18n.Translator, id : String) -> String {
-  match translator.translate(id) {
+  match translator.translate(id, []) {
     Some(message) => message
     None => "[missing: \{id}]"
   }
@@ -8,18 +8,27 @@ fn message_or_placeholder(translator : @i18n.Translator, id : String) -> String 
 
 ///|
 fn main {
-  let i18n = @i18n.I18n::new(fallback_locale_code="en-US")
-  i18n.install_catalog(
-    @i18n.Catalog::new(locale_code="en-US", schema_hash="example-v1", entries=[
-      { id: "common.hello", message: "Hello" },
-      { id: "common.save", message: "Save" },
-    ]),
+  let i18n = @i18n.I18n::new(
+    fallback_locale_code="en-US",
+    schema_hash="example-v1",
   )
-  i18n.install_catalog(
-    @i18n.Catalog::new(locale_code="zh-CN", schema_hash="example-v1", entries=[
-      { id: "common.hello", message: "你好" },
-    ]),
-  )
+  guard i18n.install_catalog(
+      @i18n.Catalog::new(locale_code="en-US", schema_hash="example-v1", entries=[
+        { id: "common.hello", message: "Hello" },
+        { id: "common.save", message: "Save" },
+      ]),
+    )
+    is Ok(_) else {
+    abort("failed to install en-US catalog")
+  }
+  guard i18n.install_catalog(
+      @i18n.Catalog::new(locale_code="zh-CN", schema_hash="example-v1", entries=[
+        { id: "common.hello", message: "你好" },
+      ]),
+    )
+    is Ok(_) else {
+    abort("failed to install zh-CN catalog")
+  }
   let translator = i18n.translator("zh-CN")
   println(
     "zh-CN common.hello: \{message_or_placeholder(translator, "common.hello")}",

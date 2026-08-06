@@ -23,9 +23,16 @@ fn catalog_for_locale(locale : Locale) -> @i18n.Catalog {
 
 ///|
 pub fn I18n::new(fallback_locale~ : Locale) -> I18n {
-  let runtime = @i18n.I18n::new(fallback_locale_code=fallback_locale.code())
-  runtime.install_catalog(catalog_for_locale(EnUS))
-  runtime.install_catalog(catalog_for_locale(ZhCN))
+  let runtime = @i18n.I18n::new(
+    fallback_locale_code=fallback_locale.code(),
+    schema_hash="typed-example-v1",
+  )
+  guard runtime.install_catalog(catalog_for_locale(EnUS)) is Ok(_) else {
+    abort("failed to install en-US catalog")
+  }
+  guard runtime.install_catalog(catalog_for_locale(ZhCN)) is Ok(_) else {
+    abort("failed to install zh-CN catalog")
+  }
   { runtime, }
 }
 
@@ -47,7 +54,7 @@ pub fn Translator::locale(self : Translator) -> Locale {
 ///|
 pub fn Translator::t(self : Translator, text : I18nText) -> String {
   let id = message_id(text)
-  match self.runtime.translate(id) {
+  match self.runtime.translate(id, []) {
     Some(message) => message
     None => "[missing: \{id}]"
   }

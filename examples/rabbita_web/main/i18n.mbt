@@ -111,9 +111,16 @@ struct AppI18n {
 
 ///|
 fn AppI18n::new() -> AppI18n {
-  let runtime = @i18n.I18n::new(fallback_locale_code=EnUS.code())
-  runtime.install_catalog(catalog_for(EnUS))
-  runtime.install_catalog(catalog_for(ZhCN))
+  let runtime = @i18n.I18n::new(
+    fallback_locale_code=EnUS.code(),
+    schema_hash="rabbita-example-v1",
+  )
+  guard runtime.install_catalog(catalog_for(EnUS)) is Ok(_) else {
+    abort("failed to install en-US catalog")
+  }
+  guard runtime.install_catalog(catalog_for(ZhCN)) is Ok(_) else {
+    abort("failed to install zh-CN catalog")
+  }
   { runtime, }
 }
 
@@ -130,7 +137,7 @@ fn AppI18n::translator(self : AppI18n, locale : Locale) -> Translator {
 ///|
 fn Translator::t(self : Translator, text : I18nText) -> String {
   let id = message_id(text)
-  match self.runtime.translate(id) {
+  match self.runtime.translate(id, []) {
     Some(message) => message
     None => "[missing: \{id}]"
   }

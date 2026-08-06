@@ -16,7 +16,7 @@ test "rejects invalid locale codes" {
 test "runtime stores normalized locale codes" {
   let i18n = I18n::new(fallback_locale_code="EN_us")
   let catalog = Catalog::new(locale_code="ZH_cn", schema_hash="test-schema", entries=[])
-  i18n.install_catalog(catalog)
+  assert_true(i18n.install_catalog(catalog) is Ok(_))
   assert_eq(i18n.fallback_locale_code(), "en-US")
   assert_eq(catalog.locale_code(), "zh-CN")
   assert_eq(i18n.translator("ZH_cn").locale_code(), "zh-CN")

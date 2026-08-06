@@ -48,6 +48,12 @@ pub(all) struct CatalogEntry {
   message : String
 }
 
+pub(all) enum Diagnostic {
+  MessageFallback(String, String, String)
+  MissingMessage(String, String)
+  MessageFormatFailed(String, String, String)
+} derive(Eq, @debug.Debug)
+
 pub(all) struct FormatOption {
   name : String
   value : String
@@ -62,11 +68,20 @@ pub fn Formatter::basic() -> Self
 
 pub struct I18n {
   fallback_locale_code : String
+  schema_hash : String
   catalogs : Array[Catalog]
+  formatter : Formatter
+  diagnostics : Array[Diagnostic]
 }
+pub fn I18n::catalog_locale_codes(Self) -> Array[String]
 pub fn I18n::fallback_locale_code(Self) -> String
-pub fn I18n::install_catalog(Self, Catalog) -> Unit
-pub fn I18n::new(fallback_locale_code~ : String) -> Self
+pub fn I18n::find_catalog(Self, String) -> Catalog?
+pub fn I18n::has_catalog(Self, String) -> Bool
+pub fn I18n::install_catalog(Self, Catalog) -> Result[Unit, String]
+pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
+pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
+pub fn I18n::new(fallback_locale_code~ : String, schema_hash? : String, formatter? : Formatter) -> Self
+pub fn I18n::take_diagnostics(Self) -> Array[Diagnostic]
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
 
@@ -95,7 +110,7 @@ pub struct Translator {
   locale_code : String
 }
 pub fn Translator::locale_code(Self) -> String
-pub fn Translator::translate(Self, String) -> String?
+pub fn Translator::translate(Self, String, Array[MessageArg]) -> String?
 
 // Type aliases
 
