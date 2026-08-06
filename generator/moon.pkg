@@ -1,0 +1,4 @@
+import {
+  "lampclaw/i18n" @runtime,
+  "moonbitlang/core/json",
+}

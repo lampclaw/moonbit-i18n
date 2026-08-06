@@ -1,0 +1,61 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "lampclaw/i18n/generator"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse_config(String) -> Result[I18nConfig, String]
+
+pub fn parse_locale(String, String, Schema) -> Result[LocaleResource, String]
+
+pub fn parse_schema(String) -> Result[Schema, String]
+
+// Errors
+
+// Types and methods
+pub(all) struct Entry {
+  group : String
+  key : String
+  text : String
+  params : Array[Param]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct I18nConfig {
+  source_locale : String
+  default_locale : String
+  fallback_locale : String
+  embedded_locales : Array[String]
+  locales : Array[LocaleConfig]
+  minimum_coverage : Double
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LocaleConfig {
+  code : String
+  direction : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LocaleResource {
+  locale : String
+  entries : Array[Entry]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct LocaleSource {
+  code : String
+  source : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Param {
+  name : String
+  typ : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Schema {
+  entries : Array[Entry]
+  descriptions : Array[(String, String)]
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
