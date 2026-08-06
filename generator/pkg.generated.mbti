@@ -6,15 +6,21 @@ import {
 }
 
 // Values
+pub fn export_xliff(String, String, String, String, String?) -> Result[String, String]
+
 pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -> Result[Artifacts, String]
 
 pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
+
+pub fn import_xliff(String, String, String) -> Result[String, String]
 
 pub fn parse_config(String) -> Result[I18nConfig, String]
 
 pub fn parse_locale(String, String, Schema) -> Result[LocaleResource, String]
 
 pub fn parse_schema(String) -> Result[Schema, String]
+
+pub fn pseudo_locale(String, String, String, String) -> Result[String, String]
 
 // Errors
 

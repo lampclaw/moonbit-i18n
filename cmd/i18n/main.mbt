@@ -46,6 +46,9 @@ fn usage() -> String {
     #|  moon run cmd/i18n -- generate [--allow-partial] <config-file> <schema-file> <locale-dir> <output.mbt> <catalog-dir>
     #|  moon run cmd/i18n -- check [--allow-partial] <config-file> <schema-file> <locale-dir> <output.mbt> <catalog-dir>
     #|  moon run cmd/i18n -- coverage <config-file> <schema-file> <locale-dir>
+    #|  moon run cmd/i18n -- pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moon run cmd/i18n -- export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moon run cmd/i18n -- import-xliff <schema-file> <target-locale> <input.xlf> <output.json>
   )
 }
 
@@ -57,7 +60,12 @@ fn user_args(args : Array[String]) -> Array[String] {
     }
   }
   for i = 0; i < args.length(); i = i + 1 {
-    if args[i] == "generate" || args[i] == "check" || args[i] == "coverage" {
+    if args[i] == "generate" ||
+      args[i] == "check" ||
+      args[i] == "coverage" ||
+      args[i] == "pseudo" ||
+      args[i] == "export-xliff" ||
+      args[i] == "import-xliff" {
       return args[i:].to_owned()
     }
   }
@@ -195,6 +203,9 @@ fn main {
     "generate" => run_generate(args, false)
     "check" => run_generate(args, true)
     "coverage" => run_coverage(args)
+    "pseudo" => run_pseudo(args)
+    "export-xliff" => run_export_xliff(args)
+    "import-xliff" => run_import_xliff(args)
     _ => abort(usage())
   }
 }
