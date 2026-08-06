@@ -50,6 +50,19 @@ moon run --target js examples/typed
 登录
 ```
 
+## Rabbita Web example
+
+The standalone browser example adds a language switcher without making
+Rabbita a dependency of the core module:
+
+```bash
+cd examples/rabbita_web
+warren dev
+```
+
+See [examples/rabbita_web/README.md](examples/rabbita_web/README.md) for setup
+and build commands.
+
 ## Development
 
 ```bash

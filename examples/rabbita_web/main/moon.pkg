@@ -1,0 +1,9 @@
+import {
+  "lampclaw/i18n",
+  "moonbit-community/rabbita",
+  "moonbit-community/rabbita/html",
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "executable")
