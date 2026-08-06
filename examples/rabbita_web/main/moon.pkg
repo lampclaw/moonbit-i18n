@@ -1,5 +1,6 @@
 import {
   "lampclaw/i18n",
+  "lampclaw/i18n/js" @i18n_js,
   "moonbit-community/rabbita",
   "moonbit-community/rabbita/html",
 }

@@ -198,18 +198,19 @@ zh-CN common.save (fallback en-US): Save
 
 ### Rabbita Web
 
-独立的 [Rabbita Web 示例](examples/rabbita_web/README.zh-CN.mbt.md) 在浏览器中
-拥有自己的 typed 消息 schema，并在 `zh-CN` 与 `en-US` 之间切换。它是独立
-workspace module，因此 Rabbita 不会成为 core `lampclaw/i18n` 的依赖。
+独立的 [Rabbita Counter 示例](examples/rabbita_web/README.zh-CN.mbt.md) 基于
+Rabbita 官方 Counter，加入 typed 消息 schema、本地化计数消息以及 `zh-CN` /
+`en-US` 语言切换。它是独立 workspace module，因此 Rabbita 不会成为 core
+`lampclaw/i18n` 的依赖。
 
 ~~~bash
 cd examples/rabbita_web
-moon install moonbit-community/warren
+moon install moonbit-community/warren@0.2.2
 warren dev
 ~~~
 
-打开 Warren 输出的 URL，再用按钮切换语言。示例 README 记录了已经验证的开发
-服务器输出和 release build 流程。
+打开 Warren 输出的 URL，改变计数并切换语言。示例 README 记录了已经验证的开发
+服务器输出、浏览器检查项和 release build 流程。
 
 ## 仓库验证
 
@@ -224,14 +225,14 @@ moon run --target js examples/basic
 moon run --target js examples/typed
 ~~~
 
-当前 workspace 有 23 项测试，覆盖 core locale/runtime、typed enum 层以及
-Rabbita 语言切换器。
+测试覆盖 locale 解析、catalog 校验、MF2 格式化、typed enum 层以及独立的
+Rabbita Counter 集成。
 
 单独验证浏览器 release：
 
 ~~~bash
 cd examples/rabbita_web
-warren build --dist /tmp/moonbit-i18n-rabbita-web
+warren build --dist /tmp/moonbit-i18n-rabbita-counter
 ~~~
 
 Warren 会生成 `index.html`、`index.js` 和 `styles.css`。输出目录是可丢弃的，
@@ -244,7 +245,7 @@ i18n.mbt                    # Catalog、I18n 和 Translator 运行时
 locale.mbt                  # 规范化和 locale 解析
 examples/basic/             # 最小字符串 ID fallback 示例
 examples/typed/             # 应用拥有的 typed enum 层
-examples/rabbita_web/       # 独立交互式浏览器示例
+examples/rabbita_web/       # 本地化 Rabbita Counter 浏览器示例
 ~~~
 
 ## 许可证

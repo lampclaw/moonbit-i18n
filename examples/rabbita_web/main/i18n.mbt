@@ -2,7 +2,7 @@
 enum Locale {
   EnUS
   ZhCN
-} derive(Eq)
+} derive(Eq, Debug)
 
 ///|
 fn Locale::code(self : Locale) -> String {
@@ -23,19 +23,21 @@ fn Locale::other(self : Locale) -> Locale {
 ///|
 enum I18nText {
   Common(CommonText)
-  Web(WebText)
+  Counter(CounterText)
 } derive(Eq)
 
 ///|
 enum CommonText {
-  Hello
+  CurrentLanguage
+  SwitchLanguage
 } derive(Eq)
 
 ///|
-enum WebText {
-  Description
-  CurrentLanguage
-  SwitchLanguage
+enum CounterText {
+  Title
+  Count(Int)
+  Increment
+  Decrement
 } derive(Eq)
 
 ///|
@@ -43,20 +45,37 @@ fn message_id(text : I18nText) -> String {
   match text {
     Common(common) =>
       match common {
-        Hello => "common.hello"
+        CurrentLanguage => "common.current_language"
+        SwitchLanguage => "common.switch_language"
       }
-    Web(web) =>
-      match web {
-        Description => "web.description"
-        CurrentLanguage => "web.current_language"
-        SwitchLanguage => "web.switch_language"
+    Counter(counter) =>
+      match counter {
+        Title => "counter.title"
+        Count(_) => "counter.count"
+        Increment => "counter.increment"
+        Decrement => "counter.decrement"
       }
   }
 }
 
 ///|
+fn message_args(text : I18nText) -> Array[@i18n.MessageArg] {
+  match text {
+    Counter(Count(count)) => [{ name: "count", value: @i18n.IntValue(count) }]
+    _ => []
+  }
+}
+
+///|
 fn all_texts() -> Array[I18nText] {
-  [Common(Hello), Web(Description), Web(CurrentLanguage), Web(SwitchLanguage)]
+  [
+    Common(CurrentLanguage),
+    Common(SwitchLanguage),
+    Counter(Title),
+    Counter(Count(0)),
+    Counter(Increment),
+    Counter(Decrement),
+  ]
 }
 
 ///|
@@ -66,26 +85,31 @@ fn message_for(locale : Locale, text : I18nText) -> String {
       match text {
         Common(common) =>
           match common {
-            Hello => "Hello"
-          }
-        Web(web) =>
-          match web {
-            Description => "Typed internationalization for a Rabbita Web app."
             CurrentLanguage => "Current language"
-            SwitchLanguage => "Switch language"
+            SwitchLanguage => "中文"
+          }
+        Counter(counter) =>
+          match counter {
+            Title => "Rabbita counter"
+            Count(_) =>
+              ".input {$count :number}\n.match $count\none {{One click}}\n* {{{$count} clicks}}"
+            Increment => "Increase"
+            Decrement => "Decrease"
           }
       }
     ZhCN =>
       match text {
         Common(common) =>
           match common {
-            Hello => "你好"
-          }
-        Web(web) =>
-          match web {
-            Description => "Rabbita Web 应用的类型安全国际化示例。"
             CurrentLanguage => "当前语言"
-            SwitchLanguage => "切换语言"
+            SwitchLanguage => "English"
+          }
+        Counter(counter) =>
+          match counter {
+            Title => "Rabbita 计数器"
+            Count(_) => "已点击 {$count :number} 次"
+            Increment => "增加"
+            Decrement => "减少"
           }
       }
   }
@@ -99,7 +123,7 @@ fn catalog_for(locale : Locale) -> @i18n.Catalog {
   })
   @i18n.Catalog::new(
     locale_code=locale.code(),
-    schema_hash="rabbita-example-v1",
+    schema_hash="rabbita-counter-v1",
     entries~,
   )
 }
@@ -113,7 +137,8 @@ struct AppI18n {
 fn AppI18n::new() -> AppI18n {
   let runtime = @i18n.I18n::new(
     fallback_locale_code=EnUS.code(),
-    schema_hash="rabbita-example-v1",
+    schema_hash="rabbita-counter-v1",
+    formatter=@i18n_js.formatter(),
   )
   guard runtime.install_catalog(catalog_for(EnUS)) is Ok(_) else {
     abort("failed to install en-US catalog")
@@ -137,7 +162,7 @@ fn AppI18n::translator(self : AppI18n, locale : Locale) -> Translator {
 ///|
 fn Translator::t(self : Translator, text : I18nText) -> String {
   let id = message_id(text)
-  match self.runtime.translate(id, []) {
+  match self.runtime.translate(id, message_args(text)) {
     Some(message) => message
     None => "[missing: \{id}]"
   }

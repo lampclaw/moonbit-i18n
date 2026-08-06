@@ -1,30 +1,31 @@
-# Rabbita Web example
+# Localized Rabbita Counter
 
 [中文文档](README.zh-CN.mbt.md)
 
-This standalone browser example combines `lampclaw/i18n` with Rabbita. It
-keeps locale and message enums in the application, builds runtime catalogs from
-exhaustive translations, and renders messages through `t.t(...)`.
+This standalone browser example adapts Rabbita's official Counter example to
+show a hand-written typed i18n integration. The Rabbita model owns both the
+counter value and locale. Views translate parameterized messages through
+`t.t(...)`, including English plural selection through `Intl.PluralRules`.
 
 ~~~text
-Rabbita Model.locale
-  -> application-owned Locale and I18nText enums
+Rabbita Model(count, locale)
+  -> application-owned I18nText enums
   -> typed Translator.t(I18nText)
-  -> lampclaw/i18n string-ID runtime
+  -> lampclaw/i18n runtime + JS Intl formatter
   -> Rabbita Val[Html]
   -> browser DOM
 ~~~
 
-The example is a separate Moon workspace module. Its Rabbita dependency does
-not become a dependency of the core `lampclaw/i18n` module.
+The example is a separate Moon workspace module, so Rabbita remains an example
+dependency rather than a dependency of the core runtime.
 
 ## Requirements
 
 - A MoonBit toolchain capable of building the repository workspace.
-- Warren installed once as the Rabbita development and release server.
+- Warren 0.2.2 installed as the Rabbita development and release server.
 
 ~~~bash
-moon install moonbit-community/warren
+moon install moonbit-community/warren@0.2.2
 ~~~
 
 ## Run in development
@@ -54,17 +55,19 @@ builds may report different values.
 
 ## Browser acceptance
 
-1. Open `http://127.0.0.1:4300`.
-2. Confirm the initial locale is `zh-CN` and the page displays Chinese text.
-3. Select the language button and confirm the locale and all messages change to
-   `en-US` and English.
-4. Select it again and confirm the page returns to `zh-CN`.
-5. Change a MoonBit source file while Warren is running and confirm the browser
-   reloads after a successful rebuild.
+1. Open `http://127.0.0.1:4300` and confirm the initial locale is `zh-CN`.
+2. Select Increase and Decrease and confirm the count and localized count text
+   update together.
+3. Select the language button and confirm the locale, button labels, title, and
+   parameterized count message change to English.
+4. Set the count to one and two and confirm English uses “One click” and
+   “2 clicks”.
+5. Change a MoonBit source file while Warren is running and confirm a successful
+   rebuild reloads the browser.
 
 ## Automated verification
 
-From the repository root or this directory, the workspace gates are:
+From the repository root or this directory:
 
 ~~~bash
 moon fmt --check
@@ -72,41 +75,25 @@ moon check --target js
 moon test --target js
 ~~~
 
-The current workspace result is:
-
-~~~text
-Total tests: 23, passed: 23, failed: 0.
-~~~
-
 Create a disposable release build with:
 
 ~~~bash
-warren build --dist /tmp/moonbit-i18n-rabbita-web
+warren build --dist /tmp/moonbit-i18n-rabbita-counter
 ~~~
 
-The build must complete successfully and produce:
-
-~~~text
-index.html
-index.js
-styles.css
-~~~
-
-The example's `dist/` directory is ignored. Keep verification output in a
-temporary directory rather than committing generated browser artifacts.
+The build must produce `index.html`, `index.js`, and `styles.css`. The example's
+`dist/` directory is ignored; generated browser artifacts are not committed.
 
 ## Implementation map
 
-- `main/i18n.mbt` owns the application locale/message enums, exhaustive
-  translations, runtime catalog construction, and typed translator wrapper.
-- `main/main.mbt` owns the Rabbita model, language-toggle message, view, and
-  browser mount point.
-- `main/*_wbtest.mbt` verifies both locale translations and reversible locale
-  switching.
-- `public/` contains the maintained HTML shell and CSS copied into a Warren
-  release build.
+- `main/i18n.mbt` owns the example enums, parameter mapping, catalogs, runtime,
+  and typed translator wrapper.
+- `main/main.mbt` follows Rabbita Counter's typed message/update/view shape and
+  adds locale to the model.
+- `main/*_wbtest.mbt` verifies counter updates, plural messages, translations,
+  and reversible locale switching.
+- `public/` contains the maintained Warren HTML shell and CSS.
 
-The page begins with `ZhCN`. Each render obtains a translator for the model's
-current locale, then uses expressions such as `t.t(Common(Hello))` and
-`t.t(Web(SwitchLanguage))`. The button emits one typed Rabbita message; the
-update function replaces the locale, and Rabbita reevaluates the view.
+This example is based on the
+[official Rabbita Counter example](https://github.com/moonbit-community/rabbita/tree/main/examples/counter),
+which is available under Apache-2.0.

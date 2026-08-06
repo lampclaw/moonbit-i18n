@@ -207,20 +207,20 @@ zh-CN common.save (fallback en-US): Save
 
 ### Rabbita Web
 
-The standalone [Rabbita Web example](examples/rabbita_web/README.mbt.md) owns a
-typed message schema and switches between `zh-CN` and `en-US` in the browser.
-It is a separate workspace module, so Rabbita is not a dependency of the core
-`lampclaw/i18n` module.
+The standalone [Rabbita Counter example](examples/rabbita_web/README.mbt.md)
+adapts Rabbita's official Counter with a typed message schema, localized count
+messages, and an `en-US`/`zh-CN` language switch. It is a separate workspace
+module, so Rabbita is not a dependency of the core `lampclaw/i18n` module.
 
 ~~~bash
 cd examples/rabbita_web
-moon install moonbit-community/warren
+moon install moonbit-community/warren@0.2.2
 warren dev
 ~~~
 
-Open the URL printed by Warren, then use the button to switch languages. The
-example README records the verified development-server output and release-build
-workflow.
+Open the URL printed by Warren, then change the count and switch languages. The
+example README records the verified development-server output, browser checks,
+and release-build workflow.
 
 ## Repository validation
 
@@ -235,14 +235,14 @@ moon run --target js examples/basic
 moon run --target js examples/typed
 ~~~
 
-The current workspace has 23 tests: core locale/runtime behavior, the typed
-enum layer, and the Rabbita language switcher.
+The test suites cover locale resolution, catalog validation, MF2 formatting,
+the typed enum layer, and the standalone Rabbita Counter integration.
 
 Validate the browser release separately:
 
 ~~~bash
 cd examples/rabbita_web
-warren build --dist /tmp/moonbit-i18n-rabbita-web
+warren build --dist /tmp/moonbit-i18n-rabbita-counter
 ~~~
 
 Warren produces `index.html`, `index.js`, and `styles.css`. The output directory
@@ -255,7 +255,7 @@ i18n.mbt                    # Catalog, I18n, and Translator runtime
 locale.mbt                  # normalization and locale resolution
 examples/basic/             # smallest string-ID fallback example
 examples/typed/             # application-owned typed enum layer
-examples/rabbita_web/       # standalone interactive browser example
+examples/rabbita_web/       # localized Rabbita Counter browser example
 ~~~
 
 ## License

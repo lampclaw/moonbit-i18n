@@ -15,6 +15,6 @@ license = "Apache-2.0"
 
 keywords = [ "i18n", "rabbita", "web" ]
 
-description = "A typed i18n language switcher for Rabbita Web."
+description = "A localized counter based on Rabbita's official example."
 
 preferred_target = "js"
