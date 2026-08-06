@@ -2,261 +2,319 @@
 
 [中文文档](README.zh-CN.mbt.md)
 
-`lampclaw/i18n` is a small in-memory internationalization runtime for MoonBit.
-It normalizes locale codes, resolves parent locales, searches one configured
-fallback locale, and keeps the core API independent from UI frameworks and
-application-specific message types.
+Typed internationalization for MoonBit: locale negotiation, versioned
+catalogs, a practical MessageFormat 2 subset, JavaScript `Intl` formatting,
+typed enum generation, coverage checks, pseudo locales, and XLIFF 2.1 exchange.
 
-~~~text
-application message enum (optional)
-  -> stable string message ID
-  -> Translator.translate(id)
-  -> requested locale and its parent locales
-  -> fallback locale and its parent locales
-  -> installed in-memory Catalog
-  -> String? result
-~~~
+Version `0.1.0` keeps UI-framework and application data out of the core. The
+browser examples use Rabbita, but `lampclaw/i18n` itself works with command-line,
+server, test, and other UI packages.
 
-Version `0.0.1` is an unpublished pre-1.0 release. JSON resource loading,
-message interpolation, plural rules, extraction, and code generation are not
-part of this version.
+## Install
 
-## Use from a checkout
-
-Until the module is published to the Moon registry, place this repository and
-your application in one Moon workspace. For example:
-
-~~~text
-workspace/
-  moon.work
-  moonbit-i18n/
-  my-app/
-~~~
-
-The common `moon.work` lists both modules:
+Until the module is published, put this repository and the application in one
+Moon workspace:
 
 ~~~toml
+// moon.work
 members = [
   "./moonbit-i18n",
   "./my-app",
 ]
 ~~~
 
-Add the module dependency to `my-app/moon.mod`:
-
 ~~~toml
+// my-app/moon.mod
 import {
-  "lampclaw/i18n@0.0.1",
+  "lampclaw/i18n@0.1.0",
 }
 ~~~
 
-Then import the package from each application package that uses it:
+Import the runtime and, on JavaScript, its `Intl` formatter from the consuming
+package:
 
 ~~~toml
+// my-app/main/moon.pkg
 import {
-  "lampclaw/i18n",
+  "lampclaw/i18n" @runtime,
+  "lampclaw/i18n/js" @runtime_js,
 }
 ~~~
 
-After `lampclaw/i18n` is published, the workspace checkout can be replaced by:
+After publication, replace the local workspace checkout with
+`moon add lampclaw/i18n`.
+
+## Recommended typed workflow
+
+An application owns three inputs. No application-specific locale or message
+names are built into this repository.
+
+~~~text
+i18n/
+  config.json
+  schema.json
+  locales/
+    en-US.json
+    zh-CN.json
+~~~
+
+`config.json` declares locale policy and the release coverage floor:
+
+~~~json
+{
+  "sourceLocale": "en-US",
+  "defaultLocale": "zh-CN",
+  "fallbackLocale": "en-US",
+  "embeddedLocales": ["en-US", "zh-CN"],
+  "release": { "minimumCoverage": 1.0 },
+  "locales": {
+    "en-US": { "direction": "ltr" },
+    "zh-CN": { "direction": "ltr" }
+  }
+}
+~~~
+
+`schema.json` is the source of truth for message IDs and parameter types:
+
+~~~json
+{
+  "messages": {
+    "common": ["save"],
+    "counter": ["count"]
+  },
+  "params": {
+    "counter.count": [{ "name": "count", "type": "Int" }]
+  },
+  "descriptions": {
+    "counter.count": "Visible click count"
+  }
+}
+~~~
+
+Locale files contain only translations:
+
+~~~json
+{
+  "common": { "save": "Save" },
+  "counter": {
+    "count": ".input {$count :number}\n.match $count\none {{One click}}\n* {{{$count} clicks}}"
+  }
+}
+~~~
+
+Every `*.json` file in the locale directory must have a matching entry in
+`config.json`; missing, duplicate-normalized, and undeclared locales fail early.
+
+Generate typed bindings and versioned catalogs with explicit paths:
 
 ~~~bash
-moon add lampclaw/i18n
+moon run cmd/i18n -- generate \
+  i18n/config.json \
+  i18n/schema.json \
+  i18n/locales \
+  src/i18n/generated.mbt \
+  public/i18n
 ~~~
 
-The package import remains unchanged.
-
-## Core runtime
-
-Create the runtime with one fallback locale, install catalogs, and ask a
-translator for a message ID:
+The generated MoonBit file provides `Locale`, `I18nText`, one enum per message
+group, parameter conversion, the schema hash, and configured embedded catalogs.
+The hash is derived from sorted message IDs and parameter types, so JSON
+formatting and translator-description edits do not invalidate compatible
+catalogs.
+An application adapter can then expose the desired `t.t(...)` surface:
 
 ~~~moonbit nocheck
-let i18n = @i18n.I18n::new(fallback_locale_code="en-US")
-i18n.install_catalog(
-  @i18n.Catalog::new(
+let i18n = I18n::new()
+let t = i18n.translator(ZhCN)
+
+t.t(Common(Save))
+t.t(Counter(Count(2)))
+~~~
+
+See the generated
+[Rabbita Todo example](examples/rabbita_todo/README.mbt.md) for the complete
+schema-to-browser integration.
+
+## MessageFormat 2 subset
+
+Messages support typed variables and formatter annotations:
+
+~~~text
+Hello {$name}
+Total: {$total :number}
+Published: {$date :datetime year=|numeric| month=|long|}
+~~~
+
+Supported schema parameter types are `String`, `Int`, `Double`, `Bool`, and
+`DateTime`; generated `DateTime` parameters use ISO date/time `String` values.
+The formatter recognizes `:number`, `:integer`, and `:datetime`.
+On JavaScript, pass `@runtime_js.formatter()` to use the platform's `Intl` number,
+date/time, and plural rules. Other targets can use `Formatter::basic()` or
+supply the same three formatter callbacks.
+
+Declarations and selectors cover common plural and choice messages:
+
+~~~text
+.input {$count :number}
+.match $count
+one {{One item}}
+* {{{$count} items}}
+~~~
+
+`.input`, `.local`, `.match`, exact numeric keys, plural categories, and the
+wildcard fallback are validated before catalogs are generated. Invalid or
+unknown variables fail generation rather than becoming runtime surprises.
+
+Rich messages use structured parts instead of injecting markup strings:
+
+~~~moonbit nocheck
+@runtime.format_mf2_rich(
+  "Read {#link href=|/guide|}the guide{/link}",
+  "en-US",
+  [],
+  @runtime_js.formatter(),
+)
+~~~
+
+The result contains `RichText`, `RichOpen`, `RichClose`, and `RichStandalone`.
+Call `validate_rich_tags` with the application's allow-list before rendering.
+Rich selector messages are not supported in `0.1.0`.
+
+## Runtime and catalogs
+
+The low-level runtime remains available when generated bindings are not needed:
+
+~~~moonbit nocheck
+let runtime = @runtime.I18n::new(
+  fallback_locale_code="en-US",
+  schema_hash="app-schema-v1",
+  formatter=@runtime_js.formatter(),
+)
+
+runtime.install_catalog(
+  @runtime.Catalog::new(
     locale_code="en-US",
+    schema_hash="app-schema-v1",
     entries=[
-      { id: "common.hello", message: "Hello" },
-      { id: "common.save", message: "Save" },
+      { id: "common.hello", message: "Hello {$name}" },
     ],
   ),
 )
-i18n.install_catalog(
-  @i18n.Catalog::new(
-    locale_code="zh-CN",
-    entries=[{ id: "common.hello", message: "你好" }],
-  ),
-)
 
-let t = i18n.translator("zh-CN")
-let hello = t.translate("common.hello") // Some("你好")
-let save = t.translate("common.save") // Some("Save") via en-US
-let missing = t.translate("common.missing") // None
+let t = runtime.translator("en-US")
+let result = t.translate("common.hello", [
+  { name: "name", value: @runtime.TextValue("MoonBit") },
+])
 ~~~
 
-`Translator::translate` returns `String?`; applications decide how to display
-or report a missing message. Installing another catalog with the same
-normalized locale code replaces the previous catalog.
+Catalog JSON carries `catalogVersion`, `schemaHash`, normalized `locale`, text
+direction, and messages. `install_catalog_source_for` parses a dynamically
+loaded catalog and checks both its locale and schema hash before installation.
 
-## Locale resolution
+Locale lookup searches the requested locale and its parents, followed by the
+configured fallback chain. For example, `zh-Hans-CN` resolves through
+`zh-Hans-CN`, `zh-Hans`, and `zh`. `translator_from_code` first negotiates
+against installed catalogs.
 
-Locale codes are normalized before storage and lookup:
+`take_diagnostics()` returns and clears structured events:
 
-~~~moonbit nocheck
-@i18n.normalize_locale_code("ZH_hans_cn") // Ok("zh-Hans-CN")
-@i18n.locale_lookup_chain("zh-Hans-CN") // ["zh-Hans-CN", "zh-Hans", "zh"]
-~~~
+- `MessageFallback(requested, resolved, id)`
+- `MissingMessage(locale, id)`
+- `MessageFormatFailed(locale, id, reason)`
 
-Normalization lowercases the language, title-cases a four-letter script,
-uppercases a two-letter or numeric region, and accepts either `_` or `-` as a
-separator. Empty components and non-ASCII-alphanumeric components are
-rejected.
+Applications decide whether to log, aggregate, or display these events.
 
-There are two translator constructors:
+## CLI
 
-- `i18n.translator(code)` keeps the normalized requested locale. Message lookup
-  searches that locale, its parents, then the configured fallback chain.
-- `i18n.translator_from_code(code)` negotiates against installed catalog
-  locales first. It selects an installed parent locale or the configured
-  fallback, which is useful when the selected locale code is shown in a UI.
-
-`resolve_locale_code(requested, supported, fallback)` exposes the same locale
-negotiation primitive for application-level preference lists.
-
-## Typed application layer
-
-The core runtime deliberately uses string IDs because each application owns
-its locale set and message schema. Applications can place exhaustive enums in
-front of the runtime:
-
-~~~moonbit nocheck
-///|
-pub(all) enum I18nText {
-  Common(CommonText)
-  Auth(AuthText)
-}
-
-///|
-pub(all) enum CommonText {
-  Hello
-  Save
-}
-
-///|
-pub(all) enum AuthText {
-  Login
-}
-~~~
-
-The [typed example](examples/typed) maps every enum value to a stable string ID
-and every supported locale to a message. Its application-owned wrapper exposes
-the concise API:
-
-~~~moonbit nocheck
-let i18n = I18n::new(fallback_locale=EnUS)
-let t = i18n.translator(ZhCN)
-t.t(Common(Hello))
-t.t(Auth(Login))
-~~~
-
-These `Locale`, `I18nText`, typed `I18n`, and typed `Translator` definitions
-belong to the example application; importing only `lampclaw/i18n` does not
-generate application enums. Exhaustive `match` expressions make a newly added
-message or locale visible to the MoonBit compiler.
-
-Run the example with:
-
-~~~bash
-moon run --target js examples/typed
-~~~
+All commands require explicit input and output paths; there are no
+application-specific defaults.
 
 ~~~text
-你好
-登录
+generate [--allow-partial] <config> <schema> <locale-dir> <output.mbt> <catalog-dir>
+check    [--allow-partial] <config> <schema> <locale-dir> <output.mbt> <catalog-dir>
+coverage                   <config> <schema> <locale-dir>
+pseudo   <schema> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+export-xliff <schema> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+import-xliff <schema> <target-locale> <input.xlf> <output.json>
 ~~~
 
-## Architecture
-
-The runtime has four small responsibilities:
-
-1. `Catalog` stores a normalized locale code and an array of ID/message pairs.
-2. `I18n` owns installed catalogs and the configured fallback locale.
-3. Locale helpers normalize codes, build specific-to-general lookup chains,
-   and negotiate requested locales against supported locales.
-4. `Translator` performs requested-chain then fallback-chain lookup and returns
-   the first message found.
-
-The core package does not know about files, JSON, browsers, Rabbita, or an
-application's enums. Resource loading and typed wrappers remain at the
-application boundary. This lets command-line programs, servers, tests, and UI
-frameworks share the same lookup runtime.
+- `generate` writes formatted bindings and one catalog per configured locale.
+- `check` performs the same generation in memory and fails on changed, missing,
+  or unexpected catalog artifacts.
+- `coverage` reports translated/total counts without enforcing the release
+  floor.
+- `--allow-partial` disables the release coverage floor while developing;
+  source and fallback locales must still be complete.
+- `pseudo` creates an accented `en-XA` or RTL-wrapped `ar-XB` resource while
+  preserving MF2 expressions and selector syntax.
+- XLIFF 2.1 export/import preserves message IDs, descriptions, and MF2 text.
 
 ## Examples
 
-### Basic fallback
+- [Basic](examples/basic) demonstrates string-ID lookup and fallback.
+- [Typed](examples/typed) shows the smallest hand-written enum adapter.
+- [Rabbita Counter](examples/rabbita_web/README.mbt.md) is a small hand-written
+  typed browser integration.
+- [Rabbita Todo](examples/rabbita_todo/README.mbt.md) uses generated enums,
+  catalogs, parameters, coverage checks, and the complete `t.t(...)` workflow.
+
+The Rabbita examples are standalone workspace modules, so Rabbita is not a
+dependency of the core library.
+
+## Validate this repository
 
 ~~~bash
-moon run --target js examples/basic
-~~~
-
-~~~text
-zh-CN common.hello: 你好
-zh-CN common.save (fallback en-US): Save
-~~~
-
-### Rabbita Web
-
-The standalone [Rabbita Counter example](examples/rabbita_web/README.mbt.md)
-adapts Rabbita's official Counter with a typed message schema, localized count
-messages, and an `en-US`/`zh-CN` language switch. It is a separate workspace
-module, so Rabbita is not a dependency of the core `lampclaw/i18n` module.
-
-~~~bash
-cd examples/rabbita_web
-moon install moonbit-community/warren@0.2.2
-warren dev
-~~~
-
-Open the URL printed by Warren, then change the count and switch languages. The
-example README records the verified development-server output, browser checks,
-and release-build workflow.
-
-## Repository validation
-
-From the repository root:
-
-~~~bash
-moon info && git diff --exit-code
+moon info
 moon fmt --check
 moon check --target js
+moon test --target native
+moon test --target wasm
+moon test --target wasm-gc
 moon test --target js
-moon run --target js examples/basic
-moon run --target js examples/typed
+moon build --target js
+
+moon run cmd/i18n -- check \
+  examples/rabbita_todo/i18n/config.json \
+  examples/rabbita_todo/i18n/schema.json \
+  examples/rabbita_todo/i18n/locales \
+  examples/rabbita_todo/main/generated.mbt \
+  examples/rabbita_todo/public/i18n
 ~~~
 
-The test suites cover locale resolution, catalog validation, MF2 formatting,
-the typed enum layer, and the standalone Rabbita Counter integration.
-
-Validate the browser release separately:
+Browser release builds:
 
 ~~~bash
 cd examples/rabbita_web
 warren build --dist /tmp/moonbit-i18n-rabbita-counter
+
+cd ../rabbita_todo
+warren build --dist /tmp/moonbit-i18n-rabbita-todo
 ~~~
 
-Warren produces `index.html`, `index.js`, and `styles.css`. The output directory
-is disposable and is not committed.
-
-## Repository layout
+## Architecture
 
 ~~~text
-i18n.mbt                    # Catalog, I18n, and Translator runtime
-locale.mbt                  # normalization and locale resolution
-examples/basic/             # smallest string-ID fallback example
-examples/typed/             # application-owned typed enum layer
-examples/rabbita_web/       # localized Rabbita Counter browser example
+config + schema + locale JSON
+             │
+             ▼
+      generator / CLI ──────── coverage, pseudo, XLIFF
+          │       │
+          ▼       ▼
+  typed bindings  catalog JSON
+          │       │
+          └───┬───┘
+              ▼
+       I18n + Translator
+              │
+       MF2 + Formatter
+              │
+              ▼
+     application / UI adapter
 ~~~
+
+The repository contains no application business resources, application
+loaders, or legacy generator entry points. The implementation is generic and
+the examples are based on upstream Rabbita examples.
 
 ## License
 

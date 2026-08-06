@@ -47,11 +47,26 @@ jobs:
           moon fmt --check
           moon check --target js
           moon test --target native
+          moon test --target wasm
+          moon test --target wasm-gc
           moon test --target js
           moon build --target js
           git diff --check
 
+      - name: Generated i18n artifacts
+        run: |
+          moon run cmd/i18n -- check \
+            examples/rabbita_todo/i18n/config.json \
+            examples/rabbita_todo/i18n/schema.json \
+            examples/rabbita_todo/i18n/locales \
+            examples/rabbita_todo/main/generated.mbt \
+            examples/rabbita_todo/public/i18n
+
       - name: Generated and interface drift
         run: |
           git diff --exit-code
-          git status --short
+          status_output="$(git status --porcelain=v1)"
+          if [ -n "$status_output" ]; then
+            printf '%s\n' "$status_output"
+            exit 1
+          fi

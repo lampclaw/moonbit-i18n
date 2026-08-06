@@ -1,0 +1,28 @@
+{
+  "common": {
+    "current_language": "当前语言",
+    "switch_language": "English"
+  },
+  "todo_ui": {
+    "active_count": "{$count :number} 项待办",
+    "add": "添加",
+    "delete": "删除",
+    "empty_active": "没有进行中的待办。",
+    "empty_all": "还没有待办事项。",
+    "empty_done": "没有已完成的待办。",
+    "empty_stats": "还没有统计数据。",
+    "less": "收起",
+    "metric_active": "进行中",
+    "metric_done": "已完成",
+    "metric_total": "总计",
+    "more": "展开",
+    "placeholder": "接下来要做什么？",
+    "status_done": "已完成",
+    "status_open": "进行中",
+    "tab_active": "进行中",
+    "tab_all": "全部",
+    "tab_done": "已完成",
+    "tab_stats": "统计",
+    "title": "待办事项"
+  }
+}

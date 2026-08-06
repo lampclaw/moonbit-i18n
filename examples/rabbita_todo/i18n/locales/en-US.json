@@ -1,0 +1,28 @@
+{
+  "common": {
+    "current_language": "Current language",
+    "switch_language": "中文"
+  },
+  "todo_ui": {
+    "active_count": ".input {$count :number}\n.match $count\none {{One active}}\n* {{{$count} active}}",
+    "add": "Add",
+    "delete": "Delete",
+    "empty_active": "No active todos.",
+    "empty_all": "No todos yet.",
+    "empty_done": "No completed todos.",
+    "empty_stats": "No data yet.",
+    "less": "Less",
+    "metric_active": "Active",
+    "metric_done": "Done",
+    "metric_total": "Total",
+    "more": "More",
+    "placeholder": "What needs doing?",
+    "status_done": "Done",
+    "status_open": "Open",
+    "tab_active": "Active",
+    "tab_all": "All",
+    "tab_done": "Done",
+    "tab_stats": "Stats",
+    "title": "Todos"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "messages": {
+    "common": [
+      "current_language",
+      "switch_language"
+    ],
+    "todo_ui": [
+      "active_count",
+      "add",
+      "delete",
+      "empty_active",
+      "empty_all",
+      "empty_done",
+      "empty_stats",
+      "less",
+      "metric_active",
+      "metric_done",
+      "metric_total",
+      "more",
+      "placeholder",
+      "status_done",
+      "status_open",
+      "tab_active",
+      "tab_all",
+      "tab_done",
+      "tab_stats",
+      "title"
+    ]
+  },
+  "params": {
+    "todo_ui.active_count": [
+      {
+        "name": "count",
+        "type": "Int"
+      }
+    ]
+  },
+  "descriptions": {
+    "todo_ui.active_count": "Number of active todo items shown in the panel header.",
+    "todo_ui.placeholder": "Placeholder for the new todo title input."
+  }
+}

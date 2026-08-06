@@ -1,0 +1,15 @@
+import {
+  "lampclaw/i18n" @runtime,
+  "lampclaw/i18n/js" @runtime_js,
+  "moonbit-community/rabbita",
+  "moonbit-community/rabbita/sub",
+  "moonbit-community/rabbita/html",
+  "moonbitlang/core/immut/sorted_map",
+  "moonbitlang/core/immut/vector",
+}
+
+supported_targets = "js"
+
+warnings = "-a"
+
+pkgtype(kind: "executable")

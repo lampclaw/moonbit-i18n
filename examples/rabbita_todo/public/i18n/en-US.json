@@ -1,0 +1,30 @@
+{
+  "catalogVersion": 1,
+  "schemaHash": "v1-22-31955952",
+  "locale": "en-US",
+  "direction": "ltr",
+  "messages": {
+    "common.current_language": "Current language",
+    "common.switch_language": "中文",
+    "todo_ui.active_count": ".input {$count :number}\n.match $count\none {{One active}}\n* {{{$count} active}}",
+    "todo_ui.add": "Add",
+    "todo_ui.delete": "Delete",
+    "todo_ui.empty_active": "No active todos.",
+    "todo_ui.empty_all": "No todos yet.",
+    "todo_ui.empty_done": "No completed todos.",
+    "todo_ui.empty_stats": "No data yet.",
+    "todo_ui.less": "Less",
+    "todo_ui.metric_active": "Active",
+    "todo_ui.metric_done": "Done",
+    "todo_ui.metric_total": "Total",
+    "todo_ui.more": "More",
+    "todo_ui.placeholder": "What needs doing?",
+    "todo_ui.status_done": "Done",
+    "todo_ui.status_open": "Open",
+    "todo_ui.tab_active": "Active",
+    "todo_ui.tab_all": "All",
+    "todo_ui.tab_done": "Done",
+    "todo_ui.tab_stats": "Stats",
+    "todo_ui.title": "Todos"
+  }
+}

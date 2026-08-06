@@ -1,0 +1,30 @@
+{
+  "catalogVersion": 1,
+  "schemaHash": "v1-22-31955952",
+  "locale": "zh-CN",
+  "direction": "ltr",
+  "messages": {
+    "common.current_language": "当前语言",
+    "common.switch_language": "English",
+    "todo_ui.active_count": "{$count :number} 项待办",
+    "todo_ui.add": "添加",
+    "todo_ui.delete": "删除",
+    "todo_ui.empty_active": "没有进行中的待办。",
+    "todo_ui.empty_all": "还没有待办事项。",
+    "todo_ui.empty_done": "没有已完成的待办。",
+    "todo_ui.empty_stats": "还没有统计数据。",
+    "todo_ui.less": "收起",
+    "todo_ui.metric_active": "进行中",
+    "todo_ui.metric_done": "已完成",
+    "todo_ui.metric_total": "总计",
+    "todo_ui.more": "展开",
+    "todo_ui.placeholder": "接下来要做什么？",
+    "todo_ui.status_done": "已完成",
+    "todo_ui.status_open": "进行中",
+    "todo_ui.tab_active": "进行中",
+    "todo_ui.tab_all": "全部",
+    "todo_ui.tab_done": "已完成",
+    "todo_ui.tab_stats": "统计",
+    "todo_ui.title": "待办事项"
+  }
+}

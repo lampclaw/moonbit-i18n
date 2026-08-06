@@ -1,0 +1,17 @@
+{
+  "sourceLocale": "en-US",
+  "defaultLocale": "zh-CN",
+  "fallbackLocale": "en-US",
+  "embeddedLocales": ["en-US", "zh-CN"],
+  "release": {
+    "minimumCoverage": 1.0
+  },
+  "locales": {
+    "en-US": {
+      "direction": "ltr"
+    },
+    "zh-CN": {
+      "direction": "ltr"
+    }
+  }
+}
