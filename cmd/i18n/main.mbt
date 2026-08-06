@@ -1,0 +1,200 @@
+///|
+extern "js" fn read_file(path : String) -> String =
+  #| (path) => process.getBuiltinModule("fs").readFileSync(path, "utf8")
+
+///|
+extern "js" fn write_file(path : String, content : String) -> Unit =
+  #| (path, content) => {
+  #|   const fs = process.getBuiltinModule("fs")
+  #|   const pathModule = process.getBuiltinModule("path")
+  #|   fs.mkdirSync(pathModule.dirname(path), { recursive: true })
+  #|   fs.writeFileSync(path, content)
+  #| }
+
+///|
+extern "js" fn read_dir(path : String) -> Array[String] =
+  #| (path) => process.getBuiltinModule("fs").readdirSync(path)
+
+///|
+extern "js" fn file_exists(path : String) -> Bool =
+  #| (path) => process.getBuiltinModule("fs").existsSync(path)
+
+///|
+extern "js" fn ensure_dir(path : String) -> Unit =
+  #| (path) => process.getBuiltinModule("fs").mkdirSync(path, { recursive: true })
+
+///|
+extern "js" fn format_moonbit_source(source : String) -> String =
+  #| (source) => {
+  #|   const childProcess = process.getBuiltinModule("child_process")
+  #|   const result = childProcess.spawnSync(
+  #|     "moonfmt",
+  #|     ["-", "-file-type", "mbt"],
+  #|     { input: source, encoding: "utf8" },
+  #|   )
+  #|   if (result.error) throw result.error
+  #|   if (result.status !== 0) {
+  #|     throw new Error(result.stderr || `moonfmt exited with ${result.status}`)
+  #|   }
+  #|   return result.stdout
+  #| }
+
+///|
+fn usage() -> String {
+  (
+    #|usage:
+    #|  moon run cmd/i18n -- generate [--allow-partial] <config-file> <schema-file> <locale-dir> <output.mbt> <catalog-dir>
+    #|  moon run cmd/i18n -- check [--allow-partial] <config-file> <schema-file> <locale-dir> <output.mbt> <catalog-dir>
+    #|  moon run cmd/i18n -- coverage <config-file> <schema-file> <locale-dir>
+  )
+}
+
+///|
+fn user_args(args : Array[String]) -> Array[String] {
+  for i = 0; i < args.length(); i = i + 1 {
+    if args[i] == "--" {
+      return args[i + 1:].to_owned()
+    }
+  }
+  for i = 0; i < args.length(); i = i + 1 {
+    if args[i] == "generate" || args[i] == "check" || args[i] == "coverage" {
+      return args[i:].to_owned()
+    }
+  }
+  []
+}
+
+///|
+fn without_allow_partial(args : Array[String]) -> Array[String] {
+  args.filter(arg => arg != "--allow-partial")
+}
+
+///|
+fn locale_sources(input_dir : String) -> Array[@generator.LocaleSource] {
+  let files = read_dir(input_dir)
+  files.sort_by((left, right) => left.lexical_compare(right))
+  let sources : Array[@generator.LocaleSource] = []
+  for file in files {
+    if file.has_suffix(".json") &&
+      file != "config.json" &&
+      file != "schema.json" {
+      sources.push({
+        code: file[:file.length() - ".json".length()].to_owned(),
+        source: read_file(input_dir + "/" + file),
+      })
+    }
+  }
+  sources
+}
+
+///|
+fn text_file_content(source : String) -> String {
+  if source.has_suffix("\n") {
+    source
+  } else {
+    source + "\n"
+  }
+}
+
+///|
+fn check_file(path : String, expected : String, kind : String) -> Unit {
+  if !file_exists(path) || read_file(path) != expected {
+    abort("i18n \{kind} is out of date: \{path}")
+  }
+}
+
+///|
+fn check_catalog_set(
+  catalog_dir : String,
+  catalogs : Array[(String, String)],
+) -> Unit {
+  let expected = catalogs.map(catalog => catalog.0 + ".json")
+  for file in read_dir(catalog_dir) {
+    if file.has_suffix(".json") && !expected.contains(file) {
+      abort("unexpected i18n catalog: \{catalog_dir}/\{file}")
+    }
+  }
+}
+
+///|
+fn load_artifacts(
+  config_file : String,
+  schema_file : String,
+  locale_dir : String,
+  enforce_coverage : Bool,
+) -> @generator.Artifacts {
+  let sources = locale_sources(locale_dir)
+  if sources.is_empty() {
+    abort("no locale JSON files found in: \{locale_dir}")
+  }
+  match
+    @generator.generate(
+      read_file(config_file),
+      read_file(schema_file),
+      sources,
+      enforce_coverage~,
+    ) {
+    Ok(value) => value
+    Err(message) => abort(message)
+  }
+}
+
+///|
+fn run_generate(args : Array[String], check_mode : Bool) -> Unit {
+  let allow_partial = args.contains("--allow-partial")
+  let values = without_allow_partial(args)
+  if values.length() != 6 {
+    abort(usage())
+  }
+  let artifacts = load_artifacts(
+    values[1],
+    values[2],
+    values[3],
+    !allow_partial,
+  )
+  let code = format_moonbit_source(artifacts.code)
+  if check_mode {
+    check_file(values[4], code, "generated bindings")
+    for catalog in artifacts.catalogs {
+      check_file(
+        values[5] + "/" + catalog.0 + ".json",
+        text_file_content(catalog.1),
+        "catalog",
+      )
+    }
+    check_catalog_set(values[5], artifacts.catalogs)
+  } else {
+    ensure_dir(values[5])
+    write_file(values[4], code)
+    for catalog in artifacts.catalogs {
+      write_file(
+        values[5] + "/" + catalog.0 + ".json",
+        text_file_content(catalog.1),
+      )
+    }
+  }
+  println(artifacts.coverage_report)
+}
+
+///|
+fn run_coverage(args : Array[String]) -> Unit {
+  if args.length() != 4 {
+    abort(usage())
+  }
+  let artifacts = load_artifacts(args[1], args[2], args[3], false)
+  println(artifacts.coverage_report)
+}
+
+///|
+fn main {
+  let args = user_args(@env.args())
+  if args.is_empty() {
+    abort(usage())
+  }
+  match args[0] {
+    "generate" => run_generate(args, false)
+    "check" => run_generate(args, true)
+    "coverage" => run_coverage(args)
+    _ => abort(usage())
+  }
+}

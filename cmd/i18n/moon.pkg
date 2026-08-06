@@ -1,0 +1,8 @@
+import {
+  "lampclaw/i18n/generator",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "executable")
