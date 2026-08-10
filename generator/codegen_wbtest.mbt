@@ -26,6 +26,8 @@ test "generate typed bindings and embedded catalogs" {
   assert_true(code.contains("pub fn I18n::new() -> I18n"))
   assert_true(code.contains("formatter=@runtime_js.formatter()"))
   assert_true(code.contains("pub fn I18n::default_translator"))
+  assert_true(code.contains("pub fn I18n::translator_from_codes"))
+  assert_true(code.contains("pub fn resolve_locale_codes"))
   assert_true(code.contains("pub fn I18n::install_catalog_source"))
   assert_true(code.contains("pub fn I18n::installed_locales"))
   assert_true(code.contains("pub fn I18n::take_diagnostics"))

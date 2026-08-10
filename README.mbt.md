@@ -150,8 +150,10 @@ let count = t.t(
 The generated facade provides:
 
 - `I18n::new()` with embedded catalogs and JavaScript `Intl` formatting;
-- `default_translator()`, `translator(Locale)`, and
-  `translator_from_code(String)`;
+- `default_translator()`, `translator(Locale)`, `translator_from_code(String)`,
+  and `translator_from_codes(Array[String])`;
+- `resolve_locale_codes(Array[String])` for ordered locale negotiation without
+  constructing a translator;
 - typed `Translator::t(I18nText)`;
 - `install_catalog_source(Locale, String)` for validated dynamic catalogs;
 - `has_catalog(Locale)` and `installed_locales()`;

@@ -145,8 +145,10 @@ let count = t.t(
 生成的 facade 提供：
 
 - `I18n::new()`，自动安装内嵌 catalog 并使用 JavaScript `Intl`；
-- `default_translator()`、`translator(Locale)` 和
-  `translator_from_code(String)`；
+- `default_translator()`、`translator(Locale)`、`translator_from_code(String)`
+  和 `translator_from_codes(Array[String])`；
+- `resolve_locale_codes(Array[String])`，用于在不构造 translator 的情况下按顺序
+  协商 locale；
 - 类型化的 `Translator::t(I18nText)`；
 - 用于动态 catalog 的 `install_catalog_source(Locale, String)`；
 - `has_catalog(Locale)` 与 `installed_locales()`；

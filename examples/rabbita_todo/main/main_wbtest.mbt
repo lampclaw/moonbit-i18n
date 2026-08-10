@@ -41,6 +41,11 @@ test "generated Todo facade formats and negotiates locales" {
   assert_eq(zh.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))), "3 项待办")
   assert_eq(i18n.default_translator().locale(), @app_i18n.ZhCN)
   assert_eq(i18n.translator_from_code("zh_cn").locale(), @app_i18n.ZhCN)
+  assert_eq(
+    i18n.translator_from_codes(["fr-FR", "en-US"]).locale(),
+    @app_i18n.EnUS,
+  )
+  assert_eq(@app_i18n.resolve_locale_codes(["fr-FR", "zh-CN"]), @app_i18n.ZhCN)
   assert_true(i18n.has_catalog(@app_i18n.EnUS))
   assert_true(i18n.has_catalog(@app_i18n.ZhCN))
   assert_eq(i18n.installed_locales(), [@app_i18n.EnUS, @app_i18n.ZhCN])

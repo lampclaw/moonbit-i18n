@@ -15,6 +15,8 @@ pub fn fallback_locale() -> Locale
 
 pub fn locale_from_code(String, Locale) -> Locale
 
+pub fn resolve_locale_codes(Array[String]) -> Locale
+
 // Errors
 
 // Types and methods
@@ -40,6 +42,7 @@ pub fn I18n::new() -> Self
 pub fn I18n::take_diagnostics(Self) -> Array[Diagnostic]
 pub fn I18n::translator(Self, Locale) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
+pub fn I18n::translator_from_codes(Self, Array[String]) -> Translator
 
 pub(all) enum I18nText {
   Common(CommonText)
