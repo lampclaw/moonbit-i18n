@@ -247,13 +247,26 @@ fn write_facade(out : StringBuilder, config : I18nConfig) -> Unit {
     #|  self : I18n,
     #|  code : String,
     #|) -> Translator {
+    #|  self.translator_from_codes([code])
+    #|}
+    #|
+    #|///|
+    #|pub fn I18n::translator_from_codes(
+    #|  self : I18n,
+    #|  codes : Array[String],
+    #|) -> Translator {
+    #|  self.translator(resolve_locale_codes(codes))
+    #|}
+    #|
+    #|///|
+    #|pub fn resolve_locale_codes(codes : Array[String]) -> Locale {
     #|  let supported = all_locales().map(locale => locale.code())
     #|  let resolved = @runtime.resolve_locale_code(
-    #|    [code],
+    #|    codes,
     #|    supported,
     #|    default_locale().code(),
     #|  )
-    #|  self.translator(locale_from_code(resolved, default_locale()))
+    #|  locale_from_code(resolved, default_locale())
     #|}
     #|
     #|///|
