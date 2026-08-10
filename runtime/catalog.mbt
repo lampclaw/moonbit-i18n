@@ -34,7 +34,7 @@ pub fn Catalog::catalog_version(self : Catalog) -> Int {
 }
 
 ///|
-pub fn Catalog::new(
+pub fn Catalog::from_generated_entries(
   locale_code~ : String,
   schema_hash~ : String,
   entries~ : Array[CatalogEntry],
@@ -69,8 +69,9 @@ pub fn Catalog::coverage(self : Catalog, message_ids : Array[String]) -> Double 
   }
   let mut translated = 0
   for id in message_ids {
-    if self.find(id) is Some(_) {
-      translated = translated + 1
+    match self.find(id) {
+      Some(message) if !message.trim().is_empty() => translated = translated + 1
+      _ => ()
     }
   }
   translated.to_double() / message_ids.length().to_double()

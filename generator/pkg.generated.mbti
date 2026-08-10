@@ -12,6 +12,8 @@ pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -
 
 pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
 
+pub fn generated_package_manifest() -> String
+
 pub fn import_xliff(String, String, String) -> Result[String, String]
 
 pub fn parse_config(String) -> Result[I18nConfig, String]
@@ -27,6 +29,7 @@ pub fn pseudo_locale(String, String, String, String) -> Result[String, String]
 // Types and methods
 pub(all) struct Artifacts {
   code : String
+  package_manifest : String
   catalogs : Array[(String, String)]
   coverage_report : String
   schema_hash : String

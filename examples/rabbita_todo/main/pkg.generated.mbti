@@ -2,49 +2,14 @@
 package "lampclaw/i18n_rabbita_todo/main"
 
 import {
-  "lampclaw/i18n",
   "moonbitlang/core/debug",
 }
 
 // Values
-pub const SCHEMA_HASH : String = "v1-22-31955952"
-
-pub fn default_locale() -> Locale
-
-pub fn fallback_locale() -> Locale
-
-pub fn locale_from_code(String, Locale) -> Locale
 
 // Errors
 
 // Types and methods
-pub(all) enum CommonText {
-  CurrentLanguage
-  SwitchLanguage
-} derive(Eq, @debug.Debug)
-
-pub struct I18n {
-  runtime : @i18n.I18n
-}
-pub fn I18n::fallback_locale(Self) -> Locale
-pub fn I18n::install_catalog_source(Self, Locale, String) -> Result[Unit, String]
-pub fn I18n::new() -> Self
-pub fn I18n::translator(Self, Locale) -> Translator
-pub fn I18n::translator_from_code(Self, String) -> Translator
-
-pub(all) enum I18nText {
-  Common(CommonText)
-  TodoUi(TodoUiText)
-} derive(Eq, @debug.Debug)
-
-pub(all) enum Locale {
-  EnUS
-  ZhCN
-} derive(Eq, @debug.Debug)
-pub fn Locale::code(Self) -> String
-pub fn Locale::direction(Self) -> String
-pub fn Locale::html_lang(Self) -> String
-
 type Model derive(Eq, @debug.Debug)
 
 type Msg
@@ -52,35 +17,6 @@ type Msg
 type Todo derive(Eq, @debug.Debug)
 
 type TodoTab derive(Eq, @debug.Debug)
-
-pub(all) enum TodoUiText {
-  ActiveCount(Int)
-  Add
-  Delete
-  EmptyActive
-  EmptyAll
-  EmptyDone
-  EmptyStats
-  Less
-  MetricActive
-  MetricDone
-  MetricTotal
-  More
-  Placeholder
-  StatusDone
-  StatusOpen
-  TabActive
-  TabAll
-  TabDone
-  TabStats
-  Title
-} derive(Eq, @debug.Debug)
-
-pub struct Translator {
-  runtime : @i18n.Translator
-}
-pub fn Translator::locale(Self) -> Locale
-pub fn Translator::t(Self, I18nText) -> String
 
 // Type aliases
 

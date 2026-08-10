@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "lampclaw/i18n"
+package "lampclaw/i18n/runtime"
 
 import {
   "moonbitlang/core/debug",
@@ -38,8 +38,8 @@ pub fn Catalog::catalog_version(Self) -> Int
 pub fn Catalog::coverage(Self, Array[String]) -> Double
 pub fn Catalog::direction(Self) -> String
 pub fn Catalog::find(Self, String) -> String?
+pub fn Catalog::from_generated_entries(locale_code~ : String, schema_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
 pub fn Catalog::locale_code(Self) -> String
-pub fn Catalog::new(locale_code~ : String, schema_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
 pub fn Catalog::schema_hash(Self) -> String
 pub fn Catalog::to_json_string(Self) -> String
 
@@ -77,9 +77,9 @@ pub fn I18n::catalog_locale_codes(Self) -> Array[String]
 pub fn I18n::fallback_locale_code(Self) -> String
 pub fn I18n::find_catalog(Self, String) -> Catalog?
 pub fn I18n::has_catalog(Self, String) -> Bool
-pub fn I18n::install_catalog(Self, Catalog) -> Result[Unit, String]
 pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
+pub fn I18n::install_generated_catalog(Self, Catalog) -> Result[Unit, String]
 pub fn I18n::new(fallback_locale_code~ : String, schema_hash? : String, formatter? : Formatter) -> Self
 pub fn I18n::take_diagnostics(Self) -> Array[Diagnostic]
 pub fn I18n::translator(Self, String) -> Translator
@@ -110,7 +110,7 @@ pub struct Translator {
   locale_code : String
 }
 pub fn Translator::locale_code(Self) -> String
-pub fn Translator::translate(Self, String, Array[MessageArg]) -> String?
+pub fn Translator::translate_raw(Self, String, Array[MessageArg]) -> String?
 
 // Type aliases
 

@@ -1,42 +1,35 @@
-# Generated i18n · Rabbita Todo
+# Generated i18n package · Rabbita Todo
 
 [中文](README.zh-CN.mbt.md)
 
-This standalone browser example adapts Rabbita's official Todo application and
-uses the complete `lampclaw/i18n` workflow: JSON schema and locale resources,
-generated typed enums, embedded catalogs, MF2 parameters, Intl formatting, and
-the application-facing `t.t(...)` API.
+This browser example adapts Rabbita's official Todo application and shows the
+complete generator-first workflow. Maintained application source imports its
+own generated package; it does not import the i18n runtime.
 
-## Generate and validate translations
+## Generate and validate
 
-Run these commands from the repository root:
+Run from the repository root:
 
 ~~~bash
 moon run cmd/i18n -- generate \
-  examples/rabbita_todo/i18n/config.json \
-  examples/rabbita_todo/i18n/schema.json \
-  examples/rabbita_todo/i18n/locales \
-  examples/rabbita_todo/main/generated.mbt \
+  examples/rabbita_todo/localization/config.json \
+  examples/rabbita_todo/localization/schema.json \
+  examples/rabbita_todo/localization/locales \
+  examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
 moon run cmd/i18n -- check \
-  examples/rabbita_todo/i18n/config.json \
-  examples/rabbita_todo/i18n/schema.json \
-  examples/rabbita_todo/i18n/locales \
-  examples/rabbita_todo/main/generated.mbt \
+  examples/rabbita_todo/localization/config.json \
+  examples/rabbita_todo/localization/schema.json \
+  examples/rabbita_todo/localization/locales \
+  examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
-
-moon run cmd/i18n -- coverage \
-  examples/rabbita_todo/i18n/config.json \
-  examples/rabbita_todo/i18n/schema.json \
-  examples/rabbita_todo/i18n/locales
 ~~~
 
-The current resources report `en-US: 22/22 (100%)` and
-`zh-CN: 22/22 (100%)`. `check` is read-only and fails when generated bindings
-or catalogs differ from the committed files.
+Both locales currently report `22/22 (100%)`. The generator owns the complete
+`i18n/` package, including its `moon.pkg` and typed facade.
 
-## Run in development
+## Run
 
 ~~~bash
 cd examples/rabbita_todo
@@ -44,43 +37,36 @@ moon install moonbit-community/warren@0.2.2
 warren dev
 ~~~
 
-Open the URL printed by Warren. Add, complete, filter, and delete todos; switch
-between English and Chinese; and verify that the active-item count uses the
-localized parameterized message.
-
 For a release build:
 
 ~~~bash
 warren build --dist /tmp/moonbit-i18n-rabbita-todo
 ~~~
 
-The verified build writes `index.html`, `index.js`, `styles.css`, and the
-generated locale catalogs to the disposable output directory.
-
 ## Architecture
 
 ~~~text
-i18n/config.json + schema.json + locales/*.json
-                    │
-                    ▼
-              cmd/i18n generate
-                    │
-          ┌─────────┴──────────┐
-          ▼                    ▼
-main/generated.mbt       public/i18n/*.json
-typed Locale/I18nText    versioned catalogs
-          │
-          ▼
-main/i18n.mbt → Translator::t(I18nText)
-          │
-          ▼
-Rabbita model / update / view
+localization/config.json + schema.json + locales/*.json
+                         │
+                         ▼
+                   cmd/i18n generate
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+i18n/generated.mbt + moon.pkg  public/i18n/*.json
+typed facade + embedded data   versioned catalogs
+              │
+              ▼
+main/moon.pkg imports lampclaw/i18n_rabbita_todo/i18n
+              │
+              ▼
+Rabbita model / update / view calls Translator::t
 ~~~
 
-The generated file owns `Locale`, `I18nText`, message parameter conversion,
-schema hash, and embedded catalogs. `main/i18n.mbt` is the small application
-adapter, while `main/main.mbt` remains ordinary Rabbita code and calls APIs such
-as `t.t(TodoUi(ActiveCount(active)))`.
+The generated facade owns locale negotiation, embedded and dynamic catalogs,
+JavaScript `Intl` formatting, catalog status, and diagnostics. Business code
+uses typed values such as
+`@app_i18n.TodoUi(@app_i18n.ActiveCount(active))`.
 
 ## Origin and license
 

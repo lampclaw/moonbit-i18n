@@ -2,58 +2,62 @@
 
 [English](README.mbt.md)
 
-面向 MoonBit 的 typed 国际化：locale 协商、带版本的 catalog、实用的
-MessageFormat 2 子集、JavaScript `Intl` 格式化、typed enum 生成、覆盖率检查、
-pseudo locale 和 XLIFF 2.1 交换。
+`lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。版本仍停留在
+尚未发布的 `0.1.0` 开发阶段。当前面向应用的 facade 以 JavaScript 为首要目标，
+并自动使用平台的 `Intl` 实现。
 
-`0.1.0` 将 UI 框架和应用数据留在 core 之外。浏览器示例使用 Rabbita，但
-`lampclaw/i18n` 本身也适用于命令行、服务端、测试和其他 UI package。
+应用开发者通过 JSON 资源编写消息，生成独立的 MoonBit package，再翻译类型化的
+消息值；无需手工构造 catalog、消息参数或 formatter。
 
-## 安装
+## Authoring 模型
 
-模块发布之前，将本仓库与应用放进同一个 Moon workspace：
-
-~~~toml
-// moon.work
-members = [
-  "./moonbit-i18n",
-  "./my-app",
-]
-~~~
-
-~~~toml
-// my-app/moon.mod
-import {
-  "lampclaw/i18n@0.1.0",
-}
-~~~
-
-在使用它的 package 中导入运行时；JavaScript target 再导入 `Intl` formatter：
-
-~~~toml
-// my-app/main/moon.pkg
-import {
-  "lampclaw/i18n" @runtime,
-  "lampclaw/i18n/js" @runtime_js,
-}
-~~~
-
-发布后可用 `moon add lampclaw/i18n` 替代本地 workspace checkout。
-
-## 推荐的 typed 工作流
-
-应用拥有三类输入。本仓库不内置任何应用专属 locale 或消息名称。
+典型应用把可编辑的本地化输入与生成 package 分开：
 
 ~~~text
-i18n/
-  config.json
-  schema.json
-  locales/
-    en-US.json
-    zh-CN.json
+app/
+├── localization/
+│   ├── config.json
+│   ├── schema.json
+│   └── locales/
+│       ├── en-US.json
+│       └── zh-CN.json
+├── i18n/                 # 完全由生成器管理
+│   ├── generated.mbt
+│   └── moon.pkg
+└── main/
+    ├── main.mbt
+    └── moon.pkg
 ~~~
 
-`config.json` 声明 locale 策略和发布覆盖率下限：
+`localization/schema.json` 定义类型化消息契约：
+
+~~~json
+{
+  "messages": {
+    "common": ["hello"],
+    "cart": ["item_count"]
+  },
+  "params": {
+    "common.hello": [{ "name": "name", "type": "String" }],
+    "cart.item_count": [{ "name": "count", "type": "Int" }]
+  }
+}
+~~~
+
+每个 locale 提供消息文本，也可以使用 MF2 表达式和 matcher：
+
+~~~json
+{
+  "common": {
+    "hello": "你好 {$name}"
+  },
+  "cart": {
+    "item_count": "{$count :number} 件商品"
+  }
+}
+~~~
+
+`localization/config.json` 声明 locale 行为和发布覆盖率：
 
 ~~~json
 {
@@ -69,240 +73,122 @@ i18n/
 }
 ~~~
 
-`schema.json` 是消息 ID 与参数类型的单一事实来源：
+## 生成与校验
 
-~~~json
-{
-  "messages": {
-    "common": ["save"],
-    "counter": ["count"]
-  },
-  "params": {
-    "counter.count": [{ "name": "count", "type": "Int" }]
-  },
-  "descriptions": {
-    "counter.count": "Visible click count"
-  }
-}
-~~~
-
-Locale 文件只保存翻译：
-
-~~~json
-{
-  "common": { "save": "保存" },
-  "counter": {
-    "count": "已点击 {$count :number} 次"
-  }
-}
-~~~
-
-Locale 目录中的每个 `*.json` 都必须在 `config.json` 中声明；缺失、规范化后
-重复或未声明的 locale 会提前失败。
-
-使用显式路径生成 typed bindings 和带版本的 catalog：
+在模块 workspace 中执行：
 
 ~~~bash
 moon run cmd/i18n -- generate \
-  i18n/config.json \
-  i18n/schema.json \
-  i18n/locales \
-  src/i18n/generated.mbt \
-  public/i18n
+  app/localization/config.json \
+  app/localization/schema.json \
+  app/localization/locales \
+  app/i18n \
+  app/public/i18n
+
+moon run cmd/i18n -- check \
+  app/localization/config.json \
+  app/localization/schema.json \
+  app/localization/locales \
+  app/i18n \
+  app/public/i18n
 ~~~
 
-生成的 MoonBit 文件提供 `Locale`、`I18nText`、每个消息分组的 enum、参数
-转换、schema hash 和配置为内嵌的 catalog。Hash 由排序后的消息 ID 与参数
-类型生成，因此 JSON 格式或 translator description 的修改不会让仍兼容的
-catalog 失效。应用适配层可以据此暴露所需的 `t.t(...)` API：
+第四个参数是输出 package 目录，而不是单个源码文件。生成器拥有
+`generated.mbt` 和 `moon.pkg`：两个文件都带所有权标记；生成器拒绝覆盖没有标记
+的文件，也拒绝 package 内出现额外 `.mbt` 文件。`check` 只读，会检测源码、
+manifest、catalog 以及文件集合漂移。
 
-~~~moonbit nocheck
-let i18n = I18n::new()
-let t = i18n.translator(ZhCN)
+迭代期间，非 source locale 未达到覆盖率时可使用 `--allow-partial`。source 和
+fallback locale 始终必须完整。空字符串或只有空白的值会被视为缺失翻译。
 
-t.t(Common(Save))
-t.t(Counter(Count(2)))
-~~~
+## 应用依赖与使用
 
-完整的 schema 到浏览器集成参见生成式
-[Rabbita Todo 示例](examples/rabbita_todo/README.zh-CN.mbt.md)。
-
-## MessageFormat 2 子集
-
-消息支持 typed 变量和 formatter 标注：
+本地开发时，可把库模块和应用模块放进同一个 workspace：
 
 ~~~text
-你好，{$name}
-总计：{$total :number}
-发布于：{$date :datetime year=|numeric| month=|long|}
+members = [
+  ".",
+  "app",
+]
 ~~~
 
-Schema 参数类型支持 `String`、`Int`、`Double`、`Bool` 和 `DateTime`；生成的
-`DateTime` 参数使用 ISO 日期时间 `String`。formatter 支持 `:number`、
-`:integer` 和 `:datetime`。在 JavaScript 上，将
-`@runtime_js.formatter()` 传给运行时即可使用平台的 `Intl` 数字、日期时间和
-复数规则。其他 target 可以使用 `Formatter::basic()`，或提供相同的三个
-formatter callback。
-
-声明和 selector 可以表达常见复数与选择消息：
+应用模块声明 `0.1.0` 依赖：
 
 ~~~text
-.input {$count :number}
-.match $count
-one {{One item}}
-* {{{$count} items}}
+import {
+  "lampclaw/i18n@0.1.0",
+}
 ~~~
 
-`.input`、`.local`、`.match`、精确数字 key、复数类别和 wildcard fallback
-都会在生成 catalog 前校验。无效变量或未知变量会直接让生成失败，而不是留到
-运行时才暴露。
+业务 package 只导入自身生成的 package：
 
-Rich message 返回结构化 part，不要求应用注入 markup 字符串：
+~~~text
+import {
+  "acme/todo/i18n" @app_i18n,
+}
+~~~
 
-~~~moonbit nocheck
-@runtime.format_mf2_rich(
-  "阅读 {#link href=|/guide|}使用指南{/link}",
-  "zh-CN",
-  [],
-  @runtime_js.formatter(),
+翻译调用全程类型安全：
+
+~~~moonbit
+let i18n = @app_i18n.I18n::new()
+let t = i18n.default_translator()
+
+let greeting = t.t(
+  @app_i18n.Common(@app_i18n.Hello("MoonBit")),
+)
+let count = t.t(
+  @app_i18n.Cart(@app_i18n.ItemCount(3)),
 )
 ~~~
 
-结果包含 `RichText`、`RichOpen`、`RichClose` 和 `RichStandalone`。渲染前，
-用应用的标签 allow-list 调用 `validate_rich_tags`。`0.1.0` 尚不支持 rich
-selector message。
+生成的 facade 提供：
 
-## 运行时与 catalog
+- `I18n::new()`，自动安装内嵌 catalog 并使用 JavaScript `Intl`；
+- `default_translator()`、`translator(Locale)` 和
+  `translator_from_code(String)`；
+- 类型化的 `Translator::t(I18nText)`；
+- 用于动态 catalog 的 `install_catalog_source(Locale, String)`；
+- `has_catalog(Locale)` 与 `installed_locales()`；
+- 通过 `take_diagnostics()` 获取应用层诊断。
 
-不需要生成 bindings 时，也可以直接使用底层运行时：
+locale code 会处理常见的大小写与下划线差异。不支持的请求 locale 会协商到配置的
+default locale；具体消息缺失时仍按 fallback locale 查找。
 
-~~~moonbit nocheck
-let runtime = @runtime.I18n::new(
-  fallback_locale_code="en-US",
-  schema_hash="app-schema-v1",
-  formatter=@runtime_js.formatter(),
-)
+## Catalog 是部署产物
 
-runtime.install_catalog(
-  @runtime.Catalog::new(
-    locale_code="en-US",
-    schema_hash="app-schema-v1",
-    entries=[
-      { id: "common.hello", message: "Hello {$name}" },
-    ],
-  ),
-)
+Catalog JSON 适合懒加载、CDN 分发、schema 兼容检查、locale 元数据和诊断，但它
+不是第二套用户 authoring API。作者只编辑 locale 资源，由生成器产出带版本的
+catalog。需要懒加载时，应用把下载的 JSON 交给生成 facade 的
+`install_catalog_source`。
 
-let t = runtime.translator("en-US")
-let result = t.translate("common.hello", [
-  { name: "name", value: @runtime.TextValue("MoonBit") },
-])
-~~~
+catalog format version `1` 包含 `catalogVersion`、`schemaHash`、`locale`、
+`direction` 和扁平的 `messages`。安装时会拒绝不支持的版本、过期 schema hash
+和 locale 不匹配。
 
-Catalog JSON 包含 `catalogVersion`、`schemaHash`、规范化后的 `locale`、文字
-方向和消息。`install_catalog_source_for` 会解析动态加载的 catalog，并在安装前
-同时校验 locale 与 schema hash。
+## 校验与工具
 
-Locale 查找先搜索请求 locale 及其父级，再搜索配置的 fallback 链。例如
-`zh-Hans-CN` 会依次查找 `zh-Hans-CN`、`zh-Hans` 和 `zh`。
-`translator_from_code` 会先与已安装 catalog 协商。
+生成阶段会校验所有 MF2 matcher 分支、selector 值类型、variant key 数量、重复
+声明/selector/variant key，以及必需的全通配 fallback。同时会校验生成标识符冲突、
+locale 归一化冲突、source/fallback 完整性和发布覆盖率。
 
-`take_diagnostics()` 返回并清空结构化事件：
-
-- `MessageFallback(requested, resolved, id)`
-- `MissingMessage(locale, id)`
-- `MessageFormatFailed(locale, id, reason)`
-
-由应用决定记录、聚合还是展示这些事件。
-
-## CLI
-
-所有命令都要求显式输入和输出路径，不包含应用专属的默认目录。
-
-~~~text
-generate [--allow-partial] <config> <schema> <locale-dir> <output.mbt> <catalog-dir>
-check    [--allow-partial] <config> <schema> <locale-dir> <output.mbt> <catalog-dir>
-coverage                   <config> <schema> <locale-dir>
-pseudo   <schema> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-export-xliff <schema> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-import-xliff <schema> <target-locale> <input.xlf> <output.json>
-~~~
-
-- `generate` 写入格式化后的 bindings，以及每个已配置 locale 的 catalog。
-- `check` 在内存中执行相同生成，并在 catalog 产物改变、缺失或意外多出时失败。
-- `coverage` 报告已翻译/总消息数，不强制发布下限。
-- 开发阶段可用 `--allow-partial` 关闭发布覆盖率下限；source 与 fallback
-  locale 仍必须完整。
-- `pseudo` 生成带重音的 `en-XA` 或 RTL 包裹的 `ar-XB`，同时保留 MF2
-  expression 与 selector 语法。
-- XLIFF 2.1 导入导出会保留消息 ID、description 和 MF2 文本。
+工具还支持覆盖率报告、`en-XA`/`ar-XB` 伪本地化和 XLIFF 2.1 导入导出。完整命令
+可运行 `moon run cmd/i18n` 查看。
 
 ## 示例
 
-- [Basic](examples/basic) 展示字符串 ID 查找与 fallback。
-- [Typed](examples/typed) 展示最小的手写 enum 适配层。
-- [Rabbita Counter](examples/rabbita_web/README.zh-CN.mbt.md) 是小型手写 typed
-  浏览器集成。
-- [Rabbita Todo](examples/rabbita_todo/README.zh-CN.mbt.md) 使用生成 enum、
-  catalog、参数、覆盖率检查和完整 `t.t(...)` 工作流。
+[`examples/rabbita_todo`](examples/rabbita_todo/README.zh-CN.mbt.md) 展示浏览器应用的
+完整 package 生成工作流；其维护源码只导入自己的生成 i18n package。
 
-两个 Rabbita 示例都是独立 workspace module，因此 Rabbita 不是 core library
-的依赖。
+底层集成 API 已与普通 authoring 分离。生成器或框架维护者可阅读
+[`docs/runtime-spi.zh-CN.mbt.md`](docs/runtime-spi.zh-CN.mbt.md)。
 
-## 验证仓库
+## 当前范围
 
-~~~bash
-moon info
-moon fmt --check
-moon check --target js
-moon test --target native
-moon test --target wasm
-moon test --target wasm-gc
-moon test --target js
-moon build --target js
-
-moon run cmd/i18n -- check \
-  examples/rabbita_todo/i18n/config.json \
-  examples/rabbita_todo/i18n/schema.json \
-  examples/rabbita_todo/i18n/locales \
-  examples/rabbita_todo/main/generated.mbt \
-  examples/rabbita_todo/public/i18n
-~~~
-
-浏览器 release 构建：
-
-~~~bash
-cd examples/rabbita_web
-warren build --dist /tmp/moonbit-i18n-rabbita-counter
-
-cd ../rabbita_todo
-warren build --dist /tmp/moonbit-i18n-rabbita-todo
-~~~
-
-## 架构
-
-~~~text
-config + schema + locale JSON
-             │
-             ▼
-      generator / CLI ──────── coverage、pseudo、XLIFF
-          │       │
-          ▼       ▼
-  typed bindings  catalog JSON
-          │       │
-          └───┬───┘
-              ▼
-       I18n + Translator
-              │
-       MF2 + Formatter
-              │
-              ▼
-       应用 / UI 适配层
-~~~
-
-仓库不包含应用业务资源、应用 loader 或旧版 generator 入口；实现是通用模块，
-示例基于上游 Rabbita examples。
+生成的应用 facade 当前以 JS 为首要目标。类型化 rich-message authoring、
+Native/Wasm 完整 CLDR、完整 BCP 47、catalog AST 预编译、更强契约 hash，以及基于
+真实 XML parser 的 XLIFF 支持留待后续版本。
 
 ## 许可证
 
-Apache-2.0，参见 [LICENSE](LICENSE)。
+Apache-2.0

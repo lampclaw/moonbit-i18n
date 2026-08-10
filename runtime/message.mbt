@@ -239,8 +239,11 @@ fn format_match_message(
   let selectors : Array[(String, String, Array[FormatOption])] = []
   let match_names : Array[String] = []
   let variants : Array[(Array[String], String)] = []
+  let declaration_names : Array[String] = []
+  let variant_signatures : Array[String] = []
   let resolved_args = args.copy()
   let mut standalone_pattern : String? = None
+  let mut seen_match = false
   for raw_line in source.split("\n") {
     let line = raw_line.to_owned().trim().to_owned()
     if line.is_empty() {
@@ -261,11 +264,22 @@ fn format_match_message(
         return Err("invalid .input variable")
       }
       let name = tokens[0][1:].to_owned()
+      if name.is_empty() {
+        return Err("invalid .input variable")
+      }
+      if declaration_names.contains(name) {
+        return Err("duplicate declaration: \{name}")
+      }
       let mut function_name = "string"
+      let mut seen_function = false
       let options : Array[FormatOption] = []
       for i = 1; i < tokens.length(); i = i + 1 {
         if tokens[i].has_prefix(":") {
+          if seen_function {
+            return Err("multiple functions in .input: \{name}")
+          }
           function_name = tokens[i][1:].to_owned()
+          seen_function = true
         } else {
           match tokens[i].split_once("=") {
             Some((key, value)) =>
@@ -277,6 +291,15 @@ fn format_match_message(
           }
         }
       }
+      let arg = match find_arg(resolved_args, name) {
+        Some(value) => value
+        None => return Err("unknown variable: \{name}")
+      }
+      match validate_selector_type(name, arg.value, function_name) {
+        Ok(_) => ()
+        Err(message) => return Err(message)
+      }
+      declaration_names.push(name)
       selectors.push((name, function_name, options))
     } else if line.has_prefix(".local") {
       let assignment = line[".local".length():].to_owned().trim().to_owned()
@@ -288,6 +311,10 @@ fn format_match_message(
       if !name_token.has_prefix("$") || name_token.length() == 1 {
         return Err("invalid .local variable")
       }
+      let name = name_token[1:].to_owned()
+      if declaration_names.contains(name) {
+        return Err("duplicate declaration: \{name}")
+      }
       let expression = expression_part.to_owned().trim().to_owned()
       if !expression.has_prefix("{") || !expression.has_suffix("}") {
         return Err("invalid .local expression")
@@ -298,21 +325,33 @@ fn format_match_message(
         Ok(value) => value
         Err(message) => return Err(message)
       }
-      resolved_args.push({
-        name: name_token[1:].to_owned(),
-        value: TextValue(value),
-      })
+      declaration_names.push(name)
+      resolved_args.push({ name, value: TextValue(value) })
     } else if line.has_prefix(".match") {
+      if seen_match {
+        return Err("duplicate .match declaration")
+      }
+      seen_match = true
       let tokens = whitespace_tokens(line[".match".length():].to_owned())
+      if tokens.is_empty() {
+        return Err(".match requires at least one selector")
+      }
       for token in tokens {
-        if !token.has_prefix("$") {
+        if !token.has_prefix("$") || token.length() == 1 {
           return Err("invalid .match selector")
         }
-        match_names.push(token[1:].to_owned())
+        let name = token[1:].to_owned()
+        if match_names.contains(name) {
+          return Err("duplicate .match selector: \{name}")
+        }
+        match_names.push(name)
       }
     } else if line.has_prefix("{{") &&
       line.has_suffix("}}") &&
       match_names.is_empty() {
+      if standalone_pattern is Some(_) {
+        return Err("duplicate standalone pattern")
+      }
       standalone_pattern = Some(line[2:line.length() - 2].to_owned())
     } else {
       let open = match line.find("{{") {
@@ -326,8 +365,16 @@ fn format_match_message(
       if close < open + 2 {
         return Err("invalid match variant")
       }
+      if !line[close + 2:].to_owned().trim().is_empty() {
+        return Err("unexpected content after match variant")
+      }
       let keys = whitespace_tokens(line[:open].to_owned())
       let pattern = line[open + 2:close].to_owned()
+      let signature = keys.join("\u{1f}")
+      if variant_signatures.contains(signature) {
+        return Err("duplicate match variant keys: \{keys.join(" ")}")
+      }
+      variant_signatures.push(signature)
       variants.push((keys, pattern))
     }
   }
@@ -340,11 +387,31 @@ fn format_match_message(
   if variants.is_empty() {
     return Err("match message requires selectors and variants")
   }
+  for name in match_names {
+    if find_selector(selectors, name) is None {
+      return Err("matched variable requires .input: \{name}")
+    }
+  }
+  let mut has_fallback = false
   for variant in variants {
     let (keys, pattern) = variant
     if keys.length() != match_names.length() {
       return Err("match variant key count mismatch")
     }
+    if keys.all(key => key == "*") {
+      has_fallback = true
+    }
+    // Validate every branch, including branches not selected by these values.
+    match format_pattern(pattern, locale, resolved_args, formatter) {
+      Ok(_) => ()
+      Err(message) => return Err("invalid match variant pattern: \{message}")
+    }
+  }
+  if !has_fallback {
+    return Err("match message requires an all-wildcard fallback variant")
+  }
+  for variant in variants {
+    let (keys, pattern) = variant
     let mut matches = true
     for i = 0; i < match_names.length(); i = i + 1 {
       if keys[i] == "*" {
@@ -376,6 +443,23 @@ fn format_match_message(
     }
   }
   Err("no match variant selected")
+}
+
+///|
+fn validate_selector_type(
+  name : String,
+  value : MessageValue,
+  function_name : String,
+) -> Result[Unit, String] {
+  match function_name {
+    "" | "string" => Ok(())
+    "number" | "integer" =>
+      match value {
+        IntValue(_) | DoubleValue(_) => Ok(())
+        _ => Err("numeric selector requires Int or Double: \{name}")
+      }
+    _ => Err("unsupported selector function: :\{function_name}")
+  }
 }
 
 ///|

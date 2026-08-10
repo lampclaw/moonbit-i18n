@@ -71,7 +71,7 @@ pub fn Translator::locale_code(self : Translator) -> String {
 }
 
 ///|
-pub fn I18n::install_catalog(
+pub fn I18n::install_generated_catalog(
   self : I18n,
   catalog : Catalog,
 ) -> Result[Unit, String] {
@@ -96,7 +96,7 @@ pub fn I18n::install_catalog_source(
   source : String,
 ) -> Result[Unit, String] {
   match parse_catalog(source) {
-    Ok(catalog) => self.install_catalog(catalog)
+    Ok(catalog) => self.install_generated_catalog(catalog)
     Err(message) => Err(message)
   }
 }
@@ -122,7 +122,7 @@ pub fn I18n::install_catalog_source_for(
       "catalog locale mismatch: expected \{expected}, got \{catalog.locale_code}",
     )
   }
-  self.install_catalog(catalog)
+  self.install_generated_catalog(catalog)
 }
 
 ///|
@@ -157,7 +157,7 @@ pub fn I18n::find_catalog(self : I18n, locale_code : String) -> Catalog? {
 }
 
 ///|
-pub fn Translator::translate(
+pub fn Translator::translate_raw(
   self : Translator,
   id : String,
   args : Array[MessageArg],

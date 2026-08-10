@@ -56,11 +56,26 @@ jobs:
       - name: Generated i18n artifacts
         run: |
           moon run cmd/i18n -- check \
-            examples/rabbita_todo/i18n/config.json \
-            examples/rabbita_todo/i18n/schema.json \
-            examples/rabbita_todo/i18n/locales \
-            examples/rabbita_todo/main/generated.mbt \
+            examples/rabbita_todo/localization/config.json \
+            examples/rabbita_todo/localization/schema.json \
+            examples/rabbita_todo/localization/locales \
+            examples/rabbita_todo/i18n \
             examples/rabbita_todo/public/i18n
+
+      - name: Application authoring stays runtime-free
+        run: |
+          if grep -R -n -E '@runtime|Catalog|MessageArg|translate_raw' \
+            examples/rabbita_todo/main \
+            examples/rabbita_todo/localization; then
+            echo "maintained application source must use only its generated i18n package" >&2
+            exit 1
+          fi
+
+      - name: Rabbita Todo release build
+        run: |
+          moon install moonbit-community/warren@0.2.2
+          cd examples/rabbita_todo
+          warren build --dist /tmp/moonbit-i18n-rabbita-todo
 
       - name: Generated and interface drift
         run: |

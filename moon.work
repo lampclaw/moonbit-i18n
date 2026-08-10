@@ -1,5 +1,4 @@
 members = [
   ".",
   "examples/rabbita_todo",
-  "examples/rabbita_web",
 ]

@@ -35,6 +35,7 @@ test "generate catalog artifacts and coverage report" {
     fail("artifact generation should succeed")
   }
   assert_true(artifacts.schema_hash.has_prefix("v1-2-"))
+  assert_true(artifacts.package_manifest.contains("supported_targets = \"js\""))
   assert_eq(artifacts.catalogs.length(), 2)
   assert_true(artifacts.catalogs[0].1.contains("\"catalogVersion\": 1"))
   assert_true(artifacts.catalogs[0].1.contains(artifacts.schema_hash))
@@ -58,6 +59,24 @@ test "source and fallback locales must be complete" {
   assert_true(
     message.contains("source locale is incomplete: en-US: common.save"),
   )
+}
+
+///|
+test "blank source translations are incomplete" {
+  let blank_source =
+    #|{
+    #|  "common": { "save": "   " },
+    #|  "counter": { "count": "{$count :number} clicks" }
+    #|}
+  guard generate(generation_config, schema_source, [
+      { code: "en-US", source: blank_source },
+      { code: "zh-CN", source: zh_generation_source },
+    ])
+    is Err(message) else {
+    fail("blank source translation should fail completeness")
+  }
+  assert_true(message.contains("source locale is incomplete"))
+  assert_true(message.contains("common.save"))
 }
 
 ///|

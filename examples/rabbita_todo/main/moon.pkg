@@ -1,6 +1,5 @@
 import {
-  "lampclaw/i18n" @runtime,
-  "lampclaw/i18n/js" @runtime_js,
+  "lampclaw/i18n_rabbita_todo/i18n" @app_i18n,
   "moonbit-community/rabbita",
   "moonbit-community/rabbita/sub",
   "moonbit-community/rabbita/html",

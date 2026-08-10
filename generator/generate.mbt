@@ -1,6 +1,7 @@
 ///|
 pub(all) struct Artifacts {
   code : String
+  package_manifest : String
   catalogs : Array[(String, String)]
   coverage_report : String
   schema_hash : String
@@ -74,7 +75,7 @@ pub fn generate(
       id: message_id(entry),
       message: entry.text,
     })
-    let catalog = @runtime.Catalog::new(
+    let catalog = @runtime.Catalog::from_generated_entries(
       locale_code=locale.locale,
       schema_hash=hash,
       entries~,
@@ -84,6 +85,7 @@ pub fn generate(
   }
   Ok({
     code: generate_bindings(config, schema, locales, hash),
+    package_manifest: generated_package_manifest(),
     catalogs,
     coverage_report: reports.join("\n"),
     schema_hash: hash,
