@@ -4,7 +4,7 @@ version = "0.1.0"
 
 import {
   "lampclaw/i18n@0.1.0",
-  "moonbit-community/rabbita@0.13.1",
+  "moonbit-community/rabbita@0.14.2",
 }
 
 readme = "README.mbt.md"

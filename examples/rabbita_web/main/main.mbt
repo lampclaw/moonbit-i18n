@@ -18,7 +18,7 @@ struct Model {
 } derive(Eq, Debug)
 
 ///|
-fn update(msg : Msg, model : Model) -> Model {
+fn update(model : Model, msg : Msg) -> Model {
   match msg {
     Inc => { ..model, count: model.count + 1 }
     Dec => { ..model, count: model.count - 1 }

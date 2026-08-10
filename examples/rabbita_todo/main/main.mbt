@@ -90,7 +90,7 @@ enum Msg {
 }
 
 ///|
-fn update(msg : Msg, model : Model) -> Model {
+fn update(model : Model, msg : Msg) -> Model {
   let { title, items, next, .. } = model
   match msg {
     TitleChanged(title) => { ..model, title, }
