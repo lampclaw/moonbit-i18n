@@ -241,6 +241,11 @@ pub fn parse_locale(
             "entry must be a string or object: \{locale}.\{group}.\{key}",
           )
       }
+      // Blank values are untranslated authoring placeholders. Omitting them
+      // makes completeness and coverage reflect usable messages only.
+      if text.trim().is_empty() {
+        continue
+      }
       let args = schema_entry.params.map(param => @runtime.MessageArg::{
         name: param.name,
         value: dummy_value(param.typ),

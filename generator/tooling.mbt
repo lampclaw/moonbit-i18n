@@ -53,7 +53,11 @@ pub fn export_xliff(
         }
       None => ""
     }
-    let state = if target_message.is_empty() { "initial" } else { "translated" }
+    let state = if target_message.trim().is_empty() {
+      "initial"
+    } else {
+      "translated"
+    }
     out.write_string("    <unit id=\"\{xml_escape(id)}\">")
     match schema_description(schema, id) {
       Some(description) =>

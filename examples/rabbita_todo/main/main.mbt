@@ -35,38 +35,38 @@ impl @rabbita.Enumerate for TodoTab with fn tag(self) {
 }
 
 ///|
-fn TodoTab::label(self : TodoTab, t : Translator) -> String {
+fn TodoTab::label(self : TodoTab, t : @app_i18n.Translator) -> String {
   t.t(
-    TodoUi(
+    @app_i18n.TodoUi(
       match self {
-        All => TabAll
-        Active => TabActive
-        Done => TabDone
-        Stats => TabStats
+        All => @app_i18n.TabAll
+        Active => @app_i18n.TabActive
+        Done => @app_i18n.TabDone
+        Stats => @app_i18n.TabStats
       },
     ),
   )
 }
 
 ///|
-fn TodoTab::empty_text(self : TodoTab, t : Translator) -> String {
+fn TodoTab::empty_text(self : TodoTab, t : @app_i18n.Translator) -> String {
   t.t(
-    TodoUi(
+    @app_i18n.TodoUi(
       match self {
-        All => EmptyAll
-        Active => EmptyActive
-        Done => EmptyDone
-        Stats => EmptyStats
+        All => @app_i18n.EmptyAll
+        Active => @app_i18n.EmptyActive
+        Done => @app_i18n.EmptyDone
+        Stats => @app_i18n.EmptyStats
       },
     ),
   )
 }
 
 ///|
-fn Locale::other(self : Locale) -> Locale {
-  match self {
-    EnUS => ZhCN
-    ZhCN => EnUS
+fn other_locale(locale : @app_i18n.Locale) -> @app_i18n.Locale {
+  match locale {
+    @app_i18n.EnUS => @app_i18n.ZhCN
+    @app_i18n.ZhCN => @app_i18n.EnUS
   }
 }
 
@@ -76,7 +76,7 @@ struct Model {
   items : SortedMap[Int, Todo]
   next : Int
   tab : TodoTab
-  locale : Locale
+  locale : @app_i18n.Locale
 } derive(Eq, Debug)
 
 ///|
@@ -95,7 +95,7 @@ fn update(model : Model, msg : Msg) -> Model {
   match msg {
     TitleChanged(title) => { ..model, title, }
     SetTab(tab) => { ..model, tab, }
-    ToggleLocale => { ..model, locale: model.locale.other() }
+    ToggleLocale => { ..model, locale: other_locale(model.locale) }
     Add if title == "" => model
     Toggle(id) => {
       let todo = items[id]
@@ -116,8 +116,8 @@ fn update(model : Model, msg : Msg) -> Model {
 fn todo(
   id : Int,
   todo : Val[Todo],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
   emit : Emit[Msg],
 ) -> Val[Html] {
   let (folded, set_folded) = @rabbita.create_variable(false)
@@ -136,7 +136,15 @@ fn todo(
         type_="button",
         class=if todo.done { "status-toggle is-done" } else { "status-toggle" },
         on_click=emit(Toggle(id)),
-        t.t(TodoUi(if todo.done { StatusDone } else { StatusOpen })),
+        t.t(
+          @app_i18n.TodoUi(
+            if todo.done {
+              @app_i18n.StatusDone
+            } else {
+              @app_i18n.StatusOpen
+            },
+          ),
+        ),
       ),
       div(class="todo-copy", [
         span(class="todo-title", title),
@@ -145,7 +153,15 @@ fn todo(
             type_="button",
             class="inline-toggle",
             on_click=set_folded(value => !value),
-            t.t(TodoUi(if folded { More } else { Less })),
+            t.t(
+              @app_i18n.TodoUi(
+                if folded {
+                  @app_i18n.More
+                } else {
+                  @app_i18n.Less
+                },
+              ),
+            ),
           )
         } else {
           span(class="inline-placeholder", "")
@@ -155,7 +171,7 @@ fn todo(
         type_="button",
         class="delete-button",
         on_click=emit(Delete(id)),
-        t.t(TodoUi(Delete)),
+        t.t(@app_i18n.TodoUi(@app_i18n.Delete)),
       ),
     ])
   })
@@ -167,7 +183,7 @@ fn tab_button(
   current : TodoTab,
   tab : TodoTab,
   count : Int,
-  t : Translator,
+  t : @app_i18n.Translator,
 ) -> Html {
   let class = if current == tab { "tab is-active" } else { "tab" }
   button(type_="button", class~, on_click=emit(SetTab(tab)), [
@@ -188,8 +204,8 @@ fn metric_card(label : String, value : Int) -> Html {
 fn list_content(
   tab : TodoTab,
   todos : Val[Vector[Html]],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
 ) -> Val[Html] {
   todos.map2(locale, (todos, locale) => {
     let t = i18n.translator(locale)
@@ -204,8 +220,8 @@ fn list_content(
 ///|
 fn all_content(
   model : Val[Model],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
   emit : Emit[Msg],
 ) -> Val[Html] {
   let entries = model.map(model => from_iter(model.items.iter()))
@@ -218,8 +234,8 @@ fn all_content(
 ///|
 fn active_content(
   model : Val[Model],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
   emit : Emit[Msg],
 ) -> Val[Html] {
   let entries = model.map(model => {
@@ -234,8 +250,8 @@ fn active_content(
 ///|
 fn done_content(
   model : Val[Model],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
   emit : Emit[Msg],
 ) -> Val[Html] {
   let entries = model.map(model => {
@@ -250,8 +266,8 @@ fn done_content(
 ///|
 fn stats_content(
   model : Val[Model],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
 ) -> Val[Html] {
   model.map2(locale, (model, locale) => {
     let t = i18n.translator(locale)
@@ -259,12 +275,12 @@ fn stats_content(
     let completed = model.items.filter((_, todo) => todo.done).length()
     let active = total - completed
     if total == 0 {
-      p(class="empty", t.t(TodoUi(EmptyStats)))
+      p(class="empty", t.t(@app_i18n.TodoUi(@app_i18n.EmptyStats)))
     } else {
       div(class="stats-grid", [
-        metric_card(t.t(TodoUi(MetricTotal)), total),
-        metric_card(t.t(TodoUi(MetricActive)), active),
-        metric_card(t.t(TodoUi(MetricDone)), completed),
+        metric_card(t.t(@app_i18n.TodoUi(@app_i18n.MetricTotal)), total),
+        metric_card(t.t(@app_i18n.TodoUi(@app_i18n.MetricActive)), active),
+        metric_card(t.t(@app_i18n.TodoUi(@app_i18n.MetricDone)), completed),
       ])
     }
   })
@@ -274,8 +290,8 @@ fn stats_content(
 fn tab_content(
   current_tab : Val[TodoTab],
   model : Val[Model],
-  i18n : I18n,
-  locale : Val[Locale],
+  i18n : @app_i18n.I18n,
+  locale : Val[@app_i18n.Locale],
   emit : Emit[Msg],
 ) -> Val[Html] {
   current_tab.switch(tab => {
@@ -290,14 +306,14 @@ fn tab_content(
 
 ///|
 fn app() -> Val[Html] {
-  let i18n = I18n::new()
+  let i18n = @app_i18n.I18n::new()
   let (model, emit) = @rabbita.create_pure_state(
     {
       title: "",
       items: SortedMap::new(),
       next: 0,
       tab: All,
-      locale: default_locale(),
+      locale: @app_i18n.default_locale(),
     },
     update~,
   )
@@ -313,26 +329,31 @@ fn app() -> Val[Html] {
     div(class="panel", [
       div(class="panel-header", [
         div([
-          h1(t.t(TodoUi(Title))),
-          span(class="panel-kicker", t.t(TodoUi(ActiveCount(active)))),
+          h1(t.t(@app_i18n.TodoUi(@app_i18n.Title))),
+          span(
+            class="panel-kicker",
+            t.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(active))),
+          ),
         ]),
         div(class="language", [
-          span("\{t.t(Common(CurrentLanguage))}: \{model.locale.code()}"),
+          span(
+            "\{t.t(@app_i18n.Common(@app_i18n.CurrentLanguage))}: \{model.locale.code()}",
+          ),
           button(
             type_="button",
             class="language-button",
             on_click=emit(ToggleLocale),
-            t.t(Common(SwitchLanguage)),
+            t.t(@app_i18n.Common(@app_i18n.SwitchLanguage)),
           ),
         ]),
       ]),
       form(on_submit=emit(Add), [
         input(
           value=title,
-          placeholder=t.t(TodoUi(Placeholder)),
+          placeholder=t.t(@app_i18n.TodoUi(@app_i18n.Placeholder)),
           on_input=emit.map(value => TitleChanged(value)),
         ),
-        input(input_type=Submit, value=t.t(TodoUi(Add))),
+        input(input_type=Submit, value=t.t(@app_i18n.TodoUi(@app_i18n.Add))),
       ]),
       nav(class="tabs", [
         tab_button(emit, model.tab, All, total, t),

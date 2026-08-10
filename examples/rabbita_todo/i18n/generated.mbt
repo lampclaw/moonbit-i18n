@@ -157,7 +157,7 @@ fn message_args(text : I18nText) -> Array[@runtime.MessageArg] {
 ///|
 fn embedded_catalogs() -> Array[@runtime.Catalog] {
   [
-    @runtime.Catalog::new(
+    @runtime.Catalog::from_generated_entries(
       locale_code="en-US",
       schema_hash=SCHEMA_HASH,
       direction="ltr",
@@ -189,7 +189,7 @@ fn embedded_catalogs() -> Array[@runtime.Catalog] {
         { id: "todo_ui.title", message: "Todos" },
       ],
     ),
-    @runtime.Catalog::new(
+    @runtime.Catalog::from_generated_entries(
       locale_code="zh-CN",
       schema_hash=SCHEMA_HASH,
       direction="ltr",
@@ -219,4 +219,114 @@ fn embedded_catalogs() -> Array[@runtime.Catalog] {
       ],
     ),
   ]
+}
+
+///|
+pub(all) enum Diagnostic {
+  MessageFallback(String, String, String)
+  MissingMessage(String, String)
+  MessageFormatFailed(String, String, String)
+} derive(Eq, Debug)
+
+///|
+pub struct I18n {
+  runtime : @runtime.I18n
+}
+
+///|
+pub struct Translator {
+  runtime : @runtime.Translator
+}
+
+///|
+pub fn I18n::new() -> I18n {
+  let runtime = @runtime.I18n::new(
+    fallback_locale_code=fallback_locale().code(),
+    schema_hash=SCHEMA_HASH,
+    formatter=@runtime_js.formatter(),
+  )
+  for catalog in embedded_catalogs() {
+    match runtime.install_generated_catalog(catalog) {
+      Ok(_) => ()
+      Err(message) => abort("invalid embedded i18n catalog: \{message}")
+    }
+  }
+  { runtime, }
+}
+
+///|
+pub fn I18n::default_translator(self : I18n) -> Translator {
+  self.translator(default_locale())
+}
+
+///|
+pub fn I18n::translator(self : I18n, locale : Locale) -> Translator {
+  { runtime: self.runtime.translator(locale.code()) }
+}
+
+///|
+pub fn I18n::translator_from_code(self : I18n, code : String) -> Translator {
+  let supported = all_locales().map(locale => locale.code())
+  let resolved = @runtime.resolve_locale_code(
+    [code],
+    supported,
+    default_locale().code(),
+  )
+  self.translator(locale_from_code(resolved, default_locale()))
+}
+
+///|
+pub fn I18n::install_catalog_source(
+  self : I18n,
+  locale : Locale,
+  source : String,
+) -> Result[Unit, String] {
+  self.runtime.install_catalog_source_for(locale.code(), source)
+}
+
+///|
+pub fn I18n::has_catalog(self : I18n, locale : Locale) -> Bool {
+  self.runtime.has_catalog(locale.code())
+}
+
+///|
+pub fn I18n::installed_locales(self : I18n) -> Array[Locale] {
+  self.runtime
+  .catalog_locale_codes()
+  .map(code => locale_from_code(code, fallback_locale()))
+}
+
+///|
+pub fn I18n::take_diagnostics(self : I18n) -> Array[Diagnostic] {
+  self.runtime.take_diagnostics().map(diagnostic_from_runtime)
+}
+
+///|
+pub fn Translator::locale(self : Translator) -> Locale {
+  locale_from_code(self.runtime.locale_code(), default_locale())
+}
+
+///|
+pub fn Translator::t(self : Translator, text : I18nText) -> String {
+  let id = message_id(text)
+  match self.runtime.translate_raw(id, message_args(text)) {
+    Some(value) => value
+    None => "[missing: \{id}]"
+  }
+}
+
+///|
+fn all_locales() -> Array[Locale] {
+  [EnUS, ZhCN]
+}
+
+///|
+fn diagnostic_from_runtime(value : @runtime.Diagnostic) -> Diagnostic {
+  match value {
+    @runtime.MessageFallback(requested, used, id) =>
+      MessageFallback(requested, used, id)
+    @runtime.MissingMessage(locale, id) => MissingMessage(locale, id)
+    @runtime.MessageFormatFailed(locale, id, message) =>
+      MessageFormatFailed(locale, id, message)
+  }
 }

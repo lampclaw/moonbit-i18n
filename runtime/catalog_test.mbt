@@ -1,8 +1,10 @@
 ///|
 test "catalog round trips through JSON" {
-  let catalog = Catalog::new(locale_code="en-us", schema_hash="schema-1", entries=[
-    { id: "auth.welcome", message: "Hello {$name}" },
-  ])
+  let catalog = Catalog::from_generated_entries(
+    locale_code="en-us",
+    schema_hash="schema-1",
+    entries=[{ id: "auth.welcome", message: "Hello {$name}" }],
+  )
   let parsed = parse_catalog(catalog.to_json_string())
   guard parsed is Ok(value) else { fail("expected a valid catalog") }
   assert_eq(value.locale_code(), "en-US")
@@ -14,7 +16,7 @@ test "catalog round trips through JSON" {
 
 ///|
 test "catalog reports translated coverage" {
-  let catalog = Catalog::new(
+  let catalog = Catalog::from_generated_entries(
     locale_code="ar",
     schema_hash="schema-1",
     direction="rtl",
@@ -23,6 +25,12 @@ test "catalog reports translated coverage" {
   assert_eq(catalog.direction(), "rtl")
   assert_eq(catalog.coverage([]), 1.0)
   assert_eq(catalog.coverage(["common.save", "common.cancel"]), 0.5)
+  let blank = Catalog::from_generated_entries(
+    locale_code="en-US",
+    schema_hash="schema-1",
+    entries=[{ id: "common.blank", message: "  " }],
+  )
+  assert_eq(blank.coverage(["common.blank"]), 0.0)
 }
 
 ///|

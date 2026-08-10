@@ -144,3 +144,86 @@ test "reports invalid MF2 declarations and variants" {
     is Err("match message requires selectors and variants"),
   )
 }
+
+///|
+test "validates every matcher branch and requires a fallback" {
+  let args : Array[MessageArg] = [{ name: "count", value: IntValue(1) }]
+  let invalid_unselected = ".input {$count :number}\n.match $count\none {{One}}\n* {{{$missing}}}"
+  guard format_mf2_message(
+      invalid_unselected,
+      "en-US",
+      args,
+      Formatter::basic(),
+    )
+    is Err(message) else {
+    fail("an invalid unselected branch should fail")
+  }
+  assert_true(message.contains("invalid match variant pattern"))
+  assert_true(message.contains("unknown variable: missing"))
+  let missing_fallback = ".input {$count :number}\n.match $count\none {{One}}\ntwo {{Two}}"
+  assert_true(
+    format_mf2_message(missing_fallback, "en-US", args, Formatter::basic())
+    is Err("match message requires an all-wildcard fallback variant"),
+  )
+}
+
+///|
+test "rejects duplicate matcher structure and selector type mismatches" {
+  let duplicate_input = ".input {$count :number}\n.input {$count :number}\n.match $count\n* {{Any}}"
+  assert_true(
+    format_mf2_message(
+      duplicate_input,
+      "en-US",
+      [{ name: "count", value: IntValue(1) }],
+      Formatter::basic(),
+    )
+    is Err("duplicate declaration: count"),
+  )
+  let duplicate_selector = ".input {$count :number}\n.match $count $count\n* * {{Any}}"
+  assert_true(
+    format_mf2_message(
+      duplicate_selector,
+      "en-US",
+      [{ name: "count", value: IntValue(1) }],
+      Formatter::basic(),
+    )
+    is Err("duplicate .match selector: count"),
+  )
+  let duplicate_variant = ".input {$count :number}\n.match $count\n* {{First}}\n* {{Second}}"
+  assert_true(
+    format_mf2_message(
+      duplicate_variant,
+      "en-US",
+      [{ name: "count", value: IntValue(1) }],
+      Formatter::basic(),
+    )
+    is Err("duplicate match variant keys: *"),
+  )
+  let wrong_type = ".input {$count :number}\n.match $count\n* {{Any}}"
+  assert_true(
+    format_mf2_message(
+      wrong_type,
+      "en-US",
+      [{ name: "count", value: TextValue("one") }],
+      Formatter::basic(),
+    )
+    is Err("numeric selector requires Int or Double: count"),
+  )
+}
+
+///|
+test "supports structurally valid multi-selector messages" {
+  let source = ".input {$count :number}\n.input {$state :string}\n.match $count $state\none |open| {{One open}}\n* * {{{$count} {$state}}}"
+  assert_eq(
+    format_mf2_message(
+      source,
+      "en-US",
+      [
+        { name: "count", value: IntValue(2) },
+        { name: "state", value: TextValue("closed") },
+      ],
+      Formatter::basic(),
+    ),
+    Ok("2 closed"),
+  )
+}

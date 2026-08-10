@@ -179,3 +179,54 @@ test "locale rejects an empty unknown group" {
   }
   assert_true(message.contains("unknown message group"))
 }
+
+///|
+test "blank locale values are omitted from coverage input" {
+  guard parse_schema(schema_source) is Ok(schema) else {
+    fail("schema should parse")
+  }
+  let source =
+    #|{
+    #|  "common": { "save": "   " },
+    #|  "counter": { "count": "{$count :number} clicks" }
+    #|}
+  guard parse_locale("en-US", source, schema) is Ok(locale) else {
+    fail("blank translations should be treated as missing")
+  }
+  assert_eq(locale.entries.length(), 1)
+  assert_eq(locale.entries[0].key, "count")
+}
+
+///|
+test "locale validation checks unselected MF2 branches" {
+  guard parse_schema(schema_source) is Ok(schema) else {
+    fail("schema should parse")
+  }
+  let source =
+    #|{
+    #|  "counter": {
+    #|    "count": ".input {$count :number}\n.match $count\none {{One}}\n* {{{$missing}}}"
+    #|  }
+    #|}
+  guard parse_locale("en-US", source, schema) is Err(message) else {
+    fail("an invalid unselected branch should fail")
+  }
+  assert_true(message.contains("unknown variable: missing"))
+}
+
+///|
+test "locale validation requires wildcard matcher fallback" {
+  guard parse_schema(schema_source) is Ok(schema) else {
+    fail("schema should parse")
+  }
+  let source =
+    #|{
+    #|  "counter": {
+    #|    "count": ".input {$count :number}\n.match $count\none {{One}}"
+    #|  }
+    #|}
+  guard parse_locale("en-US", source, schema) is Err(message) else {
+    fail("a matcher without a fallback should fail")
+  }
+  assert_true(message.contains("all-wildcard fallback"))
+}

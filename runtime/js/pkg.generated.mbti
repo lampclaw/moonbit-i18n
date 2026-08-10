@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "lampclaw/i18n/js"
+package "lampclaw/i18n/runtime/js"
 
 import {
-  "lampclaw/i18n",
+  "lampclaw/i18n/runtime",
 }
 
 // Values
-pub fn formatter() -> @i18n.Formatter
+pub fn formatter() -> @runtime.Formatter
 
 // Errors
 
