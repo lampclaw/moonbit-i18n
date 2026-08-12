@@ -141,13 +141,15 @@ jobs:
           package_list="$(moon package --frozen --list 2>&1)"
           printf '%s\n' "$package_list"
           if printf '%s\n' "$package_list" | grep -E \
-            '(^examples/|^scripts/|^benchmarks/|^tests/|^\.github/|^moon\.work$|^CONTRIBUTING\.md$|^docs/release-checklist\.md$|_test\.mbt$|_wbtest\.mbt$|pkg\.generated\.mbti$)'; then
+            '(^examples/|^scripts/|^benchmarks/|^tests/|^\.github/|^moon\.work$|^AGENTS\.md$|^CONTRIBUTING\.md$|^docs/release-checklist\.md$|_test\.mbt$|_wbtest\.mbt$|pkg\.generated\.mbti$)'; then
             echo "publish archive contains development-only files" >&2
             exit 1
           fi
           printf '%s\n' "$package_list" | grep -q '^runtime/message.mbt$'
           printf '%s\n' "$package_list" | grep -q '^generator/generate.mbt$'
           printf '%s\n' "$package_list" | grep -q '^cmd/i18n/main.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^docs/roadmap.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/roadmap.zh-CN.mbt.md$'
 
       - name: Generated and interface drift
         run: |

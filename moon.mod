@@ -32,6 +32,7 @@ options(
     "benchmarks/**",
     "scripts/**",
     "tests/**",
+    "AGENTS.md",
     "CONTRIBUTING.md",
     "docs/release-checklist.md",
     "**/*_test.mbt",

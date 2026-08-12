@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Public English and Chinese product roadmaps with MoonBit-native design
+  principles, ecosystem comparisons, versioned acceptance gates, and
+  repository governance for future development.
+
 ## [0.1.0-rc.1] - 2026-08-12
 
 ### Added
