@@ -174,8 +174,8 @@ Completed locally with Moon `0.1.20260803`, moonc
 26:
 
 - native, Wasm, Wasm-GC, and JavaScript checks passed with warnings denied;
-- target test totals passed: native 114, Wasm 114, Wasm-GC 97, JavaScript 103;
-- coverage passed: runtime 90.2%, generator 88.1%, CLI 87.1%, core 88.7%;
+- target test totals passed: native 115, Wasm 115, Wasm-GC 97, JavaScript 103;
+- coverage passed: runtime 90.2%, generator 88.1%, CLI 86.9%, core 88.7%;
 - all 109 public runtime, generator, and JavaScript formatter items have API
   documentation in documentation generated from the archive;
 - the MF2 profile pin and feature matrix are synchronized, and all three
@@ -196,12 +196,61 @@ _build/publish/lampclaw-i18n-0.1.0-rc.1.zip
 SHA-256 4b1a1a42700112ff8a619807eb9b3a287c368f56a9dcc8f2221dbfa0b50520fa
 ~~~
 
-Remaining release gates:
+These preparation gates were subsequently completed in the release record
+below.
 
-- review and commit the complete RC worktree; it is intentionally not yet a
-  clean release commit;
-- push the commit and require the Linux, macOS, and Windows CI matrix to pass;
-- create and locally verify the required SSH-signed release commit and tag;
-- rerun the dry-run helper from the clean, synchronized release commit;
-- execute the real `moon publish` once; and
-- complete exact-version registry consumption and mooncakes.io UI inspection.
+## 0.1.0-rc.1 release record — 2026-08-12
+
+Immutable release identity:
+
+- release commit and signed tag target:
+  `c6d1e32981c280c850b62d70be077d921a83c14e`;
+- tag: `v0.1.0-rc.1`, verified with Lampclaw ED25519 key fingerprint
+  `SHA256:YrC/9aayrFCWl773eSEhE6G3FgROFEc/VQmxTawowDA`;
+- archive SHA-256:
+  `4b1a1a42700112ff8a619807eb9b3a287c368f56a9dcc8f2221dbfa0b50520fa`;
+- release-branch CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31569675094>;
+- same-commit `main` CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31569886551>.
+
+The real `moon publish` command was invoked exactly once. It started at
+`2026-08-12T06:28:42Z`, completed at `2026-08-12T06:28:44Z`, exited 0, and
+reported `Server status: 200 OK`. No real-publish retry was attempted.
+
+The Mooncakes manifest subsequently reported version `0.1.0-rc.1`, build
+status `success`, creation time `2026-08-12T06:28:44.180486+00:00`, and the
+same archive checksum. The registry page is
+<https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.1>.
+
+The source archive became immediately installable. The separately generated
+portable Wasm CLI asset initially returned 404, then became available at
+`2026-08-12T06:31:58Z`. This approximately three-minute asset-build window was
+handled by waiting and checking the asset; the package was not republished.
+
+After the CLI asset became available, a brand-new temporary consumer passed
+all of the following against the exact registry version:
+
+- `moon add lampclaw/i18n@0.1.0-rc.1`;
+- pinned `moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1` execution;
+- `moon add --bin lampclaw/i18n@0.1.0-rc.1` and its installed launcher;
+- English/Chinese resource generation and read-only drift checking;
+- JavaScript check, formatting, release build, and execution; and
+- generated `zh-CN` catalog loading through `install_catalog_source`.
+
+The Mooncakes assets used by the documentation SPA were also checked directly:
+the module metadata and README were present, the package index listed
+`cmd/i18n`, `generator`, `runtime`, and `runtime/js`, and the runtime,
+generator, and formatter API data were generated successfully. The published
+archive does not contain `examples/`; its README links to the tagged repository
+example instead.
+
+Finally, a copy of `examples/rabbita_todo` outside the source workspace resolved
+the released dependency from Mooncakes, regenerated and checked all 22 messages
+in both locales, passed four JavaScript tests, and produced a Warren release
+build with its dynamic Chinese catalog.
+
+The authenticated `Registry smoke` workflow was not dispatched from this
+environment because no GitHub API credential was available. Its exact Linux,
+macOS, and Windows workflow remains available for a manual post-release run;
+the equivalent full exact-version smoke passed locally as recorded above.
