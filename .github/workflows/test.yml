@@ -246,11 +246,31 @@ jobs:
           # the contract step then proves the graph is complete with --frozen.
           moon test --deny-warn --target wasm --build-only cmd/i18n
 
-      - name: Wasm CLI contract
+      - name: Wasm CLI check
         shell: bash
         run: |
           moon check --frozen --deny-warn --target wasm cmd/i18n
-          moon test --frozen --deny-warn --target wasm cmd/i18n
+
+      - name: Wasm CLI tests
+        shell: bash
+        run: |
+          set +e
+          test_output="$(moon test --frozen --deny-warn --target wasm cmd/i18n 2>&1)"
+          test_status=$?
+          set -e
+          printf '%s\n' "$test_output"
+          if [ "$test_status" -ne 0 ]; then
+            summary="$(printf '%s\n' "$test_output" | tail -n 20)"
+            summary="${summary//'%'/'%25'}"
+            summary="${summary//$'\r'/'%0D'}"
+            summary="${summary//$'\n'/'%0A'}"
+            printf '::error file=cmd/i18n/main_wbtest.mbt,title=Wasm CLI tests failed::%s\n' "$summary"
+            exit "$test_status"
+          fi
+
+      - name: Wasm CLI version
+        shell: bash
+        run: |
           test "$(moon run --frozen --target wasm cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
 
       - name: Native CLI contract
