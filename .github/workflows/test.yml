@@ -246,15 +246,23 @@ jobs:
           # the contract step then proves the graph is complete with --frozen.
           moon test --deny-warn --target wasm --build-only cmd/i18n
 
-      - name: Wasm and native CLI contract
+      - name: Wasm CLI contract
         shell: bash
         run: |
           moon check --frozen --deny-warn --target wasm cmd/i18n
-          moon check --frozen --deny-warn --target native cmd/i18n
           moon test --frozen --deny-warn --target wasm cmd/i18n
-          moon test --frozen --deny-warn --target native cmd/i18n
           test "$(moon run --frozen --target wasm cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+
+      - name: Native CLI contract
+        shell: bash
+        run: |
+          moon check --frozen --deny-warn --target native cmd/i18n
+          moon test --frozen --deny-warn --target native cmd/i18n
           test "$(moon run --frozen --target native cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+
+      - name: Installed CLI launcher
+        shell: bash
+        run: |
           install_dir="$(mktemp -d)"
           MOON_WORK=off moon tool build-binary-dep cmd/i18n --install-path "$install_dir"
           if [ "$RUNNER_OS" = "Windows" ]; then
