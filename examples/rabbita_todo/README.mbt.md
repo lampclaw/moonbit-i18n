@@ -26,7 +26,7 @@ moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
   examples/rabbita_todo/public/i18n
 ~~~
 
-Both locales currently report `22/22 (100%)`. The generator owns the complete
+Both locales currently report `28/28 (100%)`. The generator owns the complete
 `i18n/` package and catalog directory through ownership manifests. Both
 directories are replaced together by a recoverable transaction; `check` is the
 read-only CI drift gate.
@@ -69,6 +69,17 @@ The generated facade owns locale negotiation, embedded and dynamic catalogs,
 JavaScript `Intl` formatting, catalog status, and diagnostics. Business code
 uses typed values such as
 `@app_i18n.TodoUi(@app_i18n.ActiveCount(active))`.
+
+Only the English fallback catalog is embedded in the JavaScript bundle. The
+Chinese catalog is fetched from `/i18n/zh-CN.json` on first use, validated and
+installed atomically, then reused without another request. A failed request or
+invalid catalog leaves the current locale unchanged and exposes a retry state.
+
+The small `contract/` package is a framework adapter and browser acceptance
+fixture. It turns structured `MessagePart` values into Rabbita HTML and proves
+number, datetime, rich-parts, fallback, and diagnostic behavior in the three
+supported browser engines. Maintained business source in `main/` continues to
+import only the generated facade.
 
 ## Origin and license
 

@@ -120,7 +120,7 @@ jobs:
 
       - name: Application authoring stays runtime-free
         run: |
-          if grep -R -n -E '@runtime|Catalog|MessageArg|translate_raw' \
+          if grep -R -n -E '@runtime|MessageArg|translate_raw' \
             examples/rabbita_todo/main \
             examples/rabbita_todo/localization; then
             echo "maintained application source must use only its generated i18n package" >&2
@@ -163,6 +163,62 @@ jobs:
             printf '%s\n' "$status_output"
             exit 1
           fi
+
+  browser:
+    name: Browser contract · ${{ matrix.browser }}
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js ${{ env.NODE_PRIMARY }}
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ env.NODE_PRIMARY }}
+          package-manager-cache: false
+
+      - name: Setup MoonBit
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
+          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | sha256sum -c -
+          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Verify generated application
+        run: |
+          version_output="$(moon version --all)"
+          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
+          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
+          test "$installed_moon" = "$MOON_VERSION"
+          test "$installed_moonc" = "$MOONC_VERSION"
+          test "$(node -p 'process.versions.node')" = "$NODE_PRIMARY"
+          moon update
+          moon run --target wasm cmd/i18n -- check \
+            examples/rabbita_todo/localization/config.json \
+            examples/rabbita_todo/localization/schema.json \
+            examples/rabbita_todo/localization/locales \
+            examples/rabbita_todo/i18n \
+            examples/rabbita_todo/public/i18n
+          moon check --deny-warn --target js examples/rabbita_todo
+
+      - name: Install browser tooling
+        run: |
+          moon install moonbit-community/warren@0.2.2
+          npm ci
+          npx playwright install --with-deps "${{ matrix.browser }}"
+
+      - name: Browser acceptance scenarios
+        run: npm run test:browser -- --project="${{ matrix.browser }}"
 
   node-26-smoke:
     name: JavaScript smoke · Node 26

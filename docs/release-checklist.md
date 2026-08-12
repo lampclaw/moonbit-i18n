@@ -59,8 +59,10 @@ from the published archive.
       the 20 µs absolute ceiling on the release runner.
 - [ ] Regenerate Rabbita through the CLI, run `check`, and verify no generated
       or interface drift remains.
-- [ ] Build the Rabbita Todo release artifact and smoke-test locale switching,
-      fallback, number formatting, dynamic catalog installation, and diagnostics.
+- [ ] Build the Rabbita Todo release artifact and run the locked Playwright
+      scenarios on Chromium, Firefox, and WebKit: locale switching, plural,
+      number/datetime formatting, rich parts, fallback, dynamic catalog
+      installation/failure/retry, and diagnostics.
 - [ ] Confirm destination-hashed `*.lampclaw.lock` coordination files stay in
       user state, release artifacts contain none, and generated packages ignore
       `generated.mbt` in `moon fmt`.

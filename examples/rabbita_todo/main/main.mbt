@@ -77,6 +77,14 @@ struct Model {
   next : Int
   tab : TodoTab
   locale : @app_i18n.Locale
+  catalog_state : CatalogState
+} derive(Eq, Debug)
+
+///|
+enum CatalogState {
+  CatalogReady
+  CatalogLoading(@app_i18n.Locale)
+  CatalogFailed(@app_i18n.Locale, String)
 } derive(Eq, Debug)
 
 ///|
@@ -87,15 +95,16 @@ enum Msg {
   Toggle(Int)
   SetTab(TodoTab)
   ToggleLocale
+  CatalogLoaded(@app_i18n.Locale, Result[String, Error])
 }
 
 ///|
-fn update(model : Model, msg : Msg) -> Model {
+fn update_todo(model : Model, msg : Msg) -> Model {
   let { title, items, next, .. } = model
   match msg {
     TitleChanged(title) => { ..model, title, }
     SetTab(tab) => { ..model, tab, }
-    ToggleLocale => { ..model, locale: other_locale(model.locale) }
+    ToggleLocale | CatalogLoaded(_, _) => model
     Add if title == "" => model
     Toggle(id) => {
       let todo = items[id]
@@ -109,6 +118,64 @@ fn update(model : Model, msg : Msg) -> Model {
         next: next + 1,
       }
     Delete(id) => { ..model, items: items.remove(id) }
+  }
+}
+
+///|
+fn finish_catalog_load(
+  i18n : @app_i18n.I18n,
+  model : Model,
+  locale : @app_i18n.Locale,
+  source : String,
+) -> Model {
+  match i18n.install_catalog_source(locale, source) {
+    Ok(_) => { ..model, locale, catalog_state: CatalogReady }
+    Err(message) => { ..model, catalog_state: CatalogFailed(locale, message) }
+  }
+}
+
+///|
+fn update(
+  i18n : @app_i18n.I18n,
+  model : Model,
+  msg : Msg,
+  emit : Emit[Msg],
+) -> (Model, @rabbita.Cmd) {
+  match msg {
+    ToggleLocale => {
+      let target = other_locale(model.locale)
+      if i18n.has_catalog(target) {
+        (
+          { ..model, locale: target, catalog_state: CatalogReady },
+          @rabbita.none,
+        )
+      } else {
+        (
+          { ..model, catalog_state: CatalogLoading(target) },
+          @http.get("/i18n/\{target.code()}.json").expect_text(
+            emit.map(result => CatalogLoaded(target, result)),
+          ),
+        )
+      }
+    }
+    CatalogLoaded(locale, result) =>
+      match model.catalog_state {
+        CatalogLoading(expected) if expected == locale =>
+          match result {
+            Ok(source) =>
+              (finish_catalog_load(i18n, model, locale, source), @rabbita.none)
+            Err(_) =>
+              (
+                {
+                  ..model,
+                  catalog_state: CatalogFailed(locale, "catalog request failed"),
+                },
+                @rabbita.none,
+              )
+          }
+        _ => (model, @rabbita.none)
+      }
+    _ => (update_todo(model, msg), @rabbita.none)
   }
 }
 
@@ -307,15 +374,16 @@ fn tab_content(
 ///|
 fn app() -> Val[Html] {
   let i18n = @app_i18n.I18n::new()
-  let (model, emit) = @rabbita.create_pure_state(
+  let (model, emit) = @rabbita.create_state(
     {
       title: "",
       items: SortedMap::new(),
       next: 0,
       tab: All,
       locale: @app_i18n.default_locale(),
+      catalog_state: CatalogReady,
     },
-    update~,
+    update=fn(model, msg, emit) { update(i18n, model, msg, emit) },
   )
   let locale = model.map(model => model.locale)
   let current_tab = model.map(model => model.tab)
@@ -326,43 +394,98 @@ fn app() -> Val[Html] {
     let completed = items.filter((_, todo) => todo.done).length()
     let active = total - completed
     let t = i18n.translator(model.locale)
-    div(class="panel", [
-      div(class="panel-header", [
-        div([
-          h1(t.t(@app_i18n.TodoUi(@app_i18n.Title))),
-          span(
-            class="panel-kicker",
-            t.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(active))),
+    let loading = match model.catalog_state {
+      CatalogLoading(_) => true
+      _ => false
+    }
+    let language_label = match model.catalog_state {
+      CatalogLoading(_) => t.t(@app_i18n.Common(@app_i18n.CatalogLoading))
+      CatalogFailed(_, _) => t.t(@app_i18n.Common(@app_i18n.CatalogRetry))
+      CatalogReady => t.t(@app_i18n.Common(@app_i18n.SwitchLanguage))
+    }
+    let status = match model.catalog_state {
+      CatalogReady =>
+        @html.span(
+          class="catalog-status is-ready",
+          attrs=@html.Attrs::build()
+            .data_set("testid", "catalog-status")
+            .data_set("state", "ready"),
+          "",
+        )
+      CatalogLoading(_) =>
+        @html.span(
+          class="catalog-status is-loading",
+          attrs=@html.Attrs::build()
+            .role("status")
+            .aria_live("polite")
+            .data_set("testid", "catalog-status")
+            .data_set("state", "loading"),
+          t.t(@app_i18n.Common(@app_i18n.CatalogLoading)),
+        )
+      CatalogFailed(_, detail) =>
+        @html.span(
+          class="catalog-status is-error",
+          attrs=@html.Attrs::build()
+            .role("alert")
+            .data_set("testid", "catalog-status")
+            .data_set("state", "error"),
+          "\{t.t(@app_i18n.Common(@app_i18n.CatalogError))} \{detail}",
+        )
+    }
+    div(
+      class="panel",
+      attrs=@html.Attrs::build()
+        .lang(model.locale.html_lang())
+        .dir(model.locale.direction())
+        .data_set("testid", "todo-app")
+        .data_set("locale", model.locale.code()),
+      [
+        div(class="panel-header", [
+          div([
+            h1(t.t(@app_i18n.TodoUi(@app_i18n.Title))),
+            span(
+              class="panel-kicker",
+              t.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(active))),
+            ),
+          ]),
+          div(class="language", [
+            span(
+              "\{t.t(@app_i18n.Common(@app_i18n.CurrentLanguage))}: \{model.locale.code()}",
+            ),
+            button(
+              id="locale-toggle",
+              type_="button",
+              class="language-button",
+              disabled=loading,
+              on_click=emit(ToggleLocale),
+              language_label,
+            ),
+            status,
+          ]),
+        ]),
+        form(on_submit=emit(Add), [
+          input(
+            id="new-todo",
+            value=title,
+            placeholder=t.t(@app_i18n.TodoUi(@app_i18n.Placeholder)),
+            on_input=emit.map(value => TitleChanged(value)),
+          ),
+          input(
+            id="add-todo",
+            input_type=Submit,
+            value=t.t(@app_i18n.TodoUi(@app_i18n.Add)),
           ),
         ]),
-        div(class="language", [
-          span(
-            "\{t.t(@app_i18n.Common(@app_i18n.CurrentLanguage))}: \{model.locale.code()}",
-          ),
-          button(
-            type_="button",
-            class="language-button",
-            on_click=emit(ToggleLocale),
-            t.t(@app_i18n.Common(@app_i18n.SwitchLanguage)),
-          ),
+        nav(class="tabs", [
+          tab_button(emit, model.tab, All, total, t),
+          tab_button(emit, model.tab, Active, active, t),
+          tab_button(emit, model.tab, Done, completed, t),
+          tab_button(emit, model.tab, Stats, total, t),
         ]),
-      ]),
-      form(on_submit=emit(Add), [
-        input(
-          value=title,
-          placeholder=t.t(@app_i18n.TodoUi(@app_i18n.Placeholder)),
-          on_input=emit.map(value => TitleChanged(value)),
-        ),
-        input(input_type=Submit, value=t.t(@app_i18n.TodoUi(@app_i18n.Add))),
-      ]),
-      nav(class="tabs", [
-        tab_button(emit, model.tab, All, total, t),
-        tab_button(emit, model.tab, Active, active, t),
-        tab_button(emit, model.tab, Done, completed, t),
-        tab_button(emit, model.tab, Stats, total, t),
-      ]),
-      content,
-    ])
+        content,
+        @contract.view(),
+      ],
+    )
   })
 }
 

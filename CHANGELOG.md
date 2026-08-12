@@ -11,6 +11,15 @@ All notable changes to this project are documented here. The format follows
 - Public English and Chinese product roadmaps with MoonBit-native design
   principles, ecosystem comparisons, versioned acceptance gates, and
   repository governance for future development.
+- Locked Chromium, Firefox, and WebKit acceptance coverage for dynamic catalog
+  loading, failure/retry behavior, number and datetime formatting, rich parts,
+  fallback diagnostics, and localized application state.
+
+### Changed
+
+- The Rabbita Todo example now embeds only the English fallback catalog and
+  installs the Chinese catalog atomically on first use; invalid catalogs keep
+  the active locale unchanged and expose a retry state.
 
 ## [0.1.0-rc.1] - 2026-08-12
 

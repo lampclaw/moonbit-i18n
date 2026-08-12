@@ -1,0 +1,10 @@
+import {
+  "lampclaw/i18n/runtime",
+  "lampclaw/i18n_rabbita_todo/i18n" @app_i18n,
+  "moonbit-community/rabbita",
+  "moonbit-community/rabbita/html",
+}
+
+supported_targets = "js"
+
+warnings = "-a"

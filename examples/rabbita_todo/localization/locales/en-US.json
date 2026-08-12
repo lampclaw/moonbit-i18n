@@ -1,7 +1,15 @@
 {
   "common": {
+    "catalog_error": "Could not load that language.",
+    "catalog_loading": "Loading language…",
+    "catalog_retry": "Retry",
     "current_language": "Current language",
     "switch_language": "中文"
+  },
+  "contract": {
+    "formatted_number": "Contract number: {$value :number}",
+    "last_updated": "Updated {$when :lampclaw:datetime dateStyle=medium timeZone=UTC}",
+    "rich_notice": "{#strong}Typed{/strong} localization"
   },
   "todo_ui": {
     "active_count": ".input {$count :number}\n.match $count\none {{One active}}\n* {{{$count} active}}",

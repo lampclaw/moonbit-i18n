@@ -1,8 +1,8 @@
 {
   "sourceLocale": "en-US",
-  "defaultLocale": "zh-CN",
+  "defaultLocale": "en-US",
   "fallbackLocale": "en-US",
-  "embeddedLocales": ["en-US", "zh-CN"],
+  "embeddedLocales": ["en-US"],
   "release": {
     "minimumCoverage": 1.0
   },

@@ -44,6 +44,9 @@ moon run --frozen --target wasm cmd/i18n -- check \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
+npm ci
+npx playwright install chromium firefox webkit
+npm run test:browser
 ```
 
 Tests should cover the observable success and failure contract. Do not weaken
