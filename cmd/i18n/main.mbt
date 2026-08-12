@@ -1029,9 +1029,12 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
+const CLI_VERSION : String = "0.1.0-rc.1"
+
+///|
 fn usage() -> String {
+  "moon-i18n \{CLI_VERSION}\n" +
   (
-    #|moon-i18n 0.1.0-rc.1
     #|
     #|usage:
     #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
@@ -1298,7 +1301,7 @@ async fn run_command(args : Array[String]) -> Unit raise CliError {
   }
   match args[0] {
     "--help" | "-h" | "help" => println(usage())
-    "--version" | "-V" => println("moon-i18n 0.1.0-rc.1")
+    "--version" | "-V" => println("moon-i18n \{CLI_VERSION}")
     "generate" => run_generate(args, false)
     "check" => run_generate(args, true)
     "coverage" => run_coverage(args)

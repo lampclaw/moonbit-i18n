@@ -12,7 +12,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
-const version = process.argv[2] ?? "0.1.0-rc.1";
+const version = process.argv[2];
+assert.ok(version, "usage: registry-smoke.mjs <published-version>");
 assert.match(version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u);
 const coordinate = `lampclaw/i18n@${version}`;
 const cli = `lampclaw/i18n/cmd/i18n@${version}`;

@@ -6,8 +6,12 @@ on:
       version:
         description: Published lampclaw/i18n version to verify
         required: true
-        default: 0.1.0-rc.1
+        default: 0.1.0-rc.2
         type: string
+  push:
+    tags:
+      - "v0.1.0-rc.*"
+      - "v0.1.0"
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ env:
 
 jobs:
   consume:
-    name: ${{ matrix.os }} · ${{ inputs.version }}
+    name: ${{ matrix.os }} · exact registry version
     strategy:
       fail-fast: false
       matrix:
@@ -76,4 +80,11 @@ jobs:
 
       - name: Fresh registry consumer
         shell: bash
-        run: node scripts/registry-smoke.mjs '${{ inputs.version }}'
+        env:
+          DISPATCH_VERSION: ${{ inputs.version }}
+        run: |
+          version="$DISPATCH_VERSION"
+          if [ -z "$version" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          node scripts/registry-smoke.mjs "$version"

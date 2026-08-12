@@ -18,6 +18,8 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
 路线图中的规划项不代表当前已经支持。
+精确的工具链、操作系统、浏览器、后端和 prerelease 兼容承诺见
+[支持政策](docs/support-policy.zh-CN.mbt.md)。
 
 ## 安装与运行 CLI
 
