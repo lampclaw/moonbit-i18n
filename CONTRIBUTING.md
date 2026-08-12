@@ -4,6 +4,21 @@ Use toolchain archive `0.10.6+80dc50f24` (Moon `0.1.20260803`, moonc `0.10.6`)
 and Node.js `24.18.1` for the release gate. Node.js `26.x` is an additional
 compatibility smoke target. Dependency versions in `moon.mod` must stay exact.
 
+## Roadmap and architectural changes
+
+Before planning or implementing a public API, authoring format, MF2 profile,
+catalog contract, runtime, generator, CLI, or supported-target change, read
+both the [product roadmap](docs/roadmap.mbt.md) and the
+[current MF2 profile](docs/mf2-profile.mbt.md).
+
+The change description must identify the roadmap milestone and user problem,
+the MoonBit package/target boundary, compatibility and migration impact, and
+the acceptance gate it advances. Work outside the active milestone needs a
+measured blocker or consumer requirement. A deliberate change in direction
+must update `docs/roadmap.mbt.md` and
+`docs/roadmap.zh-CN.mbt.md` together and synchronize the README and changelog.
+Planned behavior must never be presented as implemented or conformant.
+
 Before submitting a change, run:
 
 ```bash

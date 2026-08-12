@@ -12,6 +12,17 @@ generate a dedicated MoonBit package, and import only that generated package
 from business code. Catalog JSON is a generated deployment artifact for
 embedding or lazy loading, not a second authoring format.
 
+## Roadmap and status
+
+`0.1.0-rc.1` is an engineering-ready release candidate for Web/JavaScript
+projects, not a prototype and not a claim of complete Unicode MessageFormat 2
+conformance. The public
+[product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
+current Web profile through authoring and delivery improvements to full MF2 on
+the JavaScript backend. The
+[current MF2 profile](docs/mf2-profile.mbt.md) remains the source of truth for
+features shipped today; roadmap items are not yet supported behavior.
+
 ## Install and run the CLI
 
 Add the library dependency to an application module:

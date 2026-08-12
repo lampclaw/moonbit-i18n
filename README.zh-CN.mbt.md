@@ -10,6 +10,15 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 业务代码只导入这个生成 package。catalog JSON 是用于内嵌或动态加载的生成部署产物，
 不是第二种 authoring 格式。
 
+## 路线图与当前状态
+
+`0.1.0-rc.1` 是可供 Web/JavaScript 项目进行工程验证的 release candidate，不是
+原型，也不表示完整通过 Unicode MessageFormat 2。公开的
+[产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
+authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
+[当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
+路线图中的规划项不代表当前已经支持。
+
 ## 安装与运行 CLI
 
 向应用模块添加库依赖：

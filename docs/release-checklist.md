@@ -37,6 +37,9 @@ from the published archive.
       example dependency, and `CHANGELOG.md`.
 - [ ] Confirm the documented strict MF2 profile and pinned Unicode snapshot;
       do not claim full Unicode MF2 conformance.
+- [ ] Review both public roadmap languages. Confirm their current-status and
+      milestone statements match the implementation, README, MF2 profile, and
+      changelog; planned behavior must not appear as shipped behavior.
 - [ ] Run `node scripts/check-api-docs.mjs`; all exported runtime, generator,
       and formatter items must have non-empty mooncakes.io documentation.
 - [ ] Confirm README metadata, repository, SPDX license, keywords, description,
@@ -66,7 +69,8 @@ from the published archive.
       CI, scripts, local build output, benchmarks, and conformance fixtures must
       not be in the archive.
 - [ ] Confirm runtime, generator, CLI, portable formatter, README, changelog,
-      security policy, license, and profile documents are in the archive.
+      security policy, license, profile documents, and both public roadmap
+      languages are in the archive. Confirm `AGENTS.md` remains repository-only.
 - [ ] Extract the archive in a clean directory and run `moon doc` there.
 - [ ] Run `node scripts/package-smoke.mjs` to exercise the actual archive as a
       clean local workspace dependency, generate a bilingual app, run its
@@ -104,7 +108,8 @@ from the published archive.
 - [ ] Test the optional binary installation paths separately; do not let their
       failure obscure successful library and `moonx` consumption.
 - [ ] Open the mooncakes.io release page and inspect README, metadata, package
-      list, runtime API docs, generator API docs, and formatter API docs.
+      list, roadmap links, runtime API docs, generator API docs, and formatter
+      API docs.
 - [ ] Record the registry URL, signed tag, release notes, archive SHA-256, and
       any known RC limitations.
 
