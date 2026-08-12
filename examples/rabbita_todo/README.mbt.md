@@ -11,14 +11,14 @@ own generated package; it does not import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moon run cmd/i18n -- generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moon run cmd/i18n -- check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -27,7 +27,9 @@ moon run cmd/i18n -- check \
 ~~~
 
 Both locales currently report `22/22 (100%)`. The generator owns the complete
-`i18n/` package, including its `moon.pkg` and typed facade.
+`i18n/` package and catalog directory through ownership manifests. Both
+directories are replaced together by a recoverable transaction; `check` is the
+read-only CI drift gate.
 
 ## Run
 
@@ -49,12 +51,12 @@ warren build --dist /tmp/moonbit-i18n-rabbita-todo
 localization/config.json + schema.json + locales/*.json
                          │
                          ▼
-                   cmd/i18n generate
+               moonx lampclaw/i18n/cmd/i18n generate
                          │
               ┌──────────┴──────────┐
               ▼                     ▼
 i18n/generated.mbt + moon.pkg  public/i18n/*.json
-typed facade + embedded data   versioned catalogs
+typed facade + embedded data   catalog v2 + contract hash
               │
               ▼
 main/moon.pkg imports lampclaw/i18n_rabbita_todo/i18n

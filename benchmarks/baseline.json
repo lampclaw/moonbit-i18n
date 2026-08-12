@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "unit": "microseconds",
+  "maxRatio": 1.5,
+  "absoluteCeilingMicroseconds": 20,
+  "benchmarks": {
+    "compiled-format": 0.25,
+    "catalog-lookup-10k": 0.06,
+    "intl-number-cache-hit": 4.0
+  }
+}

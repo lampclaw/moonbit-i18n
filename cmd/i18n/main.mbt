@@ -1,55 +1,1042 @@
 ///|
-extern "js" fn read_file(path : String) -> String =
-  #| (path) => process.getBuiltinModule("fs").readFileSync(path, "utf8")
+priv suberror CliError {
+  CommandFailed(String)
+} derive(Debug)
 
 ///|
-extern "js" fn write_file(path : String, content : String) -> Unit =
-  #| (path, content) => {
-  #|   const fs = process.getBuiltinModule("fs")
-  #|   const pathModule = process.getBuiltinModule("path")
-  #|   fs.mkdirSync(pathModule.dirname(path), { recursive: true })
-  #|   fs.writeFileSync(path, content)
-  #| }
+priv struct GeneratedTransaction {
+  package_dir : String
+  catalog_dir : String
+  code : String
+  package_manifest : String
+  catalog_names : Array[String]
+  catalog_contents : Array[String]
+}
 
 ///|
-extern "js" fn read_dir(path : String) -> Array[String] =
-  #| (path) => process.getBuiltinModule("fs").readdirSync(path)
+priv struct TransactionState {
+  package_dir : String
+  catalog_dir : String
+  package_stage : String
+  catalog_stage : String
+  package_backup : String
+  catalog_backup : String
+  had_package : Bool
+  had_catalogs : Bool
+}
 
 ///|
-extern "js" fn file_exists(path : String) -> Bool =
-  #| (path) => process.getBuiltinModule("fs").existsSync(path)
+priv struct OwnershipManifest {
+  files : Array[String]
+}
 
 ///|
-extern "js" fn ensure_dir(path : String) -> Unit =
-  #| (path) => process.getBuiltinModule("fs").mkdirSync(path, { recursive: true })
+#cfg(target="native")
+extern "C" fn exit(code : Int) = "exit"
 
 ///|
-extern "js" fn format_moonbit_source(source : String) -> String =
-  #| (source) => {
-  #|   const childProcess = process.getBuiltinModule("child_process")
-  #|   const result = childProcess.spawnSync(
-  #|     "moonfmt",
-  #|     ["-", "-file-type", "mbt"],
-  #|     { input: source, encoding: "utf8" },
-  #|   )
-  #|   if (result.error) throw result.error
-  #|   if (result.status !== 0) {
-  #|     throw new Error(result.stderr || `moonfmt exited with ${result.status}`)
-  #|   }
-  #|   return result.stdout
-  #| }
+#cfg(target="wasm")
+fn exit(code : UInt) = "wasi_snapshot_preview1" "proc_exit"
+
+///|
+fn[T] cli_fail(message : String) -> T raise CliError {
+  raise CommandFailed(message)
+}
+
+///|
+async fn[T] die(message : String) -> T {
+  @stdio.stderr.write("error: \{message}\n") catch {
+    _ => ()
+  }
+  exit(1)
+  panic()
+}
+
+///|
+fn as_path(value : String) -> @path.Path {
+  @path.Path(value)
+}
+
+///|
+fn resolved_path(value : String) -> String {
+  as_path(value).resolve().to_string()
+}
+
+///|
+fn path_dirname(value : String) -> String {
+  as_path(value).dirname().to_string()
+}
+
+///|
+fn path_basename(value : String) -> String {
+  as_path(value).basename().to_owned()
+}
+
+///|
+fn path_join(left : String, right : String) -> String {
+  as_path(left).join(as_path(right)).to_string()
+}
+
+///|
+fn is_root_path(value : String) -> Bool {
+  let path = as_path(value)
+  path.dirname() == path
+}
+
+///|
+fn path_contains(parent : String, child : String) -> Bool {
+  if parent == child {
+    return true
+  }
+  let relative = as_path(child).relative(base=as_path(parent))
+  let text = relative.to_string()
+  if text.is_empty() || relative.is_absolute() {
+    return false
+  }
+  text != ".." && !text.has_prefix("../") && !text.has_prefix("..\\")
+}
+
+///|
+fn valid_generated_filename(name : String) -> Bool {
+  if !name.has_suffix(".json") || name.length() <= ".json".length() {
+    return false
+  }
+  let chars = name.to_array()
+  guard (match chars[0] {
+    'a'..='z' | 'A'..='Z' | '0'..='9' => true
+    _ => false
+  }) else {
+    return false
+  }
+  for char in chars {
+    guard (match char {
+      'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | '_' | '-' => true
+      _ => false
+    }) else {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn valid_nonce(nonce : String) -> Bool {
+  if nonce.is_empty() || nonce.length() > 128 {
+    return false
+  }
+  for char in nonce.to_array() {
+    guard (match char {
+      'a'..='z' | 'A'..='Z' | '0'..='9' | '-' => true
+      _ => false
+    }) else {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn transaction_nonce(value : String, target : String, kind : String) -> String? {
+  if resolved_path(value) != value ||
+    path_dirname(value) != path_dirname(target) {
+    return None
+  }
+  let prefix = ".\{path_basename(target)}.\{kind}-"
+  let name = path_basename(value)
+  if !name.has_prefix(prefix) {
+    return None
+  }
+  let nonce = name[prefix.length():].to_owned()
+  if valid_nonce(nonce) {
+    Some(nonce)
+  } else {
+    None
+  }
+}
+
+///|
+async fn file_kind(path : String) -> @fs.FileKind raise CliError {
+  try @fs.kind(path, follow_symlink=false) catch {
+    err => cli_fail("cannot inspect \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+}
+
+///|
+async fn file_exists(path : String) -> Bool raise CliError {
+  try @fs.exists(path) catch {
+    err => cli_fail("cannot inspect \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+}
+
+///|
+async fn ensure_directory(path : String) -> Unit raise CliError {
+  if file_exists(path) {
+    if !(file_kind(path) is Directory) {
+      cli_fail("\{path} is not a directory")
+    }
+    return
+  }
+  try @fs.mkdir(path, recursive=true) catch {
+    err => cli_fail("cannot create directory \{path}: \{err}")
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+async fn regular_file_size(path : String) -> Int64 raise CliError {
+  if !(file_kind(path) is Regular) {
+    cli_fail("cannot read \{path}: not a regular file")
+  }
+  let file = try @fs.open(path, mode=ReadOnly) catch {
+    err => cli_fail("cannot open \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+  defer file.close()
+  try file.size() catch {
+    err => cli_fail("cannot inspect \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+}
+
+///|
+async fn read_file(path : String) -> String raise CliError {
+  read_file_limited(path, @generator.I18N_MAX_TOTAL_LOCALE_BYTES)
+}
+
+///|
+async fn read_file_limited(
+  path : String,
+  max_bytes : Int,
+) -> String raise CliError {
+  if max_bytes < 0 {
+    cli_fail("invalid negative byte limit for \{path}")
+  }
+  if !(file_kind(path) is Regular) {
+    cli_fail("cannot read \{path}: not a regular file")
+  }
+  let file = try @fs.open(path, mode=ReadOnly) catch {
+    err => cli_fail("cannot open \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+  defer file.close()
+  let size = try file.size() catch {
+    err => cli_fail("cannot inspect \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+  if size > max_bytes.to_int64() {
+    cli_fail("file exceeds the \{max_bytes}-byte limit: \{path}")
+  }
+  let bytes = try file.read_exactly_at(size.to_int(), position=0L) catch {
+    err => cli_fail("cannot read \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+  try @utf8.decode(bytes) catch {
+    _ => cli_fail("cannot read \{path}: invalid UTF-8 encoded data")
+  } noraise {
+    value => value
+  }
+}
+
+///|
+async fn write_file(path : String, content : String) -> Unit raise CliError {
+  let parent = path_dirname(resolved_path(path))
+  ensure_directory(parent)
+  try
+    @fs.write_file(path, content, create_mode=CreateOrTruncate, sync=Full)
+  catch {
+    err => cli_fail("cannot write \{path}: \{err}")
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+async fn write_new_file(
+  path : String,
+  content : String,
+  permission : Int,
+) -> Unit raise CliError {
+  try
+    @fs.write_file(path, content, create_mode=CreateNew, permission~, sync=Full)
+  catch {
+    err => cli_fail("cannot create \{path}: \{err}")
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+async fn read_dir(path : String) -> Array[String] raise CliError {
+  if !(file_kind(path) is Directory) {
+    cli_fail("cannot read directory \{path}: not a directory")
+  }
+  try @fs.readdir(path, include_hidden=true, sort=true) catch {
+    err => cli_fail("cannot read directory \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+}
+
+///|
+async fn remove_path(path : String) -> Unit raise CliError {
+  if !file_exists(path) {
+    return
+  }
+  let kind = file_kind(path)
+  if kind is Directory {
+    try @fs.rmdir(path, recursive=true) catch {
+      err => cli_fail("cannot remove directory \{path}: \{err}")
+    } noraise {
+      _ => ()
+    }
+  } else {
+    try @fs.remove(path) catch {
+      err => cli_fail("cannot remove \{path}: \{err}")
+    } noraise {
+      _ => ()
+    }
+  }
+}
+
+///|
+async fn rename_path(from : String, to : String) -> Unit raise CliError {
+  try @fs.rename(from, to, replace=false) catch {
+    err => cli_fail("cannot rename \{from} to \{to}: \{err}")
+  } noraise {
+    _ => ()
+  }
+}
+
+///|
+fn json_string_field(object : Map[String, Json], name : String) -> String? {
+  match object.get(name) {
+    Some(String(value)) => Some(value)
+    _ => None
+  }
+}
+
+///|
+fn json_bool_field(object : Map[String, Json], name : String) -> Bool? {
+  match object.get(name) {
+    Some(True) => Some(true)
+    Some(False) => Some(false)
+    _ => None
+  }
+}
+
+///|
+fn json_int_field(object : Map[String, Json], name : String) -> Int? {
+  match object.get(name) {
+    Some(Number(value, ..)) => {
+      let integer = value.to_int()
+      if integer.to_double() == value {
+        Some(integer)
+      } else {
+        None
+      }
+    }
+    _ => None
+  }
+}
+
+///|
+#warnings("-deprecated")
+fn parse_ownership_manifest(
+  source : String,
+  expected_kind : String,
+) -> OwnershipManifest raise CliError {
+  let json = try @json.parse(source, max_nesting_depth=16) catch {
+    _ => cli_fail("invalid generated-directory ownership manifest JSON")
+  } noraise {
+    value => value
+  }
+  guard json is Object(object) else {
+    cli_fail("invalid generated-directory ownership manifest")
+  }
+  guard json_int_field(object, "version") is Some(1) &&
+    json_string_field(object, "generator") is Some("lampclaw/i18n") &&
+    json_string_field(object, "kind") is Some(kind) &&
+    kind == expected_kind &&
+    object.get("files") is Some(Array(raw_files)) else {
+    cli_fail("invalid generated-directory ownership manifest")
+  }
+  let files : Array[String] = []
+  for raw in raw_files {
+    guard raw is String(name) else {
+      cli_fail("invalid generated-directory ownership manifest")
+    }
+    if files.contains(name) {
+      cli_fail("invalid generated-directory ownership manifest")
+    }
+    files.push(name)
+  }
+  if kind == "package" {
+    if files.length() != 2 ||
+      !files.contains("generated.mbt") ||
+      !files.contains("moon.pkg") {
+      cli_fail("invalid generated-directory ownership manifest")
+    }
+  } else {
+    for file in files {
+      if !valid_generated_filename(file) {
+        cli_fail("invalid generated-directory ownership manifest")
+      }
+    }
+  }
+  { files, }
+}
+
+///|
+async fn verify_owned_entries(
+  directory : String,
+  kind : String,
+  entries : Array[String],
+  manifest : OwnershipManifest,
+) -> Unit raise CliError {
+  let expected = manifest.files.copy()
+  expected.push(".lampclaw-i18n.json")
+  if kind == "package" {
+    expected.push("pkg.generated.mbti")
+  }
+  for entry in entries {
+    let entry_path = path_join(directory, entry)
+    if !expected.contains(entry) {
+      cli_fail("refusing to replace unowned file: \{entry_path}")
+    }
+    if !(file_kind(entry_path) is Regular) {
+      cli_fail("refusing to replace non-file generated artifact: \{entry_path}")
+    }
+    let limit = if entry == ".lampclaw-i18n.json" {
+      64 * 1024
+    } else if kind == "package" {
+      @generator.I18N_MAX_GENERATED_CODE_BYTES
+    } else {
+      @runtime.CATALOG_MAX_SOURCE_BYTES
+    }
+    if regular_file_size(entry_path) > limit.to_int64() {
+      cli_fail("generated artifact exceeds size limit: \{entry_path}")
+    }
+  }
+}
+
+///|
+async fn verify_unowned_package(
+  directory : String,
+  entries : Array[String],
+) -> Unit raise CliError {
+  let allowed = ["generated.mbt", "moon.pkg", "pkg.generated.mbti"]
+  for entry in entries {
+    let entry_path = path_join(directory, entry)
+    if !allowed.contains(entry) ||
+      !(file_kind(entry_path) is Regular) ||
+      regular_file_size(entry_path) >
+      @generator.I18N_MAX_GENERATED_CODE_BYTES.to_int64() {
+      cli_fail("refusing to adopt invalid generated artifact: \{entry_path}")
+    }
+    if entry == "generated.mbt" || entry == "moon.pkg" {
+      let source = read_file_limited(
+        entry_path,
+        @generator.I18N_MAX_GENERATED_CODE_BYTES,
+      )
+      if !is_generated_content(source) {
+        cli_fail("refusing to overwrite unowned i18n file: \{entry_path}")
+      }
+    }
+  }
+}
+
+///|
+#warnings("-deprecated")
+fn looks_like_generated_catalog(source : String) -> Bool {
+  let json = try @json.parse(source, max_nesting_depth=64) catch {
+    _ => return false
+  } noraise {
+    value => value
+  }
+  guard json is Object(object) else { return false }
+  guard object.get("catalogVersion") is Some(Number(_, ..)) else {
+    return false
+  }
+  object.get("contractHash") is Some(String(_)) ||
+  object.get("schemaHash") is Some(String(_))
+}
+
+///|
+async fn verify_unowned_catalogs(
+  directory : String,
+  entries : Array[String],
+) -> Unit raise CliError {
+  for entry in entries {
+    let entry_path = path_join(directory, entry)
+    if !valid_generated_filename(entry) ||
+      !(file_kind(entry_path) is Regular) ||
+      regular_file_size(entry_path) >
+      @runtime.CATALOG_MAX_SOURCE_BYTES.to_int64() {
+      cli_fail("refusing to adopt invalid generated artifact: \{entry_path}")
+    }
+    if !looks_like_generated_catalog(
+        read_file_limited(entry_path, @runtime.CATALOG_MAX_SOURCE_BYTES),
+      ) {
+      cli_fail("refusing to adopt non-catalog file: \{entry_path}")
+    }
+  }
+}
+
+///|
+async fn verify_generated_directory(
+  directory : String,
+  kind : String,
+) -> Unit raise CliError {
+  if !file_exists(directory) {
+    return
+  }
+  if !(file_kind(directory) is Directory) {
+    cli_fail("\{directory} is not a directory")
+  }
+  let entries = read_dir(directory)
+  let owner_path = path_join(directory, ".lampclaw-i18n.json")
+  if file_exists(owner_path) {
+    let manifest = parse_ownership_manifest(
+      read_file_limited(owner_path, 64 * 1024),
+      kind,
+    ) catch {
+      CommandFailed(_) =>
+        cli_fail(
+          "invalid generated-directory ownership manifest: \{owner_path}",
+        )
+    }
+    verify_owned_entries(directory, kind, entries, manifest)
+  } else if kind == "package" {
+    verify_unowned_package(directory, entries)
+  } else {
+    verify_unowned_catalogs(directory, entries)
+  }
+}
+
+///|
+fn transaction_state_json(state : TransactionState) -> String {
+  Json::object({
+    "version": Json::number(2.0),
+    "pkg": Json::string(state.package_dir),
+    "catalogs": Json::string(state.catalog_dir),
+    "pkgStage": Json::string(state.package_stage),
+    "catStage": Json::string(state.catalog_stage),
+    "pkgBackup": Json::string(state.package_backup),
+    "catBackup": Json::string(state.catalog_backup),
+    "hadPkg": Json::boolean(state.had_package),
+    "hadCatalogs": Json::boolean(state.had_catalogs),
+  }).stringify(indent=2) +
+  "\n"
+}
+
+///|
+#warnings("-deprecated")
+fn parse_transaction_state(
+  source : String,
+  package_dir : String,
+  catalog_dir : String,
+) -> TransactionState raise CliError {
+  let json = try @json.parse(source, max_nesting_depth=16) catch {
+    _ => cli_fail("invalid i18n transaction journal")
+  } noraise {
+    value => value
+  }
+  guard json is Object(object) else {
+    cli_fail("invalid i18n transaction journal")
+  }
+  guard json_int_field(object, "version") is Some(version) &&
+    (version == 1 || version == 2) &&
+    json_string_field(object, "pkg") is Some(pkg) &&
+    json_string_field(object, "catalogs") is Some(catalogs) &&
+    json_string_field(object, "pkgStage") is Some(pkg_stage) &&
+    json_string_field(object, "catStage") is Some(cat_stage) &&
+    json_string_field(object, "pkgBackup") is Some(pkg_backup) &&
+    json_string_field(object, "catBackup") is Some(cat_backup) &&
+    json_bool_field(object, "hadPkg") is Some(had_pkg) &&
+    json_bool_field(object, "hadCatalogs") is Some(had_catalogs) &&
+    pkg == package_dir &&
+    catalogs == catalog_dir &&
+    transaction_nonce(pkg_stage, pkg, "stage") is Some(nonce) &&
+    transaction_nonce(cat_stage, catalogs, "stage") is Some(cat_nonce) &&
+    transaction_nonce(pkg_backup, pkg, "backup") is Some(pkg_backup_nonce) &&
+    transaction_nonce(cat_backup, catalogs, "backup") is Some(cat_backup_nonce) &&
+    nonce == cat_nonce &&
+    nonce == pkg_backup_nonce &&
+    nonce == cat_backup_nonce else {
+    cli_fail("invalid i18n transaction journal")
+  }
+  {
+    package_dir: pkg,
+    catalog_dir: catalogs,
+    package_stage: pkg_stage,
+    catalog_stage: cat_stage,
+    package_backup: pkg_backup,
+    catalog_backup: cat_backup,
+    had_package: had_pkg,
+    had_catalogs,
+  }
+}
+
+///|
+async fn validate_transaction_artifact(path : String) -> Unit raise CliError {
+  let kind = try @fs.kind(path, follow_symlink=false) catch {
+    _ => None
+  } noraise {
+    kind => Some(kind)
+  }
+  match kind {
+    Some(Directory) | None => ()
+    Some(_) => cli_fail("invalid i18n transaction artifact: \{path}")
+  }
+}
+
+///|
+async fn settle_transaction(
+  state : TransactionState,
+  journal : String,
+) -> Bool raise CliError {
+  for
+    artifact in [
+      state.package_stage,
+      state.catalog_stage,
+      state.package_backup,
+      state.catalog_backup,
+    ] {
+    validate_transaction_artifact(artifact)
+  }
+  let committed = !file_exists(state.package_stage) &&
+    !file_exists(state.catalog_stage) &&
+    file_exists(state.package_dir) &&
+    file_exists(state.catalog_dir)
+  if !committed {
+    if file_exists(state.package_backup) {
+      remove_path(state.package_dir)
+      rename_path(state.package_backup, state.package_dir)
+    } else if !state.had_package {
+      remove_path(state.package_dir)
+    }
+    if file_exists(state.catalog_backup) {
+      remove_path(state.catalog_dir)
+      rename_path(state.catalog_backup, state.catalog_dir)
+    } else if !state.had_catalogs {
+      remove_path(state.catalog_dir)
+    }
+  }
+  remove_path(state.package_stage)
+  remove_path(state.catalog_stage)
+  remove_path(state.package_backup)
+  remove_path(state.catalog_backup)
+  remove_path(journal)
+  committed
+}
+
+///|
+async fn recover_transaction(
+  journal : String,
+  package_dir : String,
+  catalog_dir : String,
+) -> Unit raise CliError {
+  if !file_exists(journal) {
+    return
+  }
+  let state = parse_transaction_state(
+    read_file_limited(journal, 64 * 1024),
+    package_dir,
+    catalog_dir,
+  ) catch {
+    CommandFailed(_) => cli_fail("invalid i18n transaction journal: \{journal}")
+  }
+  ignore(settle_transaction(state, journal))
+}
+
+///|
+fn ownership_manifest(kind : String, files : Array[String]) -> String {
+  let quoted = files.map(file => "\"\{file}\"").join(", ")
+  "{\n  \"version\": 1,\n  \"generator\": \"lampclaw/i18n\",\n  \"kind\": \"\{kind}\",\n  \"files\": [\{quoted}]\n}\n"
+}
+
+///|
+fn transaction_journal(package_dir : String) -> String {
+  path_join(
+    path_dirname(package_dir),
+    ".\{path_basename(package_dir)}.lampclaw-journal.json",
+  )
+}
+
+///|
+fn generation_lock_directory_from(
+  environment : Map[String, String],
+  current_directory : String,
+) -> String {
+  match environment.get("LAMPCLAW_I18N_STATE_DIR") {
+    Some(value) if !value.trim().is_empty() => return resolved_path(value)
+    _ => ()
+  }
+  match environment.get("XDG_CACHE_HOME") {
+    Some(value) if !value.trim().is_empty() =>
+      return path_join(resolved_path(value), "lampclaw-i18n/locks")
+    _ => ()
+  }
+  match environment.get("LOCALAPPDATA") {
+    Some(value) if !value.trim().is_empty() =>
+      return path_join(resolved_path(value), "lampclaw/i18n/locks")
+    _ => ()
+  }
+  for name in ["HOME", "USERPROFILE"] {
+    match environment.get(name) {
+      Some(value) if !value.trim().is_empty() =>
+        return path_join(resolved_path(value), ".cache/lampclaw-i18n/locks")
+      _ => ()
+    }
+  }
+  for name in ["TMPDIR", "TEMP", "TMP"] {
+    match environment.get(name) {
+      Some(value) if !value.trim().is_empty() =>
+        return path_join(resolved_path(value), "lampclaw-i18n/locks")
+      _ => ()
+    }
+  }
+  path_join(current_directory, ".lampclaw-i18n-locks")
+}
+
+///|
+fn generation_lock_directory() -> String {
+  generation_lock_directory_from(@env.get_env_vars(), resolved_path("."))
+}
+
+///|
+fn transaction_lock_path(directory : String, lock_directory : String) -> String {
+  let digest = @crypto.bytes_to_hex_string(
+    @crypto.sha256(@utf8.encode(resolved_path(directory))),
+  )
+  path_join(lock_directory, "\{digest}.lampclaw.lock")
+}
+
+///|
+fn make_transaction_state(
+  transaction : GeneratedTransaction,
+  nonce : String,
+) -> TransactionState {
+  let package_parent = path_dirname(transaction.package_dir)
+  let catalog_parent = path_dirname(transaction.catalog_dir)
+  let package_name = path_basename(transaction.package_dir)
+  let catalog_name = path_basename(transaction.catalog_dir)
+  {
+    package_dir: transaction.package_dir,
+    catalog_dir: transaction.catalog_dir,
+    package_stage: path_join(package_parent, ".\{package_name}.stage-\{nonce}"),
+    catalog_stage: path_join(catalog_parent, ".\{catalog_name}.stage-\{nonce}"),
+    package_backup: path_join(
+      package_parent,
+      ".\{package_name}.backup-\{nonce}",
+    ),
+    catalog_backup: path_join(
+      catalog_parent,
+      ".\{catalog_name}.backup-\{nonce}",
+    ),
+    had_package: false,
+    had_catalogs: false,
+  }
+}
+
+///|
+async fn allocate_transaction_state(
+  transaction : GeneratedTransaction,
+) -> TransactionState raise CliError {
+  for attempt = 0; attempt < 100; attempt = attempt + 1 {
+    let nonce = "\{@async.now()}-\{attempt}"
+    let candidate = make_transaction_state(transaction, nonce)
+    if !file_exists(candidate.package_stage) &&
+      !file_exists(candidate.catalog_stage) &&
+      !file_exists(candidate.package_backup) &&
+      !file_exists(candidate.catalog_backup) {
+      return {
+        ..candidate,
+        had_package: file_exists(transaction.package_dir),
+        had_catalogs: file_exists(transaction.catalog_dir),
+      }
+    }
+  }
+  cli_fail("cannot allocate unique i18n transaction paths")
+}
+
+///|
+async fn stage_transaction(
+  transaction : GeneratedTransaction,
+  state : TransactionState,
+) -> Unit raise CliError {
+  try @fs.mkdir(state.package_stage) catch {
+    err => cli_fail("cannot create \{state.package_stage}: \{err}")
+  } noraise {
+    _ => ()
+  }
+  try @fs.mkdir(state.catalog_stage) catch {
+    err => cli_fail("cannot create \{state.catalog_stage}: \{err}")
+  } noraise {
+    _ => ()
+  }
+  write_new_file(
+    path_join(state.package_stage, "generated.mbt"),
+    transaction.code,
+    0o644,
+  )
+  write_new_file(
+    path_join(state.package_stage, "moon.pkg"),
+    transaction.package_manifest,
+    0o644,
+  )
+  write_new_file(
+    path_join(state.package_stage, ".lampclaw-i18n.json"),
+    ownership_manifest("package", ["generated.mbt", "moon.pkg"]),
+    0o644,
+  )
+  for index = 0; index < transaction.catalog_names.length(); index = index + 1 {
+    write_new_file(
+      path_join(state.catalog_stage, transaction.catalog_names[index]),
+      transaction.catalog_contents[index],
+      0o644,
+    )
+  }
+  write_new_file(
+    path_join(state.catalog_stage, ".lampclaw-i18n.json"),
+    ownership_manifest("catalogs", transaction.catalog_names),
+    0o644,
+  )
+}
+
+///|
+async fn commit_transaction(
+  state : TransactionState,
+  journal : String,
+) -> Unit raise CliError {
+  try {
+    if file_exists(state.package_dir) {
+      rename_path(state.package_dir, state.package_backup)
+    }
+    if file_exists(state.catalog_dir) {
+      rename_path(state.catalog_dir, state.catalog_backup)
+    }
+    rename_path(state.package_stage, state.package_dir)
+    rename_path(state.catalog_stage, state.catalog_dir)
+    remove_path(state.package_backup)
+    remove_path(state.catalog_backup)
+    remove_path(journal)
+  } catch {
+    CommandFailed(message) => {
+      let committed = settle_transaction(state, journal) catch {
+        CommandFailed(recovery) =>
+          cli_fail(
+            "i18n transaction failed (\{message}) and recovery failed: \{recovery}",
+          )
+      }
+      if !committed {
+        cli_fail("i18n transaction failed and was rolled back: \{message}")
+      }
+    }
+  }
+}
+
+///|
+async fn open_generation_lock(path : String) -> @fs.File raise CliError {
+  if file_exists(path) {
+    if !(file_kind(path) is Regular) {
+      cli_fail("generation lock is not a regular file: \{path}")
+    }
+  }
+  let file = try
+    @fs.open(path, mode=ReadWrite, create_mode=OpenOrCreate, permission=0o600)
+  catch {
+    err => cli_fail("cannot open generation lock \{path}: \{err}")
+  } noraise {
+    value => value
+  }
+  let acquired = try file.try_lock(Exclusive) catch {
+    err => {
+      file.close()
+      cli_fail("cannot acquire generation lock \{path}: \{err}")
+    }
+  } noraise {
+    value => value
+  }
+  if !acquired {
+    file.close()
+    cli_fail("another i18n generation transaction is active for: \{path}")
+  }
+  file
+}
+
+///|
+async fn run_locked_transaction(
+  transaction : GeneratedTransaction,
+) -> Unit raise CliError {
+  let journal = transaction_journal(transaction.package_dir)
+  recover_transaction(journal, transaction.package_dir, transaction.catalog_dir)
+  verify_generated_directory(transaction.package_dir, "package")
+  verify_generated_directory(transaction.catalog_dir, "catalogs")
+  let state = allocate_transaction_state(transaction)
+  stage_transaction(transaction, state) catch {
+    CommandFailed(message) => {
+      remove_path(state.package_stage) catch {
+        _ => ()
+      }
+      remove_path(state.catalog_stage) catch {
+        _ => ()
+      }
+      cli_fail(message)
+    }
+  }
+  write_new_file(journal, transaction_state_json(state), 0o600) catch {
+    CommandFailed(message) => {
+      remove_path(state.package_stage) catch {
+        _ => ()
+      }
+      remove_path(state.catalog_stage) catch {
+        _ => ()
+      }
+      cli_fail(message)
+    }
+  }
+  commit_transaction(state, journal)
+}
+
+///|
+async fn with_generation_locks(
+  transaction : GeneratedTransaction,
+  first : String,
+  second : String,
+) -> Unit raise CliError {
+  let first_lock = open_generation_lock(first)
+  defer first_lock.close()
+  defer first_lock.unlock()
+  let second_lock = open_generation_lock(second)
+  defer second_lock.close()
+  defer second_lock.unlock()
+  run_locked_transaction(transaction)
+}
+
+///|
+fn validate_transaction(
+  transaction : GeneratedTransaction,
+) -> Unit raise CliError {
+  if is_root_path(transaction.package_dir) ||
+    is_root_path(transaction.catalog_dir) ||
+    path_contains(transaction.package_dir, transaction.catalog_dir) ||
+    path_contains(transaction.catalog_dir, transaction.package_dir) {
+    cli_fail(
+      "generated package and catalog directories must be distinct dedicated directories",
+    )
+  }
+  if transaction.catalog_names.length() != transaction.catalog_contents.length() {
+    cli_fail("catalog artifact arrays have different lengths")
+  }
+  if @utf8.encode(transaction.code).length() >
+    @generator.I18N_MAX_GENERATED_CODE_BYTES {
+    cli_fail("generated MoonBit source exceeds the configured size limit")
+  }
+  if @utf8.encode(transaction.package_manifest).length() > 64 * 1024 {
+    cli_fail("generated package manifest exceeds the configured size limit")
+  }
+  let seen : Map[String, Bool] = Map([])
+  for index = 0; index < transaction.catalog_names.length(); index = index + 1 {
+    let name = transaction.catalog_names[index]
+    if !valid_generated_filename(name) || seen.contains(name) {
+      cli_fail("invalid generated catalog filename: \{name}")
+    }
+    if @utf8.encode(transaction.catalog_contents[index]).length() >
+      @runtime.CATALOG_MAX_SOURCE_BYTES {
+      cli_fail("generated catalog exceeds the configured size limit: \{name}")
+    }
+    seen[name] = true
+  }
+}
+
+///|
+async fn write_generated_transaction(
+  package_dir : String,
+  catalog_dir : String,
+  code : String,
+  package_manifest : String,
+  catalog_names : Array[String],
+  catalog_contents : Array[String],
+) -> Unit raise CliError {
+  let transaction = GeneratedTransaction::{
+    package_dir: resolved_path(package_dir),
+    catalog_dir: resolved_path(catalog_dir),
+    code,
+    package_manifest,
+    catalog_names,
+    catalog_contents,
+  }
+  validate_transaction(transaction)
+  ensure_directory(path_dirname(transaction.package_dir))
+  ensure_directory(path_dirname(transaction.catalog_dir))
+  let lock_directory = generation_lock_directory()
+  ensure_directory(lock_directory)
+  let package_lock = transaction_lock_path(
+    transaction.package_dir,
+    lock_directory,
+  )
+  let catalog_lock = transaction_lock_path(
+    transaction.catalog_dir,
+    lock_directory,
+  )
+  if package_lock.lexical_compare(catalog_lock) <= 0 {
+    with_generation_locks(transaction, package_lock, catalog_lock)
+  } else {
+    with_generation_locks(transaction, catalog_lock, package_lock)
+  }
+}
+
+///|
+fn format_moonbit_source(source : String) -> String {
+  @fmt.format(source)
+  .split("\n")
+  .map(line => line.trim_end().to_owned())
+  .collect()
+  .join("\n")
+  .trim_end()
+  .to_owned() +
+  "\n"
+}
 
 ///|
 fn usage() -> String {
   (
+    #|moon-i18n 0.1.0-rc.1
+    #|
     #|usage:
-    #|  moon run cmd/i18n -- generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moon run cmd/i18n -- check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moon run cmd/i18n -- coverage <config-file> <schema-file> <locale-dir>
-    #|  moon run cmd/i18n -- pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moon run cmd/i18n -- export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moon run cmd/i18n -- import-xliff <schema-file> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
   )
+}
+
+///|
+fn is_command(arg : String) -> Bool {
+  arg == "generate" ||
+  arg == "check" ||
+  arg == "coverage" ||
+  arg == "pseudo" ||
+  arg == "export-xliff" ||
+  arg == "import-xliff" ||
+  arg == "help" ||
+  arg == "--help" ||
+  arg == "-h" ||
+  arg == "--version" ||
+  arg == "-V"
 }
 
 ///|
@@ -60,12 +1047,7 @@ fn user_args(args : Array[String]) -> Array[String] {
     }
   }
   for i = 0; i < args.length(); i = i + 1 {
-    if args[i] == "generate" ||
-      args[i] == "check" ||
-      args[i] == "coverage" ||
-      args[i] == "pseudo" ||
-      args[i] == "export-xliff" ||
-      args[i] == "import-xliff" {
+    if is_command(args[i]) {
       return args[i:].to_owned()
     }
   }
@@ -78,17 +1060,46 @@ fn without_allow_partial(args : Array[String]) -> Array[String] {
 }
 
 ///|
-fn locale_sources(input_dir : String) -> Array[@generator.LocaleSource] {
+async fn locale_sources(
+  input_dir : String,
+) -> Array[@generator.LocaleSource] raise CliError {
+  locale_sources_with_limit(input_dir, @generator.I18N_MAX_TOTAL_LOCALE_BYTES)
+}
+
+///|
+async fn locale_sources_with_limit(
+  input_dir : String,
+  max_total_bytes : Int,
+) -> Array[@generator.LocaleSource] raise CliError {
   let files = read_dir(input_dir)
   files.sort_by((left, right) => left.lexical_compare(right))
   let sources : Array[@generator.LocaleSource] = []
+  let mut total_bytes = 0
   for file in files {
     if file.has_suffix(".json") &&
       file != "config.json" &&
-      file != "schema.json" {
+      file != "schema.json" &&
+      file != ".lampclaw-i18n.json" {
+      if sources.length() >= @generator.I18N_MAX_LOCALES {
+        cli_fail(
+          "locale directory exceeds the \{@generator.I18N_MAX_LOCALES}-file limit: \{input_dir}",
+        )
+      }
+      let source = read_file_limited(
+        path_join(input_dir, file),
+        @runtime.CATALOG_MAX_SOURCE_BYTES,
+      )
+      let source_bytes = @utf8.encode(source).length()
+      if source_bytes > max_total_bytes ||
+        total_bytes > max_total_bytes - source_bytes {
+        cli_fail(
+          "locale directory exceeds the \{max_total_bytes}-byte aggregate UTF-8 limit: \{input_dir}",
+        )
+      }
+      total_bytes = total_bytes + source_bytes
       sources.push({
         code: file[:file.length() - ".json".length()].to_owned(),
-        source: read_file(input_dir + "/" + file),
+        source,
       })
     }
   }
@@ -105,97 +1116,81 @@ fn text_file_content(source : String) -> String {
 }
 
 ///|
-fn check_file(path : String, expected : String, kind : String) -> Unit {
+async fn check_file(
+  path : String,
+  expected : String,
+  kind : String,
+) -> Unit raise CliError {
   if !file_exists(path) || read_file(path) != expected {
-    abort("i18n \{kind} is out of date: \{path}")
+    cli_fail("i18n \{kind} is out of date: \{path}")
   }
 }
 
 ///|
-fn check_catalog_set(
+async fn check_catalog_set(
   catalog_dir : String,
   catalogs : Array[(String, String)],
-) -> Unit {
+) -> Unit raise CliError {
   let expected = catalogs.map(catalog => catalog.0 + ".json")
   for file in read_dir(catalog_dir) {
-    if file.has_suffix(".json") && !expected.contains(file) {
-      abort("unexpected i18n catalog: \{catalog_dir}/\{file}")
+    if file.has_suffix(".json") &&
+      file != ".lampclaw-i18n.json" &&
+      !expected.contains(file) {
+      cli_fail("unexpected i18n catalog: \{path_join(catalog_dir, file)}")
     }
   }
 }
 
 ///|
-fn is_generated_content(source : String) -> Bool {
-  source.has_prefix("// Generated by lampclaw/i18n. Do not edit by hand.")
-}
-
-///|
-fn unexpected_moonbit_source(files : Array[String]) -> String? {
-  for file in files {
-    if file.has_suffix(".mbt") && file != "generated.mbt" {
-      return Some(file)
-    }
+async fn check_exact_generated_set(
+  directory : String,
+  expected : Array[String],
+  kind : String,
+) -> Unit raise CliError {
+  if !file_exists(directory) {
+    cli_fail("i18n \{kind} directory is missing: \{directory}")
   }
-  None
-}
-
-///|
-fn check_generated_package_set(package_dir : String) -> Unit {
-  if !file_exists(package_dir) {
-    abort("i18n generated package is missing: \{package_dir}")
-  }
-  match unexpected_moonbit_source(read_dir(package_dir)) {
-    Some(file) =>
-      abort(
-        "unexpected MoonBit source in generated package: \{package_dir}/\{file}",
-      )
-    None => ()
+  let actual = read_dir(directory)
+  actual.sort_by((left, right) => left.lexical_compare(right))
+  let sorted_expected = expected.copy()
+  sorted_expected.sort_by((left, right) => left.lexical_compare(right))
+  if actual != sorted_expected {
+    cli_fail("i18n \{kind} file set is out of date: \{directory}")
   }
 }
 
 ///|
-fn ensure_generated_package_writable(package_dir : String) -> Unit {
-  if !file_exists(package_dir) {
-    return
-  }
-  check_generated_package_set(package_dir)
-  for file in ["generated.mbt", "moon.pkg"] {
-    let path = package_dir + "/" + file
-    if file_exists(path) && !is_generated_content(read_file(path)) {
-      abort("refusing to overwrite unowned i18n file: \{path}")
-    }
-  }
-}
-
-///|
-fn load_artifacts(
+async fn load_artifacts(
   config_file : String,
   schema_file : String,
   locale_dir : String,
   enforce_coverage : Bool,
-) -> @generator.Artifacts {
+) -> @generator.Artifacts raise CliError {
   let sources = locale_sources(locale_dir)
   if sources.is_empty() {
-    abort("no locale JSON files found in: \{locale_dir}")
+    cli_fail("no locale JSON files found in: \{locale_dir}")
   }
   match
     @generator.generate(
-      read_file(config_file),
-      read_file(schema_file),
+      read_file_limited(config_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
+      read_file_limited(schema_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
       sources,
       enforce_coverage~,
     ) {
     Ok(value) => value
-    Err(message) => abort(message)
+    Err(message) => cli_fail(message)
   }
 }
 
 ///|
-fn run_generate(args : Array[String], check_mode : Bool) -> Unit {
+async fn run_generate(
+  args : Array[String],
+  check_mode : Bool,
+) -> Unit raise CliError {
   let allow_partial = args.contains("--allow-partial")
   let values = without_allow_partial(args)
   if values.length() != 6 {
-    abort(usage())
+    cli_fail(usage())
   }
   let artifacts = load_artifacts(
     values[1],
@@ -207,59 +1202,106 @@ fn run_generate(args : Array[String], check_mode : Bool) -> Unit {
   let manifest = text_file_content(artifacts.package_manifest)
   let package_dir = values[4]
   if check_mode {
-    check_file(package_dir + "/generated.mbt", code, "generated bindings")
     check_file(
-      package_dir + "/moon.pkg",
+      path_join(package_dir, "generated.mbt"),
+      code,
+      "generated bindings",
+    )
+    check_file(
+      path_join(package_dir, "moon.pkg"),
       manifest,
       "generated package manifest",
     )
-    check_generated_package_set(package_dir)
+    let package_files = ["generated.mbt", "moon.pkg"]
+    check_file(
+      path_join(package_dir, ".lampclaw-i18n.json"),
+      ownership_manifest("package", package_files),
+      "package ownership manifest",
+    )
+    let expected_package_files = [
+      ".lampclaw-i18n.json", "generated.mbt", "moon.pkg",
+    ]
+    if file_exists(path_join(package_dir, "pkg.generated.mbti")) {
+      expected_package_files.push("pkg.generated.mbti")
+    }
+    check_exact_generated_set(
+      package_dir, expected_package_files, "generated package",
+    )
     for catalog in artifacts.catalogs {
       check_file(
-        values[5] + "/" + catalog.0 + ".json",
+        path_join(values[5], catalog.0 + ".json"),
         text_file_content(catalog.1),
         "catalog",
       )
     }
     check_catalog_set(values[5], artifacts.catalogs)
+    let catalog_files = artifacts.catalogs.map(catalog => catalog.0 + ".json")
+    check_file(
+      path_join(values[5], ".lampclaw-i18n.json"),
+      ownership_manifest("catalogs", catalog_files),
+      "catalog ownership manifest",
+    )
+    let expected_catalog_files = catalog_files.copy()
+    expected_catalog_files.push(".lampclaw-i18n.json")
+    check_exact_generated_set(values[5], expected_catalog_files, "catalog")
   } else {
-    ensure_generated_package_writable(package_dir)
-    ensure_dir(package_dir)
-    ensure_dir(values[5])
-    write_file(package_dir + "/generated.mbt", code)
-    write_file(package_dir + "/moon.pkg", manifest)
+    let catalog_names : Array[String] = []
+    let catalog_contents : Array[String] = []
     for catalog in artifacts.catalogs {
-      write_file(
-        values[5] + "/" + catalog.0 + ".json",
-        text_file_content(catalog.1),
-      )
+      catalog_names.push(catalog.0 + ".json")
+      catalog_contents.push(text_file_content(catalog.1))
     }
+    write_generated_transaction(
+      package_dir,
+      values[5],
+      code,
+      manifest,
+      catalog_names,
+      catalog_contents,
+    )
   }
   println(artifacts.coverage_report)
 }
 
 ///|
-fn run_coverage(args : Array[String]) -> Unit {
+async fn run_coverage(args : Array[String]) -> Unit raise CliError {
   if args.length() != 4 {
-    abort(usage())
+    cli_fail(usage())
   }
   let artifacts = load_artifacts(args[1], args[2], args[3], false)
   println(artifacts.coverage_report)
 }
 
 ///|
-fn main {
-  let args = user_args(@env.args())
+async fn run_command(args : Array[String]) -> Unit raise CliError {
   if args.is_empty() {
-    abort(usage())
+    cli_fail(usage())
   }
   match args[0] {
+    "--help" | "-h" | "help" => println(usage())
+    "--version" | "-V" => println("moon-i18n 0.1.0-rc.1")
     "generate" => run_generate(args, false)
     "check" => run_generate(args, true)
     "coverage" => run_coverage(args)
     "pseudo" => run_pseudo(args)
     "export-xliff" => run_export_xliff(args)
     "import-xliff" => run_import_xliff(args)
-    _ => abort(usage())
+    _ => cli_fail(usage())
+  }
+}
+
+///|
+fn is_generated_content(source : String) -> Bool {
+  source.has_prefix(
+    "///|\n/// Generated by lampclaw/i18n. Do not edit by hand.",
+  ) ||
+  source.has_prefix("/// Generated by lampclaw/i18n. Do not edit by hand.") ||
+  source.has_prefix("// Generated by lampclaw/i18n. Do not edit by hand.")
+}
+
+///|
+async fn main {
+  run_command(user_args(@env.args())) catch {
+    CommandFailed(message) => die(message)
   }
 }

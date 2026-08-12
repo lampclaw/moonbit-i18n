@@ -6,3 +6,5 @@ import {
 }
 
 supported_targets = "js"
+
+formatter(ignore: [ "generated.mbt" ])

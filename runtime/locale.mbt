@@ -1,4 +1,5 @@
 ///|
+/// Normalizes a supported BCP-47-like locale code and rejects invalid input.
 pub fn normalize_locale_code(code : String) -> Result[String, String] {
   let normalized = code.replace_all(old="_", new="-")
   let parts = normalized.split("-").map(part => part.to_owned()).collect()
@@ -25,6 +26,7 @@ pub fn normalize_locale_code(code : String) -> Result[String, String] {
 }
 
 ///|
+/// Returns progressively less-specific locale candidates for lookup.
 pub fn locale_lookup_chain(code : String) -> Array[String] {
   let normalized = match normalize_locale_code(code) {
     Ok(value) => value
@@ -42,6 +44,7 @@ pub fn locale_lookup_chain(code : String) -> Array[String] {
 }
 
 ///|
+/// Resolves ordered requested locales against supported locales and a default.
 pub fn resolve_locale_code(
   requested : Array[String],
   supported : Array[String],
@@ -94,20 +97,12 @@ fn part_is_digits(value : String) -> Bool {
 
 ///|
 fn ascii_lower(value : String) -> String {
-  let out = StringBuilder::new()
-  for c in value.to_array() {
-    out.write_char(locale_to_lower(c))
-  }
-  out.to_string()
+  value.to_lower()
 }
 
 ///|
 fn ascii_upper(value : String) -> String {
-  let out = StringBuilder::new()
-  for c in value.to_array() {
-    out.write_char(locale_to_upper(c))
-  }
-  out.to_string()
+  value.to_upper()
 }
 
 ///|
@@ -117,9 +112,9 @@ fn ascii_title(value : String) -> String {
   for i = 0; i < chars.length(); i = i + 1 {
     out.write_char(
       if i == 0 {
-        locale_to_upper(chars[i])
+        chars[i].to_ascii_uppercase()
       } else {
-        locale_to_lower(chars[i])
+        chars[i].to_ascii_lowercase()
       },
     )
   }
@@ -143,67 +138,3 @@ fn locale_is_ascii_digit(c : Char) -> Bool {
 }
 
 ///|
-fn locale_to_lower(c : Char) -> Char {
-  match c {
-    'A' => 'a'
-    'B' => 'b'
-    'C' => 'c'
-    'D' => 'd'
-    'E' => 'e'
-    'F' => 'f'
-    'G' => 'g'
-    'H' => 'h'
-    'I' => 'i'
-    'J' => 'j'
-    'K' => 'k'
-    'L' => 'l'
-    'M' => 'm'
-    'N' => 'n'
-    'O' => 'o'
-    'P' => 'p'
-    'Q' => 'q'
-    'R' => 'r'
-    'S' => 's'
-    'T' => 't'
-    'U' => 'u'
-    'V' => 'v'
-    'W' => 'w'
-    'X' => 'x'
-    'Y' => 'y'
-    'Z' => 'z'
-    _ => c
-  }
-}
-
-///|
-fn locale_to_upper(c : Char) -> Char {
-  match c {
-    'a' => 'A'
-    'b' => 'B'
-    'c' => 'C'
-    'd' => 'D'
-    'e' => 'E'
-    'f' => 'F'
-    'g' => 'G'
-    'h' => 'H'
-    'i' => 'I'
-    'j' => 'J'
-    'k' => 'K'
-    'l' => 'L'
-    'm' => 'M'
-    'n' => 'N'
-    'o' => 'O'
-    'p' => 'P'
-    'q' => 'Q'
-    'r' => 'R'
-    's' => 'S'
-    't' => 'T'
-    'u' => 'U'
-    'v' => 'V'
-    'w' => 'W'
-    'x' => 'X'
-    'y' => 'Y'
-    'z' => 'Z'
-    _ => c
-  }
-}

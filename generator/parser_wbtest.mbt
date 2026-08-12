@@ -230,3 +230,239 @@ test "locale validation requires wildcard matcher fallback" {
   }
   assert_true(message.contains("all-wildcard fallback"))
 }
+
+///|
+test "schema bounds generated parameter and rich-tag arity" {
+  let params : Array[Json] = []
+  for i = 0; i <= I18N_MAX_PARAMS_PER_MESSAGE; i = i + 1 {
+    params.push(
+      Json::object({
+        "name": Json::string("p\{i}"),
+        "type": Json::string("String"),
+      }),
+    )
+  }
+  assert_true(
+    parse_schema_params(
+      "group.key",
+      params[:I18N_MAX_PARAMS_PER_MESSAGE].to_owned(),
+    )
+    is Ok(_),
+  )
+  guard parse_schema_params("group.key", params) is Err(param_error) else {
+    fail("excessive generated function arity should fail")
+  }
+  assert_true(param_error.contains("parameter limit"))
+  let tags : Array[String] = []
+  for i = 0; i <= I18N_MAX_PART_TAGS_PER_MESSAGE; i = i + 1 {
+    tags.push("\"tag\{i}\"")
+  }
+  let schema = "{\"messages\":{\"group\":[\"key\"]},\"parts\":{\"group.key\":[" +
+    tags.join(",") +
+    "]}}"
+  guard parse_schema(schema) is Err(tag_error) else {
+    fail("excessive rich-tag arity should fail")
+  }
+  assert_true(tag_error.contains("tag limit"))
+}
+
+///|
+fn assert_config_error(source : String) -> Unit raise {
+  assert_true(parse_config(source) is Err(_), msg=source)
+}
+
+///|
+fn assert_schema_error(source : String) -> Unit raise {
+  assert_true(parse_schema(source) is Err(_), msg=source)
+}
+
+///|
+test "config parser rejects malformed fields and invalid release policy" {
+  let valid =
+    #|{"sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":[],"locales":{"en-US":{}}}
+  assert_config_error("not-json")
+  assert_config_error("[]")
+  assert_config_error("{}")
+  assert_config_error(
+    valid.replace_all(
+      old="\"defaultLocale\":\"en-US\"",
+      new="\"defaultLocale\":1",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"fallbackLocale\":\"en-US\"",
+      new="\"fallbackLocale\":1",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"embeddedLocales\":[]",
+      new="\"embeddedLocales\":{}",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"embeddedLocales\":[]",
+      new="\"embeddedLocales\":[1]",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"embeddedLocales\":[]",
+      new="\"embeddedLocales\":[\"en--US\"]",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"embeddedLocales\":[]",
+      new="\"embeddedLocales\":[\"en-US\",\"en_US\"]",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(old="\"locales\":{\"en-US\":{}}", new="\"locales\":[]"),
+  )
+  assert_config_error(valid.replace_all(old="\"en-US\":{}", new="\"en-US\":1"))
+  assert_config_error(
+    valid.replace_all(
+      old="\"en-US\":{}",
+      new="\"en-US\":{\"direction\":\"up\"}",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(old="\"locales\":{\"en-US\":{}}", new="\"locales\":{}"),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"sourceLocale\":\"en-US\"",
+      new="\"sourceLocale\":\"fr\"",
+    ),
+  )
+  assert_config_error(
+    valid.replace_all(
+      old="\"embeddedLocales\":[]",
+      new="\"embeddedLocales\":[\"fr\"]",
+    ),
+  )
+  let without_close = valid[:valid.length() - 1].to_owned()
+  assert_config_error(without_close + ",\"release\":1}")
+  assert_config_error(
+    without_close + ",\"release\":{\"minimumCoverage\":\"all\"}}",
+  )
+  assert_config_error(without_close + ",\"release\":{\"minimumCoverage\":1.1}}")
+  assert_config_error("x".repeat(@runtime.CATALOG_MAX_SOURCE_BYTES + 1))
+  assert_config_error(
+    valid
+    .replace_all(
+      old="\"locales\":{\"en-US\":{}}",
+      new="\"locales\":{\"en-1\":{},\"en1\":{}}",
+    )
+    .replace_all(old="\"en-US\"", new="\"en-1\""),
+  )
+}
+
+///|
+test "schema parser rejects malformed messages, metadata, params, and parts" {
+  assert_schema_error("not-json")
+  assert_schema_error("[]")
+  assert_schema_error("{}")
+  assert_schema_error("{\"messages\":[],\"params\":{}}")
+  assert_schema_error("{\"messages\":{},\"params\":{}}")
+  assert_schema_error("{\"messages\":{\"\":[\"x\"]}}")
+  assert_schema_error("{\"messages\":{\"1group\":[\"x\"]}}")
+  assert_schema_error("{\"messages\":{\"bad!\":[\"x\"]}}")
+  assert_schema_error("{\"messages\":{\"common\":{}}}")
+  assert_schema_error("{\"messages\":{\"common\":[1]}}")
+  assert_schema_error("{\"messages\":{\"common\":[\"bad!\"]}}")
+  assert_schema_error("{\"messages\":{\"common\":[\"save\",\"save\"]}}")
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":{}}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[1]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[{\"type\":\"String\"}]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[{\"name\":\"Upper\",\"type\":\"String\"}]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[{\"name\":\"ok\",\"type\":\"String\"},{\"name\":\"ok\",\"type\":\"String\"}]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[{\"name\":\"ok\",\"type\":1}]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"params\":{\"common.save\":[{\"name\":\"ok\",\"type\":\"DateTime\"}]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"descriptions\":[]}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"descriptions\":{\"missing\":\"x\"}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"descriptions\":{\"common.save\":1}}",
+  )
+  assert_schema_error("{\"messages\":{\"common\":[\"save\"]},\"parts\":[]}")
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"missing\":[]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":{}}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":[1]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":[\"1tag\"]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":[\"bad!\"]}}",
+  )
+  assert_schema_error(
+    "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":[\"b\",\"b\"]}}",
+  )
+  assert_schema_error("{\"messages\":{\"self\":[\"value\"]}}")
+  assert_schema_error("{\"messages\":{\"common\":[\"self\"]}}")
+  assert_schema_error("{\"messages\":{\"common\":[\"a-b\",\"a_b\"]}}")
+  assert_schema_error("x".repeat(@runtime.CATALOG_MAX_SOURCE_BYTES + 1))
+}
+
+///|
+test "locale parser validates resource shapes and supports object entries with parts" {
+  guard parse_schema(
+      "{\"messages\":{\"common\":[\"save\"]},\"parts\":{\"common.save\":[\"b\"]}}",
+    )
+    is Ok(schema) else {
+    fail("parts schema should parse")
+  }
+  assert_true(parse_locale("en--US", "{}", schema) is Err(_))
+  assert_true(parse_locale("en-US", "not-json", schema) is Err(_))
+  assert_true(parse_locale("en-US", "[]", schema) is Err(_))
+  assert_true(parse_locale("en-US", "{\"common\":[]}", schema) is Err(_))
+  assert_true(
+    parse_locale("en-US", "{\"common\":{\"missing\":\"x\"}}", schema) is Err(_),
+  )
+  assert_true(
+    parse_locale("en-US", "{\"common\":{\"save\":{}}}", schema) is Err(_),
+  )
+  assert_true(
+    parse_locale("en-US", "{\"common\":{\"save\":1}}", schema) is Err(_),
+  )
+  assert_true(
+    parse_locale(
+      "en-US", "{\"common\":{\"save\":{\"text\":\"{#b}Save{/b}\"}}}", schema,
+    )
+    is Ok(_),
+  )
+  assert_true(
+    parse_locale(
+      "en-US",
+      "x".repeat(@runtime.CATALOG_MAX_SOURCE_BYTES + 1),
+      schema,
+    )
+    is Err(_),
+  )
+}

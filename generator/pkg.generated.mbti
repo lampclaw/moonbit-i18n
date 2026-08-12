@@ -6,6 +6,16 @@ import {
 }
 
 // Values
+pub const I18N_MAX_GENERATED_CODE_BYTES : Int = 67108864
+
+pub const I18N_MAX_LOCALES : Int = 1000
+
+pub const I18N_MAX_PARAMS_PER_MESSAGE : Int = 64
+
+pub const I18N_MAX_PART_TAGS_PER_MESSAGE : Int = 64
+
+pub const I18N_MAX_TOTAL_LOCALE_BYTES : Int = 67108864
+
 pub fn export_xliff(String, String, String, String, String?) -> Result[String, String]
 
 pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -> Result[Artifacts, String]
@@ -14,7 +24,7 @@ pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> S
 
 pub fn generated_package_manifest() -> String
 
-pub fn import_xliff(String, String, String) -> Result[String, String]
+pub fn import_xliff(String, String, String, String, String) -> Result[String, String]
 
 pub fn parse_config(String) -> Result[I18nConfig, String]
 
@@ -32,7 +42,7 @@ pub(all) struct Artifacts {
   package_manifest : String
   catalogs : Array[(String, String)]
   coverage_report : String
-  schema_hash : String
+  contract_hash : String
 } derive(Eq, @debug.Debug)
 
 pub(all) struct Entry {
@@ -74,6 +84,7 @@ pub(all) struct Param {
 pub(all) struct Schema {
   entries : Array[Entry]
   descriptions : Array[(String, String)]
+  parts : Array[(String, Array[String])]
 } derive(Eq, @debug.Debug)
 
 // Type aliases

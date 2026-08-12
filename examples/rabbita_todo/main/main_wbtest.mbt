@@ -49,14 +49,14 @@ test "generated Todo facade formats and negotiates locales" {
   assert_true(i18n.has_catalog(@app_i18n.EnUS))
   assert_true(i18n.has_catalog(@app_i18n.ZhCN))
   assert_eq(i18n.installed_locales(), [@app_i18n.EnUS, @app_i18n.ZhCN])
-  assert_eq(i18n.take_diagnostics(), [])
+  assert_true(i18n.take_diagnostics().entries.is_empty())
 }
 
 ///|
 test "generated facade installs catalogs and exposes app diagnostics" {
   let i18n = @app_i18n.I18n::new()
-  let catalog = "{\"catalogVersion\":1,\"schemaHash\":\"" +
-    @app_i18n.SCHEMA_HASH +
+  let catalog = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+    @app_i18n.CONTRACT_HASH +
     "\",\"locale\":\"en-US\",\"messages\":{\"todo_ui.title\":\"Tasks\"}}"
   assert_true(i18n.install_catalog_source(@app_i18n.EnUS, catalog) is Ok(_))
   assert_eq(
@@ -65,22 +65,22 @@ test "generated facade installs catalogs and exposes app diagnostics" {
   )
   assert_eq(
     i18n.translator(@app_i18n.EnUS).t(@app_i18n.TodoUi(@app_i18n.Add)),
-    "[missing: todo_ui.add]",
+    "todo_ui.add",
   )
-  assert_eq(i18n.take_diagnostics(), [
-    @app_i18n.MissingMessage("en-US", "todo_ui.add"),
-  ])
+  let diagnostics = i18n.take_diagnostics()
+  assert_eq(diagnostics.entries.length(), 1)
+  assert_eq(diagnostics.entries[0].message_id, "todo_ui.add")
   let wrong_version = catalog.replace_all(
-    old="\"catalogVersion\":1",
-    new="\"catalogVersion\":2",
+    old="\"catalogVersion\":2",
+    new="\"catalogVersion\":3",
   )
   assert_true(
     i18n.install_catalog_source(@app_i18n.EnUS, wrong_version)
-    is Err("unsupported catalogVersion: 2"),
+    is Err("unsupported catalogVersion: 3"),
   )
   let wrong_schema = catalog.replace_all(
-    old=@app_i18n.SCHEMA_HASH,
-    new="stale-schema",
+    old=@app_i18n.CONTRACT_HASH,
+    new="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   )
   assert_true(
     i18n.install_catalog_source(@app_i18n.EnUS, wrong_schema) is Err(_),

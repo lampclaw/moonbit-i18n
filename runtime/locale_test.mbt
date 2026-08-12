@@ -17,7 +17,7 @@ test "runtime stores normalized locale codes" {
   let i18n = I18n::new(fallback_locale_code="EN_us")
   let catalog = Catalog::from_generated_entries(
     locale_code="ZH_cn",
-    schema_hash="test-schema",
+    contract_hash=TEST_CONTRACT_HASH,
     entries=[],
   )
   assert_true(i18n.install_generated_catalog(catalog) is Ok(_))
@@ -45,4 +45,19 @@ test "resolves requested locales through parent and fallback" {
     resolve_locale_code(["fr-FR"], ["en-US", "zh-CN"], "zh-CN"),
     "zh-CN",
   )
+}
+
+///|
+test "locale negotiation handles invalid and empty supported sets" {
+  assert_eq(
+    normalize_locale_code("abcdef-abcde-A1b23"),
+    Ok("abcdef-abcde-a1b23"),
+  )
+  assert_eq(
+    resolve_locale_code(["de-DE"], ["bad--tag", "EN_us"], "fr-FR"),
+    "en-US",
+  )
+  assert_eq(resolve_locale_code([], [], "fallback_value"), "fallback_value")
+  assert_eq(resolve_locale_code([], ["en-US"], "bad--tag"), "en-US")
+  assert_eq(normalize_locale_code("en-12a"), Ok("en-12a"))
 }

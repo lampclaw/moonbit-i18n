@@ -2,4 +2,13 @@ import {
   "lampclaw/i18n/runtime",
 }
 
-supported_targets = "js"
+import {
+  "moonbitlang/core/bench",
+} for "test"
+
+options(
+  targets: {
+    "formatter.mbt": [ "js" ],
+    "formatter_portable.mbt": [ "native", "wasm", "wasm-gc", "llvm" ],
+  },
+)

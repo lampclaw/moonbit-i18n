@@ -1,6 +1,11 @@
 ///|
+/// Parses and validates generator configuration JSON.
+#warnings("-deprecated")
 pub fn parse_config(source : String) -> Result[I18nConfig, String] {
-  let json = try @json.parse(source) catch {
+  if @utf8.encode(source).length() > @runtime.CATALOG_MAX_SOURCE_BYTES {
+    return Err("i18n config exceeds the input size limit")
+  }
+  let json = try @json.parse(source, max_nesting_depth=64) catch {
     _ => return Err("invalid i18n config JSON")
   } noraise {
     value => value
@@ -49,6 +54,9 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
         }
         if find_locale_config(locales, code) is Some(_) {
           return Err("duplicate normalized locale: \{code}")
+        }
+        if locales.length() >= I18N_MAX_LOCALES {
+          return Err("i18n config exceeds the \{I18N_MAX_LOCALES}-locale limit")
         }
         guard raw_metadata is Object(metadata) else {
           return Err("locale metadata must be an object: \{raw_code}")
@@ -109,8 +117,13 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
 }
 
 ///|
+/// Parses and validates the typed authoring schema JSON.
+#warnings("-deprecated")
 pub fn parse_schema(source : String) -> Result[Schema, String] {
-  let json = try @json.parse(source) catch {
+  if @utf8.encode(source).length() > @runtime.CATALOG_MAX_SOURCE_BYTES {
+    return Err("i18n schema exceeds the input size limit")
+  }
+  let json = try @json.parse(source, max_nesting_depth=64) catch {
     _ => return Err("invalid i18n schema JSON")
   } noraise {
     value => value
@@ -124,6 +137,7 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
     _ => return Err("schema params must be an object")
   }
   let entries : Array[Entry] = []
+  let seen_messages : Map[String, Bool] = Map([])
   match obj.get("messages") {
     Some(Object(group_map)) =>
       for pair in group_map.iter() {
@@ -143,10 +157,16 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
             Ok(_) => ()
             Err(message) => return Err(message)
           }
-          if find_entry(entries, group, key) is Some(_) {
-            return Err("duplicate schema message: \{group}.\{key}")
-          }
           let id = "\{group}.\{key}"
+          if seen_messages.contains(id) {
+            return Err("duplicate schema message: \{id}")
+          }
+          seen_messages[id] = true
+          if entries.length() >= @runtime.CATALOG_MAX_MESSAGES {
+            return Err(
+              "i18n schema exceeds the \{@runtime.CATALOG_MAX_MESSAGES}-message limit",
+            )
+          }
           let params = match param_map.get(id) {
             Some(Array(values)) =>
               match parse_schema_params(id, values) {
@@ -164,6 +184,9 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
   if entries.is_empty() {
     return Err("schema messages must contain at least one message")
   }
+  entries.sort_by((left, right) => {
+    message_id(left).lexical_compare(message_id(right))
+  })
   match validate_identifier_collisions(entries) {
     Ok(_) => ()
     Err(message) => return Err(message)
@@ -173,9 +196,6 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
       return Err("schema params reference unknown message: \{pair.0}")
     }
   }
-  entries.sort_by((left, right) => {
-    message_id(left).lexical_compare(message_id(right))
-  })
   let descriptions : Array[(String, String)] = []
   match obj.get("descriptions") {
     Some(Object(values)) =>
@@ -193,20 +213,64 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
     _ => return Err("schema descriptions must be an object")
   }
   descriptions.sort_by((left, right) => left.0.lexical_compare(right.0))
-  Ok({ entries, descriptions })
+  let parts : Array[(String, Array[String])] = []
+  match obj.get("parts") {
+    Some(Object(values)) =>
+      for pair in values.iter() {
+        let (id, raw_tags) = pair
+        if find_entry_by_id(entries, id) is None {
+          return Err("schema parts reference unknown message: \{id}")
+        }
+        guard raw_tags is Array(tags) else {
+          return Err("schema parts must be an array: \{id}")
+        }
+        if tags.length() > I18N_MAX_PART_TAGS_PER_MESSAGE {
+          return Err(
+            "schema parts exceed the \{I18N_MAX_PART_TAGS_PER_MESSAGE}-tag limit: \{id}",
+          )
+        }
+        let allowed : Array[String] = []
+        let seen_tags : Map[String, Bool] = Map([])
+        for raw_tag in tags {
+          guard raw_tag is String(tag) else {
+            return Err("schema part tag must be a string: \{id}")
+          }
+          match validate_part_tag(id, tag) {
+            Ok(_) => ()
+            Err(message) => return Err(message)
+          }
+          if seen_tags.contains(tag) {
+            return Err("duplicate schema part tag: \{id}.\{tag}")
+          }
+          seen_tags[tag] = true
+          allowed.push(tag)
+        }
+        allowed.sort_by((left, right) => left.lexical_compare(right))
+        parts.push((id, allowed))
+      }
+    None => ()
+    _ => return Err("schema parts must be an object")
+  }
+  parts.sort_by((left, right) => left.0.lexical_compare(right.0))
+  Ok({ entries, descriptions, parts })
 }
 
 ///|
+/// Parses one locale JSON resource and validates every message against schema.
+#warnings("-deprecated")
 pub fn parse_locale(
   locale_code : String,
   source : String,
   schema : Schema,
 ) -> Result[LocaleResource, String] {
+  if @utf8.encode(source).length() > @runtime.CATALOG_MAX_SOURCE_BYTES {
+    return Err("locale source exceeds the input size limit")
+  }
   let locale = match normalize_locale(locale_code, "locale") {
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  let json = try @json.parse(source) catch {
+  let json = try @json.parse(source, max_nesting_depth=64) catch {
     _ => return Err("invalid JSON in \{locale}")
   } noraise {
     value => value
@@ -217,7 +281,7 @@ pub fn parse_locale(
   let entries : Array[Entry] = []
   for pair in groups.iter() {
     let (group, raw_group) = pair
-    if !schema.entries.any(entry => entry.group == group) {
+    if entries_for(schema.entries, group).is_empty() {
       return Err("unknown message group in \{locale}: \{group}")
     }
     guard raw_group is Object(items) else {
@@ -246,15 +310,19 @@ pub fn parse_locale(
       if text.trim().is_empty() {
         continue
       }
-      let args = schema_entry.params.map(param => @runtime.MessageArg::{
+      let params = schema_entry.params.map(param => @runtime.MessageParamSpec::{
         name: param.name,
-        value: dummy_value(param.typ),
+        typ: param.typ,
       })
-      match @runtime.validate_mf2_message_with_args(text, args) {
+      let contract = @runtime.MessageContract::new(
+        params,
+        allowed_tags=schema_allowed_tags(schema, message_id(schema_entry)),
+      )
+      match @runtime.compile_mf2_message(text, contract) {
         Ok(_) => entries.push({ ..schema_entry, text, })
-        Err(message) =>
+        Err(errors) =>
           return Err(
-            "invalid MF2 message: \{locale}.\{group}.\{key}: \{message}",
+            "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
           )
       }
     }
@@ -270,7 +338,13 @@ fn parse_schema_params(
   id : String,
   values : Array[Json],
 ) -> Result[Array[Param], String] {
+  if values.length() > I18N_MAX_PARAMS_PER_MESSAGE {
+    return Err(
+      "schema params exceed the \{I18N_MAX_PARAMS_PER_MESSAGE}-parameter limit: \{id}",
+    )
+  }
   let params : Array[Param] = []
+  let seen_names : Map[String, Bool] = Map([])
   for value in values {
     guard value is Object(obj) else {
       return Err("schema param must be an object: \{id}")
@@ -283,9 +357,10 @@ fn parse_schema_params(
       Ok(_) => ()
       Err(message) => return Err(message)
     }
-    if params.any(param => param.name == name) {
+    if seen_names.contains(name) {
       return Err("duplicate schema param: \{id}.\{name}")
     }
+    seen_names[name] = true
     let typ = match obj.get("type") {
       Some(String(value)) => value
       _ => return Err("schema param type must be a string: \{id}.\{name}")
@@ -294,7 +369,7 @@ fn parse_schema_params(
       typ == "Int" ||
       typ == "Double" ||
       typ == "Bool" ||
-      typ == "DateTime") {
+      typ == "InstantMillis") {
       return Err("unsupported schema param type: \{id}.\{name} uses \{typ}")
     }
     params.push({ name, typ })
@@ -340,22 +415,27 @@ fn find_locale_config(
 
 ///|
 fn find_entry(entries : Array[Entry], group : String, key : String) -> Entry? {
-  for entry in entries {
-    if entry.group == group && entry.key == key {
-      return Some(entry)
-    }
-  }
-  None
+  find_entry_by_id(entries, "\{group}.\{key}")
 }
 
 ///|
 fn find_entry_by_id(entries : Array[Entry], id : String) -> Entry? {
-  for entry in entries {
-    if message_id(entry) == id {
-      return Some(entry)
+  let mut low = 0
+  let mut high = entries.length()
+  while low < high {
+    let middle = low + (high - low) / 2
+    let comparison = message_id(entries[middle]).lexical_compare(id)
+    if comparison < 0 {
+      low = middle + 1
+    } else {
+      high = middle
     }
   }
-  None
+  if low < entries.length() && message_id(entries[low]) == id {
+    Some(entries[low])
+  } else {
+    None
+  }
 }
 
 ///|
@@ -364,13 +444,49 @@ fn message_id(entry : Entry) -> String {
 }
 
 ///|
-fn dummy_value(typ : String) -> @runtime.MessageValue {
-  match typ {
-    "String" => @runtime.TextValue("value")
-    "Int" => @runtime.IntValue(1)
-    "Double" => @runtime.DoubleValue(1.0)
-    "Bool" => @runtime.BoolValue(true)
-    "DateTime" => @runtime.DateTimeValue("2024-01-01T00:00:00Z")
-    _ => @runtime.TextValue("value")
+fn schema_allowed_tags(schema : Schema, id : String) -> Array[String] {
+  let mut low = 0
+  let mut high = schema.parts.length()
+  while low < high {
+    let middle = low + (high - low) / 2
+    if schema.parts[middle].0.lexical_compare(id) < 0 {
+      low = middle + 1
+    } else {
+      high = middle
+    }
   }
+  if low < schema.parts.length() && schema.parts[low].0 == id {
+    schema.parts[low].1
+  } else {
+    []
+  }
+}
+
+///|
+fn schema_is_parts(schema : Schema, id : String) -> Bool {
+  for part in schema.parts {
+    if part.0 == id {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn validate_part_tag(id : String, tag : String) -> Result[Unit, String] {
+  let chars = tag.to_array()
+  if chars.is_empty() || !is_ascii_letter(chars[0]) {
+    return Err("schema part tag must start with an ASCII letter: \{id}.\{tag}")
+  }
+  for char in chars {
+    if !(is_ascii_letter(char) ||
+      is_ascii_digit(char) ||
+      char == '_' ||
+      char == '-' ||
+      char == '.' ||
+      char == ':') {
+      return Err("invalid schema part tag: \{id}.\{tag}")
+    }
+  }
+  Ok(())
 }

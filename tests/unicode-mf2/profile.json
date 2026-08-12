@@ -1,0 +1,27 @@
+{
+  "upstreamRepository": "https://github.com/unicode-org/message-format-wg",
+  "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
+  "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "conformanceClaim": "strict-project-subset-not-unicode-mf2-conformance",
+  "acceptedFeatures": [
+    "simple-patterns",
+    "quoted-and-unquoted-literals",
+    "typed-variables",
+    "line-oriented-input-and-local-declarations",
+    "line-oriented-matchers-with-required-fallback",
+    "balanced-markup-parts",
+    "string-number-integer-offset-functions",
+    "lampclaw-instant-millis-datetime-extension"
+  ],
+  "rejectedFeatures": [
+    "unicode-mf2-error-recovery-and-fallback-values",
+    "unicode-mf2-bidi-isolation",
+    "unicode-mf2-nfc-identifier-normalization",
+    "unicode-mf2-attributes-and-u-options",
+    "unicode-mf2-standard-date-datetime-time-functions",
+    "unicode-mf2-optional-currency-and-percent-functions",
+    "unicode-mf2-test-or-user-function-registry",
+    "unicode-mf2-compact-complex-message-whitespace-grammar",
+    "unbalanced-markup"
+  ]
+}

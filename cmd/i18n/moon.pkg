@@ -1,8 +1,23 @@
 import {
   "lampclaw/i18n/generator",
+  "lampclaw/i18n/runtime",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+  "moonbitlang/async/stdio",
+  "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/env",
+  "moonbitlang/core/json",
+  "moonbitlang/parser/fmt",
+  "moonbitlang/x/crypto",
+  "moonbitlang/x/path",
 }
 
-supported_targets = "js"
+supported_targets = "+native+wasm"
 
 pkgtype(kind: "executable")
+
+options(
+  bin_name: "moon-i18n",
+  bin_target: "wasm",
+)

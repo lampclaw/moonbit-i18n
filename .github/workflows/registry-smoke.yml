@@ -1,0 +1,79 @@
+name: Registry smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Published lampclaw/i18n version to verify
+        required: true
+        default: 0.1.0-rc.1
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  MOONBIT_TOOLCHAIN: 0.10.6+80dc50f24
+  MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
+  MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
+  MOON_VERSION: 0.1.20260803
+  MOONC_VERSION: 0.10.6
+  NODE_VERSION: 24.18.1
+  LAMPCLAW_TEST_BIN: "1"
+
+jobs:
+  consume:
+    name: ${{ matrix.os }} · ${{ inputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Setup MoonBit on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
+          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | shasum -a 256 -c -
+          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Setup MoonBit on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://cli.moonbitlang.com/install/powershell.ps1 -OutFile "$env:RUNNER_TEMP\moonbit-install.ps1"
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\moonbit-install.ps1" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $env:MOONBIT_WINDOWS_INSTALLER_SHA256) {
+            throw "MoonBit installer checksum mismatch: $actual"
+          }
+          $env:MOONBIT_INSTALL_VERSION = $env:MOONBIT_TOOLCHAIN
+          & "$env:RUNNER_TEMP\moonbit-install.ps1"
+          "$HOME\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Verify pinned toolchain
+        shell: bash
+        run: |
+          version_output="$(moon version --all)"
+          printf '%s\n' "$version_output"
+          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
+          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
+          test "$installed_moon" = "$MOON_VERSION"
+          test "$installed_moonc" = "$MOONC_VERSION"
+          test "$(node -p 'process.versions.node')" = "$NODE_VERSION"
+
+      - name: Fresh registry consumer
+        shell: bash
+        run: node scripts/registry-smoke.mjs '${{ inputs.version }}'
