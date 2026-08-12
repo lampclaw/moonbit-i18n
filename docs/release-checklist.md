@@ -180,6 +180,64 @@ metadata, package list and API docs, and record the final registry URL and
 archive checksum. A `202` response alone is not the final proof; the clean
 exact-version consumer smoke is.
 
+## 0.1.0-rc.2 release record — 2026-08-12
+
+Immutable release identity:
+
+- release commit and signed tag target:
+  `ccd10e158d48ca0a1f8168e7ca0788c916461146`;
+- tag: `v0.1.0-rc.2`, verified with Lampclaw ED25519 key fingerprint
+  `SHA256:YrC/9aayrFCWl773eSEhE6G3FgROFEc/VQmxTawowDA`;
+- archive SHA-256:
+  `54ae6a3996fba7c8124f73d0d75feb4110b111de76f753f678e077ae0b2f1cc5`;
+- release-branch CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31613205403>;
+- same-commit `main` CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31613518357>;
+- immutable-tag CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31614339548>; and
+- exact-version Linux/macOS/Windows Registry smoke:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31614339648>.
+
+The pinned Moon `0.1.20260803` dry run completed both local and extracted
+archive checks, received `202 Accepted`, and was accepted only through the
+documented exit-255 rule. The real `moon publish` command was invoked exactly
+once. It started at `2026-08-12T15:44:48Z`, completed at
+`2026-08-12T15:44:50Z`, exited 0, and reported `Server status: 200 OK`. No real
+publish retry was attempted.
+
+The Mooncakes manifest subsequently reported version `0.1.0-rc.2`, build
+status `success`, creation time `2026-08-12T15:44:49.894315+00:00`, and the
+same archive checksum. The registry page is
+<https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.2>. The rendered module
+README contains the roadmap, the package index lists `cmd/i18n`, `generator`,
+`runtime`, and `runtime/js`, and all package API data and the source archive
+were fetched successfully.
+
+A brand-new temporary module passed exact-version `moon add`, pinned `moonx`,
+optional `moon add --bin`, English/Chinese generation and read-only checking,
+JavaScript check/build/run, and dynamic `zh-CN` catalog installation. The tag
+was pushed only after those assets were available; the automatically triggered
+Registry smoke then repeated the complete flow successfully on Ubuntu 24.04,
+macOS 15, and Windows 2025.
+
+The maintained browser example passed 28/28 messages in each locale and 12
+Playwright scenarios across Chromium, Firefox, and WebKit, covering locale
+negotiation and switching, embedded/dynamic catalogs, failure and retry,
+plural and number/datetime formatting, structured rich parts, fallback, and
+diagnostics. The example remains excluded from the published archive.
+
+Maintained consumers were advanced to the exact published RC and regenerated
+without semantic artifact drift:
+
+- `lampclaw-com`: local commit `ef6ab82`, 142/142 messages, tests and release
+  build passed; the repository has no configured remote;
+- `bingque-com`: commit `efde26d` pushed to `origin/main`, 485/485 messages,
+  99 main tests plus documentation tests and release build passed; and
+- `apexlsai_com`: local commit `df67b5e`, 497/497 messages, 11 site tests, 10
+  MoonBit tests, and release build passed; the repository has no configured
+  remote.
+
 ## 0.1.0-rc.1 preparation record — 2026-08-12
 
 Completed locally with Moon `0.1.20260803`, moonc
