@@ -90,7 +90,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }
 

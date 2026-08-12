@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-rc.2] - 2026-08-12
+
 ### Added
 
 - Public English and Chinese product roadmaps with MoonBit-native design
@@ -60,5 +62,6 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...HEAD
+[0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1

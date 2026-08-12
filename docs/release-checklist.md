@@ -2,7 +2,7 @@
 
 ## Pinned publish-client behavior
 
-The `0.1.0-rc.1` release uses Moon `0.1.20260803` with bundled
+The `0.1.0-rc.2` release uses Moon `0.1.20260803` with bundled
 `mooncake-bin 0.1.20260731`. With this exact pair, `moon publish --dry-run`
 can finish both archive validations, receive `202 Accepted`, and print the
 registry detail `Dry run completed successfully. No changes were made.`, then
@@ -80,9 +80,9 @@ from the published archive.
       clean local workspace dependency, generate a bilingual app, run its
       JavaScript output, install a dynamic catalog, and execute the Wasm binary
       launcher.
-- [ ] Confirm `moon add lampclaw/i18n@0.1.0-rc.1` is the library workflow and
-      `moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1` is the primary CLI workflow.
-- [ ] Treat `moon add --bin lampclaw/i18n@0.1.0-rc.1` and global
+- [ ] Confirm `moon add lampclaw/i18n@0.1.0-rc.2` is the library workflow and
+      `moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2` is the primary CLI workflow.
+- [ ] Treat `moon add --bin lampclaw/i18n@0.1.0-rc.2` and global
       `moon install` as optional compatibility paths, not prerequisites for
       authoring.
 
@@ -97,10 +97,10 @@ from the published archive.
       from a dirty or unreviewed worktree.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
-      `v0.1.0-rc.1` tag. Publish only `lampclaw/i18n` from that tagged commit.
+      `v0.1.0-rc.2` tag. Publish only `lampclaw/i18n` from that tagged commit.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
-      mooncakes.io for `lampclaw/i18n@0.1.0-rc.1` before considering any retry.
+      mooncakes.io for `lampclaw/i18n@0.1.0-rc.2` before considering any retry.
 - [ ] In a brand-new temporary module, run `moon add` for the exact version and
       execute the pinned CLI with `moonx`. Dispatch the `Registry smoke`
       workflow with the exact published version to repeat this on Linux,
@@ -147,12 +147,12 @@ allowed_signers="$(mktemp)"
 printf 'lampclaw@gmail.com %s\n' "$(cat ~/.ssh/id_ed25519_lampclaw_github.pub)" > "$allowed_signers"
 git -c gpg.format=ssh \
   -c user.signingkey=~/.ssh/id_ed25519_lampclaw_github.pub \
-  tag -s v0.1.0-rc.1 -m "lampclaw/i18n 0.1.0-rc.1"
+  tag -s v0.1.0-rc.2 -m "lampclaw/i18n 0.1.0-rc.2"
 git -c gpg.format=ssh \
   -c gpg.ssh.allowedSignersFile="$allowed_signers" \
-  tag -v v0.1.0-rc.1
-git push origin v0.1.0-rc.1
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0-rc.1)"
+  tag -v v0.1.0-rc.2
+git push origin v0.1.0-rc.2
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0-rc.2)"
 ~~~
 
 Then run the real command exactly once:
@@ -162,16 +162,16 @@ moon publish
 ~~~
 
 If it returns non-zero, stop. Do not rerun it. First open
-`https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.1` and attempt the exact
+`https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.2` and attempt the exact
 post-publish smoke below. A successful exact-version install proves the
 accepted publish completed even if the pinned client returned 255:
 
 ~~~bash
-LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0-rc.1
+LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0-rc.2
 ~~~
 
 Finally dispatch `.github/workflows/registry-smoke.yml` with version
-`0.1.0-rc.1`, inspect the mooncakes.io README, metadata, package list and API
+`0.1.0-rc.2`, inspect the mooncakes.io README, metadata, package list and API
 docs, and record the final registry URL and archive checksum. A `202` response
 alone is not the final proof; the clean exact-version consumer smoke is.
 
