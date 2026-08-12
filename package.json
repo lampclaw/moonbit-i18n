@@ -1,0 +1,12 @@
+{
+  "name": "moonbit-i18n-engineering",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:browser": "cd examples/rabbita_todo && warren build --dist ../../_build/browser/rabbita-todo",
+    "test:browser": "npm run build:browser && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

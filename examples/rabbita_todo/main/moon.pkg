@@ -1,8 +1,10 @@
 import {
   "lampclaw/i18n_rabbita_todo/i18n" @app_i18n,
+  "lampclaw/i18n_rabbita_todo/contract",
   "moonbit-community/rabbita",
   "moonbit-community/rabbita/sub",
   "moonbit-community/rabbita/html",
+  "moonbit-community/rabbita/http",
   "moonbitlang/core/immut/sorted_map",
   "moonbitlang/core/immut/vector",
 }

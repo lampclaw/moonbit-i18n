@@ -2,7 +2,15 @@
   "messages": {
     "common": [
       "current_language",
+      "catalog_error",
+      "catalog_loading",
+      "catalog_retry",
       "switch_language"
+    ],
+    "contract": [
+      "formatted_number",
+      "last_updated",
+      "rich_notice"
     ],
     "todo_ui": [
       "active_count",
@@ -28,6 +36,18 @@
     ]
   },
   "params": {
+    "contract.formatted_number": [
+      {
+        "name": "value",
+        "type": "Int"
+      }
+    ],
+    "contract.last_updated": [
+      {
+        "name": "when",
+        "type": "InstantMillis"
+      }
+    ],
     "todo_ui.active_count": [
       {
         "name": "count",
@@ -35,7 +55,15 @@
       }
     ]
   },
+  "parts": {
+    "contract.rich_notice": [
+      "strong"
+    ]
+  },
   "descriptions": {
+    "contract.formatted_number": "Browser conformance fixture for locale-aware number formatting.",
+    "contract.last_updated": "Browser conformance fixture for locale-aware date formatting.",
+    "contract.rich_notice": "Browser conformance fixture for structured rich-message rendering.",
     "todo_ui.active_count": "Number of active todo items shown in the panel header.",
     "todo_ui.placeholder": "Placeholder for the new todo title input."
   }

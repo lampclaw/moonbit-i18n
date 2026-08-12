@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "lampclaw/i18n_rabbita_todo/contract"
+
+import {
+  "moonbit-community/rabbita/html",
+}
+
+// Values
+pub fn view() -> @html.Html
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
