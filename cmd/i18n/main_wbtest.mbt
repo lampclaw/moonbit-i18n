@@ -485,6 +485,19 @@ async test "generation lock rejects a second writer" {
 }
 
 ///|
+async test "shared state directory creation is idempotent" {
+  let root = transaction_test_root()
+  let directory = path_join(root, "state/locks")
+  @async.with_task_group() <| group => {
+    for index = 0; index < 8; index = index + 1 {
+      group.spawn_bg(() => ensure_directory(directory))
+    }
+  }
+  assert_true(file_kind(directory) is Directory)
+  transaction_test_remove(root)
+}
+
+///|
 async test "CLI generation and tooling integrate on the portable filesystem" {
   let root = transaction_test_root()
   let config = "examples/rabbita_todo/localization/config.json"
