@@ -193,7 +193,7 @@ Prepared archive:
 
 ~~~text
 _build/publish/lampclaw-i18n-0.1.0-rc.1.zip
-SHA-256 92af6d842463a86e56f93da7301b270eee9eb095c9b3c61ba18fff3b33821e79
+SHA-256 4b1a1a42700112ff8a619807eb9b3a287c368f56a9dcc8f2221dbfa0b50520fa
 ~~~
 
 Remaining release gates:

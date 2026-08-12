@@ -68,6 +68,10 @@ jobs:
           }
           moon update
           moon check --deny-warn --target js
+          # `moon update` refreshes the registry index but does not install
+          # dependencies that are reachable only from test builds. Prime that
+          # exact graph once before the frozen release checks below.
+          moon test --deny-warn --target native --build-only
 
       - name: Format, interfaces, and all-target checks
         run: |
@@ -238,6 +242,9 @@ jobs:
           test "$installed_moonc" = "$MOONC_VERSION"
           moon update
           moon check --deny-warn --target wasm cmd/i18n
+          # Install dependencies reachable only from the CLI white-box tests;
+          # the contract step then proves the graph is complete with --frozen.
+          moon test --deny-warn --target wasm --build-only cmd/i18n
 
       - name: Wasm and native CLI contract
         shell: bash

@@ -174,17 +174,36 @@ async fn file_exists(path : String) -> Bool raise CliError {
 
 ///|
 async fn ensure_directory(path : String) -> Unit raise CliError {
-  if file_exists(path) {
-    if !(file_kind(path) is Directory) {
-      cli_fail("\{path} is not a directory")
+  for attempt = 0; attempt < 8; attempt = attempt + 1 {
+    if file_exists(path) {
+      if !(file_kind(path) is Directory) {
+        cli_fail("\{path} is not a directory")
+      }
+      return
     }
-    return
+    try @fs.mkdir(path, recursive=true) catch {
+      err => {
+        // Concurrent recursive creators can expose an intermediate state in
+        // which a parent exists but the target does not yet. Retry only this
+        // bounded first-use race; a non-directory target fails immediately.
+        if file_exists(path) {
+          if !(file_kind(path) is Directory) {
+            cli_fail("\{path} is not a directory")
+          }
+          return
+        }
+        if attempt == 7 {
+          cli_fail("cannot create directory \{path}: \{err}")
+        }
+        @async.pause() catch {
+          _ => ()
+        }
+      }
+    } noraise {
+      _ => return
+    }
   }
-  try @fs.mkdir(path, recursive=true) catch {
-    err => cli_fail("cannot create directory \{path}: \{err}")
-  } noraise {
-    _ => ()
-  }
+  cli_fail("cannot create directory \{path}")
 }
 
 ///|
