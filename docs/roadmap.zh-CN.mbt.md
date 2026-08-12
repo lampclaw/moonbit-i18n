@@ -14,7 +14,7 @@
 `lampclaw/i18n` 的目标是成为 MoonBit 原生、生成优先、类型安全、标准驱动的国际化
 基础设施，具有可移植核心和可替换的目标平台 formatter。
 
-`0.1.0-rc.1` 基线已经超出原型阶段：
+`0.1.0-rc.2` 基线已经超出原型阶段：
 
 - 应用代码使用生成的类型安全 MoonBit facade，而不是裸字符串消息 ID；
 - schema、locale 资源、生成源码、catalog 和所有权 manifest 构成确定性的 authoring

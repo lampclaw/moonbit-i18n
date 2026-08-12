@@ -31,7 +31,7 @@ JavaScript 异常不会穿过 formatter 边界。
 
 ## Catalog 兼容契约
 
-`0.1.0-rc.1` 只接受精确的 catalog format version `2` 和 profile
+`0.1.0-rc.2` 只接受精确的 catalog format version `2` 和 profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。`contractHash` 是规范 UTF-8 契约的
 SHA-256；该契约覆盖 profile、消息 ID、参数类型与允许的 markup。只有版本、profile、
 contract hash 和归一化 locale 全部匹配时才会接受 catalog。

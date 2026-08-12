@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.1.0-rc.1` ships one module containing the runtime, generator, and a
+MoonBit. `0.1.0-rc.2` ships one module containing the runtime, generator, and a
 portable `moonx` CLI. Generated application facades currently target
 JavaScript and use the host's `Intl` implementation behind a `Result` boundary.
 
@@ -14,7 +14,7 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.1.0-rc.1` is an engineering-ready release candidate for Web/JavaScript
+`0.1.0-rc.2` is an engineering-ready release candidate for Web/JavaScript
 projects, not a prototype and not a claim of complete Unicode MessageFormat 2
 conformance. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
@@ -31,18 +31,18 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.1.0-rc.1
+moon add lampclaw/i18n@0.1.0-rc.2
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 --help
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.1.0-rc.1` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.1.0-rc.2` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.1`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.2`; it is named `moon-i18n`.
 
 This is intentionally a single published module. Consequently `moon add`
 resolves the exact parser and async dependencies used by the CLI even when an
@@ -122,14 +122,14 @@ downloaded later and installed dynamically.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -219,7 +219,7 @@ message, and 64 parameters or declared rich tags per generated message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.2/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

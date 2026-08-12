@@ -11,14 +11,14 @@ own generated package; it does not import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
