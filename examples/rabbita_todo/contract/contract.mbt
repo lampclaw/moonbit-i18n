@@ -30,6 +30,7 @@ fn render_rich(parts : Array[@runtime.MessagePart]) -> @rabbita.Html {
 /// fallback behavior and observable diagnostics in an actual JS runtime.
 pub fn view() -> @rabbita.Html {
   let i18n = @app_i18n.I18n::new()
+  let negotiated = @app_i18n.resolve_locale_codes(["fr-FR", "zh_cn"])
   let translator = i18n.translator(@app_i18n.ZhCN)
   let number = translator.t(
     @app_i18n.Contract(@app_i18n.FormattedNumber(1234567)),
@@ -44,6 +45,7 @@ pub fn view() -> @rabbita.Html {
     class="browser-contract",
     attrs=@html.Attrs::build()
       .data_set("diagnostics", diagnostics.entries.length().to_string())
+      .data_set("negotiated-locale", negotiated.code())
       .data_set("requested-locale", "zh-CN")
       .data_set("used-locale", "en-US"),
     [
