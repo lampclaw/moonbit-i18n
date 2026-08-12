@@ -84,6 +84,7 @@ test("executes number, datetime, rich parts, fallback, and diagnostics in JS", a
 }) => {
   await page.goto("/");
   const fixture = page.locator("#browser-contract");
+  await expect(fixture).toHaveAttribute("data-negotiated-locale", "zh-CN");
   await expect(fixture).toHaveAttribute("data-requested-locale", "zh-CN");
   await expect(fixture).toHaveAttribute("data-used-locale", "en-US");
   expect(Number(await fixture.getAttribute("data-diagnostics"))).toBe(3);
