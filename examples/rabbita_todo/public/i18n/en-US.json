@@ -1,6 +1,7 @@
 {
-  "catalogVersion": 1,
-  "schemaHash": "v1-22-31955952",
+  "catalogVersion": 2,
+  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "contractHash": "a51bae300c17e84fe7d6bf7fab681afb846b9439307448c2a714f4766bd7b3f6",
   "locale": "en-US",
   "direction": "ltr",
   "messages": {

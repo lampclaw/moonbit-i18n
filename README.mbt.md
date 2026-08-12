@@ -3,18 +3,39 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. Version `0.1.0` is still under development and has not been released.
-The current application facade targets JavaScript and uses the platform's
-`Intl` implementation automatically.
+MoonBit. `0.1.0-rc.1` ships one module containing the runtime, generator, and a
+portable `moonx` CLI. Generated application facades currently target
+JavaScript and use the host's `Intl` implementation behind a `Result` boundary.
 
-Application code authors messages in JSON resources, generates a dedicated
-MoonBit package, and translates typed values. It does not construct catalogs,
-message arguments, or formatter objects by hand.
+The normal authoring surface is JSON: edit a schema plus locale resources,
+generate a dedicated MoonBit package, and import only that generated package
+from business code. Catalog JSON is a generated deployment artifact for
+embedding or lazy loading, not a second authoring format.
+
+## Install and run the CLI
+
+Add the library dependency to an application module:
+
+~~~bash
+moon add lampclaw/i18n@0.1.0-rc.1
+~~~
+
+Run the pinned CLI directly from the registry; no global install is required:
+
+~~~bash
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 --help
+~~~
+
+`moon add --bin lampclaw/i18n@0.1.0-rc.1` is an optional project-local binary
+dependency, not the primary workflow. A global command can alternatively be installed with
+`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.1`; it is named `moon-i18n`.
+
+This is intentionally a single published module. Consequently `moon add`
+resolves the exact parser and async dependencies used by the CLI even when an
+application imports only the runtime. They are not linked into the generated
+JavaScript application unless a reachable package imports them.
 
 ## Authoring model
-
-A typical application keeps editable localization inputs separate from the
-generated package:
 
 ~~~text
 app/
@@ -24,7 +45,7 @@ app/
 │   └── locales/
 │       ├── en-US.json
 │       └── zh-CN.json
-├── i18n/                 # fully generated package
+├── i18n/                 # fully generated MoonBit package
 │   ├── generated.mbt
 │   └── moon.pkg
 └── main/
@@ -32,7 +53,7 @@ app/
     └── moon.pkg
 ~~~
 
-`localization/schema.json` defines the typed message contract:
+`localization/schema.json` defines message IDs and parameter types:
 
 ~~~json
 {
@@ -47,27 +68,30 @@ app/
 }
 ~~~
 
-Each locale provides message text, including MF2 expressions and matchers:
+Supported parameter types are `String`, `Int`, `Double`, `Bool`, and
+`InstantMillis`. A message listed under `parts` gets a separate typed rich-parts
+API and may use only the declared MF2 markup names.
+
+Each locale supplies MF2 source:
 
 ~~~json
 {
-  "common": {
-    "hello": "Hello {$name}"
-  },
+  "common": { "hello": "Hello {$name}" },
   "cart": {
     "item_count": ".input {$count :number}\n.match $count\none {{One item}}\n* {{{$count} items}}"
   }
 }
 ~~~
 
-`localization/config.json` declares locale behavior and release coverage:
+`localization/config.json` controls locale negotiation, embedding, and the
+release coverage gate:
 
 ~~~json
 {
   "sourceLocale": "en-US",
   "defaultLocale": "zh-CN",
   "fallbackLocale": "en-US",
-  "embeddedLocales": ["en-US", "zh-CN"],
+  "embeddedLocales": ["en-US"],
   "release": { "minimumCoverage": 1.0 },
   "locales": {
     "en-US": { "direction": "ltr" },
@@ -76,56 +100,49 @@ Each locale provides message text, including MF2 expressions and matchers:
 }
 ~~~
 
+Here only English is embedded. The generated `zh-CN.json` catalog can be
+downloaded later and installed dynamically.
+
 ## Generate and check
 
-From the module workspace, run:
+From the application module, run:
 
 ~~~bash
-moon run cmd/i18n -- generate \
-  app/localization/config.json \
-  app/localization/schema.json \
-  app/localization/locales \
-  app/i18n \
-  app/public/i18n
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate \
+  localization/config.json \
+  localization/schema.json \
+  localization/locales \
+  i18n \
+  public/i18n
 
-moon run cmd/i18n -- check \
-  app/localization/config.json \
-  app/localization/schema.json \
-  app/localization/locales \
-  app/i18n \
-  app/public/i18n
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
+  localization/config.json \
+  localization/schema.json \
+  localization/locales \
+  i18n \
+  public/i18n
 ~~~
 
-The fourth argument is an output package directory, not a single source file.
-The generator owns `generated.mbt` and `moon.pkg`, marks both files, refuses to
-overwrite unmarked files, and rejects additional `.mbt` files in that package.
-`check` is read-only and detects source, manifest, catalog, and file-set drift.
+The fourth argument is a dedicated output package directory, not a source file.
+Generation validates ownership, locks both absolute destination paths, stages
+both destinations, and swaps them as one recoverable transaction. It refuses
+symlinks or unowned content and removes stale generated catalogs. `check` is
+read-only and detects source, manifest, catalog, ownership, and file-set drift.
 
-Use `--allow-partial` while iterating when non-source locales are below the
-configured coverage threshold. The source and fallback locales always have to
-be complete. Empty or whitespace-only values count as missing translations.
+Commit the generated package, catalogs, and `.lampclaw-i18n.json` ownership
+manifests. Persistent SHA-256-named `*.lampclaw.lock` files coordinate each
+absolute destination from the user cache rather than either output tree. Set
+`LAMPCLAW_I18N_STATE_DIR` to override that state location. The generated package
+also tells `moon fmt` to skip `generated.mbt`, because its output is normalized
+by the pinned CLI formatter.
 
-## Application dependency and use
+Use `--allow-partial` while translating non-source locales below the configured
+coverage threshold. Source and fallback locales always remain complete; empty
+or whitespace-only messages count as untranslated.
 
-During local development, include the library and application modules in one
-workspace:
+## Application use
 
-~~~text
-members = [
-  ".",
-  "app",
-]
-~~~
-
-The application module declares the `0.1.0` dependency:
-
-~~~text
-import {
-  "lampclaw/i18n@0.1.0",
-}
-~~~
-
-Business packages import only their generated package:
+An application package imports only its generated package:
 
 ~~~text
 import {
@@ -147,61 +164,54 @@ let count = t.t(
 )
 ~~~
 
-The generated facade provides:
+For a dynamically deployed locale, fetch its generated catalog as text and
+install it before creating or using that locale's translator:
 
-- `I18n::new()` with embedded catalogs and JavaScript `Intl` formatting;
-- `default_translator()`, `translator(Locale)`, `translator_from_code(String)`,
-  and `translator_from_codes(Array[String])`;
-- `resolve_locale_codes(Array[String])` for ordered locale negotiation without
-  constructing a translator;
-- typed `Translator::t(I18nText)`;
-- `install_catalog_source(Locale, String)` for validated dynamic catalogs;
-- `has_catalog(Locale)` and `installed_locales()`;
-- application-level diagnostics through `take_diagnostics()`.
+~~~moonbit
+match i18n.install_catalog_source(@app_i18n.ZhCN, downloaded_catalog_json) {
+  Ok(_) => ()
+  Err(message) => println("catalog rejected: \{message}")
+}
+let zh = i18n.translator(@app_i18n.ZhCN)
+~~~
 
-Locale codes are normalized for common casing and underscore differences.
-Unsupported requested locales resolve to the configured default locale;
-message lookup still uses the configured fallback locale.
+The facade also provides locale negotiation, strict `try_t`/`try_t_parts`,
+convenience `t`/`t_parts`, catalog status, and bounded deduplicated diagnostics.
+Dynamic installation checks catalog version, formatter profile, SHA-256
+contract hash, locale identity, message validity, and resource limits before
+changing runtime state.
 
-## Catalogs are deployment artifacts
+## Tooling and supported profile
 
-Catalog JSON is useful for lazy loading, CDN delivery, schema compatibility
-checks, locale metadata, and diagnostics. It is not a second user authoring
-API. Authors edit locale resources and let the generator create versioned
-catalogs. Applications that lazy-load translations pass the downloaded JSON
-to the generated `install_catalog_source` method.
+The CLI also exposes `coverage`, `pseudo`, `export-xliff`, and `import-xliff`.
+XLIFF 2.1 import verifies source content and both locale identities, rejects
+unsafe XML and inline XML inside MF2 fields, and preserves escaped text, CDATA,
+entities, and layout.
 
-Catalog format version `1` contains `catalogVersion`, `schemaHash`, `locale`,
-`direction`, and a flat `messages` object. Installation rejects unsupported
-versions, stale schema hashes, and locale mismatches.
+The catalog profile is `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. It
+supports MF2 patterns, declarations, matching, markup parts, `:string`,
+`:number`, `:integer`, and `:offset`, plus `:lampclaw:datetime` for
+`InstantMillis`. It deliberately rejects unsupported optional registry
+functions instead of approximating them. This is a strict project subset, not
+a claim of full Unicode MessageFormat 2 conformance. Exact accepted/rejected
+features and the pinned upstream snapshot are documented in
+[`docs/mf2-profile.mbt.md`](docs/mf2-profile.mbt.md).
 
-## Validation and tooling
+Full BCP 47 canonicalization and Unicode bidi isolation are not included in
+this release candidate. Limits include 1,000 locales, 64 MiB aggregate locale
+input, 64 MiB generated MoonBit, 16 MiB/100,000-message catalogs, 64 KiB per
+message, and 64 parameters or declared rich tags per generated message.
 
-Generation validates every MF2 matcher branch, selector value types, variant
-key counts, duplicate declarations/selectors/variant keys, and the required
-all-wildcard fallback. It also checks generated identifier collisions,
-normalized locale collisions, source/fallback completeness, and release
-coverage.
+## Example and low-level APIs
 
-Additional tooling includes coverage reports, `en-XA`/`ar-XB` pseudo-locales,
-and XLIFF 2.1 import/export. See `moon run cmd/i18n` for command syntax.
+The source repository's
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1/examples/rabbita_todo)
+demonstrates the full browser workflow. Examples are intentionally excluded
+from the published archive, so the registry page stays focused on the library.
 
-## Example
-
-[`examples/rabbita_todo`](examples/rabbita_todo/README.mbt.md) demonstrates the
-complete package-generation workflow in a browser application. Its maintained
-source imports only its own generated i18n package.
-
-Low-level integration APIs are intentionally separated from normal authoring.
-Generator and framework maintainers can read
-[`docs/runtime-spi.mbt.md`](docs/runtime-spi.mbt.md).
-
-## Current scope
-
-The generated application facade is JS-first. Typed rich-message authoring,
-full CLDR behavior on Native/Wasm, complete BCP 47 handling, catalog AST
-precompilation, stronger contract hashing, and a real XML-based XLIFF parser
-remain future work.
+Framework and generator maintainers can use the documented `runtime` and
+`generator` packages; ordinary applications should prefer their generated
+facade. See [`docs/runtime-spi.mbt.md`](docs/runtime-spi.mbt.md).
 
 ## License
 

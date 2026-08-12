@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "generator": "lampclaw/i18n",
+  "kind": "package",
+  "files": ["generated.mbt", "moon.pkg"]
+}

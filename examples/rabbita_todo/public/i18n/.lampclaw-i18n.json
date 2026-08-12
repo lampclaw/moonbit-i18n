@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "generator": "lampclaw/i18n",
+  "kind": "catalogs",
+  "files": ["en-US.json", "zh-CN.json"]
+}

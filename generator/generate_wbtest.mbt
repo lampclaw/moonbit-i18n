@@ -34,16 +34,16 @@ test "generate catalog artifacts and coverage report" {
     is Ok(artifacts) else {
     fail("artifact generation should succeed")
   }
-  assert_true(artifacts.schema_hash.has_prefix("v1-2-"))
+  assert_eq(artifacts.contract_hash.length(), 64)
   assert_true(artifacts.package_manifest.contains("supported_targets = \"js\""))
   assert_eq(artifacts.catalogs.length(), 2)
-  assert_true(artifacts.catalogs[0].1.contains("\"catalogVersion\": 1"))
-  assert_true(artifacts.catalogs[0].1.contains(artifacts.schema_hash))
+  assert_true(artifacts.catalogs[0].1.contains("\"catalogVersion\": 2"))
+  assert_true(artifacts.catalogs[0].1.contains(artifacts.contract_hash))
   guard @runtime.parse_catalog(artifacts.catalogs[0].1) is Ok(catalog) else {
     fail("generated catalog should round-trip through the runtime parser")
   }
   assert_eq(catalog.locale_code(), "en-US")
-  assert_eq(catalog.schema_hash(), artifacts.schema_hash)
+  assert_eq(catalog.contract_hash(), artifacts.contract_hash)
   assert_eq(catalog.find("common.save"), Some("Save"))
   assert_true(artifacts.coverage_report.contains("en-US: 2/2 (100%)"))
   assert_true(artifacts.coverage_report.contains("zh-CN: 1/2 (50%)"))
@@ -80,7 +80,7 @@ test "blank source translations are incomplete" {
 }
 
 ///|
-test "schema hash ignores JSON formatting, object order, and descriptions" {
+test "contract hash ignores JSON formatting, object order, and descriptions" {
   let reordered_schema =
     #|{
     #|  "descriptions": { "counter.count": "Updated translator note" },
@@ -98,11 +98,11 @@ test "schema hash ignores JSON formatting, object order, and descriptions" {
   guard parse_schema(reordered_schema) is Ok(second) else {
     fail("second schema should parse")
   }
-  assert_eq(schema_hash(first), schema_hash(second))
+  assert_eq(contract_hash(first), contract_hash(second))
 }
 
 ///|
-test "schema hash changes when the typed API changes" {
+test "contract hash changes when the typed API changes" {
   guard parse_schema(schema_source) is Ok(original) else {
     fail("original schema should parse")
   }
@@ -113,7 +113,7 @@ test "schema hash changes when the typed API changes" {
   guard parse_schema(changed_source) is Ok(changed) else {
     fail("changed schema should parse")
   }
-  assert_true(schema_hash(original) != schema_hash(changed))
+  assert_true(contract_hash(original) != contract_hash(changed))
 }
 
 ///|
@@ -156,4 +156,36 @@ test "generation rejects undeclared and duplicate locale sources" {
     fail("duplicate normalized locale source should fail")
   }
   assert_true(duplicate.contains("duplicate locale source: en-US"))
+}
+
+///|
+test "generation budgets use aggregate UTF-8 bytes and locale count" {
+  assert_eq(
+    validate_locale_source_budget(
+      [{ code: "en", source: "a" }, { code: "zh", source: "界" }],
+      2,
+      4,
+    ),
+    Ok(()),
+  )
+  guard validate_locale_source_budget(
+      [{ code: "en", source: "aa" }, { code: "zh", source: "界" }],
+      2,
+      4,
+    )
+    is Err(byte_error) else {
+    fail("aggregate UTF-8 overflow should fail")
+  }
+  assert_true(byte_error.contains("aggregate UTF-8 limit"))
+  guard validate_locale_source_budget(
+      [{ code: "en", source: "" }, { code: "zh", source: "" }],
+      1,
+      4,
+    )
+    is Err(count_error) else {
+    fail("locale count overflow should fail")
+  }
+  assert_true(count_error.contains("1-locale limit"))
+  assert_eq(validate_generated_code_budget("界", 3), Ok(()))
+  assert_true(validate_generated_code_budget("界a", 3) is Err(_))
 }

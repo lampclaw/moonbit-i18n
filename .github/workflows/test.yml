@@ -4,10 +4,27 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MOONBIT_TOOLCHAIN: 0.10.6+80dc50f24
+  MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
+  MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
+  MOON_VERSION: 0.1.20260803
+  MOONC_VERSION: 0.10.6
+  NODE_PRIMARY: 24.18.1
+  NODE_SMOKE: 26.7.0
+
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
+  quality:
+    name: Engineering readiness · Node 24
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     defaults:
       run:
@@ -15,47 +32,80 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js ${{ env.NODE_PRIMARY }}
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ env.NODE_PRIMARY }}
+          package-manager-cache: false
 
       - name: Setup MoonBit
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
+          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | sha256sum -c -
+          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
 
-      - name: MoonBit environment
+      - name: Verify pinned toolchain and dependencies
         run: |
-          moon update
           version_output="$(moon version --all)"
           printf '%s\n' "$version_output"
           installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
           installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
-          version_at_least() {
-            [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n 1)" = "$1" ]
-          }
-          version_at_least "0.1.20260803" "$installed_moon" || {
-            echo "moon $installed_moon is below the supported floor 0.1.20260803" >&2
+          installed_node="$(node -p 'process.versions.node')"
+          test "$installed_moon" = "$MOON_VERSION" || {
+            echo "expected moon $MOON_VERSION, got $installed_moon" >&2
             exit 1
           }
-          version_at_least "0.10.6" "$installed_moonc" || {
-            echo "moonc $installed_moonc is below the supported floor 0.10.6" >&2
+          test "$installed_moonc" = "$MOONC_VERSION" || {
+            echo "expected moonc $MOONC_VERSION, got $installed_moonc" >&2
             exit 1
           }
+          test "$installed_node" = "$NODE_PRIMARY" || {
+            echo "expected Node $NODE_PRIMARY, got $installed_node" >&2
+            exit 1
+          }
+          moon update
+          moon check --deny-warn --target js
 
-      - name: Project checks
+      - name: Format, interfaces, and all-target checks
         run: |
-          moon info
+          moon info --frozen
           moon fmt --check
-          moon check --target js
-          moon test --target native
-          moon test --target wasm
-          moon test --target wasm-gc
-          moon test --target js
-          moon build --target js
+          moon check --frozen --deny-warn --target native
+          moon check --frozen --deny-warn --target wasm
+          moon check --frozen --deny-warn --target wasm-gc
+          moon check --frozen --deny-warn --target js
           git diff --check
+
+      - name: All-target tests
+        run: |
+          moon test --frozen --deny-warn --target native
+          moon test --frozen --deny-warn --target wasm
+          moon test --frozen --deny-warn --target wasm-gc
+          moon test --frozen --deny-warn --target js
+
+      - name: Coverage thresholds
+        run: node scripts/check-coverage.mjs
+
+      - name: Public API documentation
+        run: node scripts/check-api-docs.mjs
+
+      - name: MF2 profile contract
+        run: node scripts/check-mf2-profile.mjs
+
+      - name: Performance budgets
+        run: node scripts/check-benchmarks.mjs
+
+      - name: Packaged consumer smoke
+        run: |
+          node scripts/package-smoke.mjs
+          moon check --frozen --deny-warn --target js
 
       - name: Generated i18n artifacts
         run: |
-          moon run cmd/i18n -- check \
+          moon run --frozen --target wasm cmd/i18n -- check \
             examples/rabbita_todo/localization/config.json \
             examples/rabbita_todo/localization/schema.json \
             examples/rabbita_todo/localization/locales \
@@ -76,6 +126,24 @@ jobs:
           moon install moonbit-community/warren@0.2.2
           cd examples/rabbita_todo
           warren build --dist /tmp/moonbit-i18n-rabbita-todo
+          if find /tmp/moonbit-i18n-rabbita-todo -name '*.lampclaw.lock' -print -quit | grep -q .; then
+            echo "release artifact contains a generation coordination lock" >&2
+            exit 1
+          fi
+
+      - name: Publish archive contents
+        run: |
+          # Moon 0.1.20260803 writes the package list to stderr.
+          package_list="$(moon package --frozen --list 2>&1)"
+          printf '%s\n' "$package_list"
+          if printf '%s\n' "$package_list" | grep -E \
+            '(^examples/|^scripts/|^benchmarks/|^tests/|^\.github/|^moon\.work$|^CONTRIBUTING\.md$|^docs/release-checklist\.md$|_test\.mbt$|_wbtest\.mbt$|pkg\.generated\.mbti$)'; then
+            echo "publish archive contains development-only files" >&2
+            exit 1
+          fi
+          printf '%s\n' "$package_list" | grep -q '^runtime/message.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^generator/generate.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^cmd/i18n/main.mbt$'
 
       - name: Generated and interface drift
         run: |
@@ -84,4 +152,106 @@ jobs:
           if [ -n "$status_output" ]; then
             printf '%s\n' "$status_output"
             exit 1
+          fi
+
+  node-26-smoke:
+    name: JavaScript smoke · Node 26
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js ${{ env.NODE_SMOKE }}
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ env.NODE_SMOKE }}
+          package-manager-cache: false
+
+      - name: Setup MoonBit
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
+          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | sha256sum -c -
+          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Verify versions and smoke-test JavaScript
+        run: |
+          version_output="$(moon version --all)"
+          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
+          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
+          test "$installed_moon" = "$MOON_VERSION"
+          test "$installed_moonc" = "$MOONC_VERSION"
+          test "$(node -p 'process.versions.node')" = "$NODE_SMOKE"
+          moon update
+          moon check --deny-warn --target js
+          moon test --frozen --deny-warn --target js
+
+  portable-cli:
+    name: Portable CLI · ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup MoonBit on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
+          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | shasum -a 256 -c -
+          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Setup MoonBit on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://cli.moonbitlang.com/install/powershell.ps1 -OutFile "$env:RUNNER_TEMP\moonbit-install.ps1"
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\moonbit-install.ps1" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $env:MOONBIT_WINDOWS_INSTALLER_SHA256) {
+            throw "MoonBit installer checksum mismatch: $actual"
+          }
+          $env:MOONBIT_INSTALL_VERSION = $env:MOONBIT_TOOLCHAIN
+          & "$env:RUNNER_TEMP\moonbit-install.ps1"
+          "$HOME\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          version_output="$(moon version --all)"
+          printf '%s\n' "$version_output"
+          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
+          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
+          test "$installed_moon" = "$MOON_VERSION"
+          test "$installed_moonc" = "$MOONC_VERSION"
+          moon update
+          moon check --deny-warn --target wasm cmd/i18n
+
+      - name: Wasm and native CLI contract
+        shell: bash
+        run: |
+          moon check --frozen --deny-warn --target wasm cmd/i18n
+          moon check --frozen --deny-warn --target native cmd/i18n
+          moon test --frozen --deny-warn --target wasm cmd/i18n
+          moon test --frozen --deny-warn --target native cmd/i18n
+          test "$(moon run --frozen --target wasm cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+          test "$(moon run --frozen --target native cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+          install_dir="$(mktemp -d)"
+          MOON_WORK=off moon tool build-binary-dep cmd/i18n --install-path "$install_dir"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            test "$(pwsh -File "$install_dir/moon-i18n.ps1" --version)" = "moon-i18n 0.1.0-rc.1"
+          else
+            test "$("$install_dir/moon-i18n" --version)" = "moon-i18n 0.1.0-rc.1"
           fi

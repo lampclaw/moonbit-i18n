@@ -1,4 +1,7 @@
 import {
+  "Milky2018/xml",
   "lampclaw/i18n/runtime",
   "moonbitlang/core/json",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/x/crypto",
 }

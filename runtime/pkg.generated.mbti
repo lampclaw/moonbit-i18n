@@ -6,9 +6,37 @@ import {
 }
 
 // Values
+pub const CATALOG_MAX_MESSAGES : Int = 100000
+
+pub const CATALOG_MAX_SOURCE_BYTES : Int = 16777216
+
+pub const CATALOG_PROFILE : String = "lampclaw-mf2-strict-v1+lampclaw-datetime-v1"
+
+pub const CATALOG_VERSION : Int = 2
+
+pub const MF2_MAX_ARGUMENTS : Int = 64
+
+pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
+
+pub const MF2_MAX_CONTRACT_TAGS : Int = 64
+
+pub const MF2_MAX_DECLARATIONS : Int = 4096
+
+pub const MF2_MAX_MESSAGE_BYTES : Int = 65536
+
+pub const MF2_MAX_OPTIONS : Int = 64
+
+pub const MF2_MAX_VARIANTS : Int = 4096
+
+pub fn compile_mf2_message(String, MessageContract) -> Result[CompiledMessage, Array[Mf2Error]]
+
 pub fn format_mf2_message(String, String, Array[MessageArg], Formatter) -> Result[String, String]
 
 pub fn format_mf2_rich(String, String, Array[MessageArg], Formatter) -> Result[Array[RichPart], String]
+
+pub fn format_parts(CompiledMessage, String, Array[MessageArg], Formatter) -> Result[Array[MessagePart], Mf2Error]
+
+pub fn format_text(CompiledMessage, String, Array[MessageArg], Formatter) -> Result[String, Mf2Error]
 
 pub fn locale_lookup_chain(String) -> Array[String]
 
@@ -29,73 +57,186 @@ pub fn validate_rich_tags(Array[RichPart], Array[String]) -> Result[Unit, String
 // Types and methods
 pub struct Catalog {
   catalog_version : Int
-  schema_hash : String
+  profile : String
+  contract_hash : String
   locale_code : String
   direction : String
-  entries : Array[CatalogEntry]
+  entries : Map[String, String]
+  validation_error : String?
 }
 pub fn Catalog::catalog_version(Self) -> Int
+pub fn Catalog::compile_messages(Self) -> Result[Map[String, CompiledMessage], String]
+pub fn Catalog::contract_hash(Self) -> String
 pub fn Catalog::coverage(Self, Array[String]) -> Double
 pub fn Catalog::direction(Self) -> String
 pub fn Catalog::find(Self, String) -> String?
-pub fn Catalog::from_generated_entries(locale_code~ : String, schema_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
+pub fn Catalog::from_generated_entries(locale_code~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
 pub fn Catalog::locale_code(Self) -> String
-pub fn Catalog::schema_hash(Self) -> String
+pub fn Catalog::message_count(Self) -> Int
+pub fn Catalog::profile(Self) -> String
 pub fn Catalog::to_json_string(Self) -> String
 
 pub(all) struct CatalogEntry {
   id : String
   message : String
+} derive(Eq, @debug.Debug)
+
+pub struct CompiledMessage {
+  declarations : Array[Declaration]
+  match_names : Array[String]
+  variants : Array[Variant]
+  pattern : Pattern?
 }
 
-pub(all) enum Diagnostic {
-  MessageFallback(String, String, String)
-  MissingMessage(String, String)
-  MessageFormatFailed(String, String, String)
+pub enum Declaration {
+  InputDeclaration(String, Expression)
+  LocalDeclaration(String, Expression)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Diagnostic {
+  kind : DiagnosticKind
+  requested_locale : String
+  used_locale : String
+  message_id : String
+  detail : String
+  occurrences : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct DiagnosticBatch {
+  entries : Array[Diagnostic]
+  dropped : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum DiagnosticKind {
+  MessageFallbackDiagnostic
+  MissingMessageDiagnostic
+  MessageFormatFailedDiagnostic
+} derive(Eq, @debug.Debug)
+
+pub struct Expression {
+  operand : Operand
+  function_name : String
+  options : Array[ParsedOption]
+  offset : Int
 } derive(Eq, @debug.Debug)
 
 pub(all) struct FormatOption {
   name : String
   value : String
-} derive(@debug.Debug)
+} derive(Eq, @debug.Debug)
 
 pub(all) struct Formatter {
-  format_number : (String, Double, Array[FormatOption]) -> String
-  format_datetime : (String, String, Array[FormatOption]) -> String
-  plural_category : (String, Double, Bool) -> String
+  format_number : (String, Double, Array[FormatOption]) -> Result[String, FormatterIssue]
+  format_datetime : (String, Int64, Array[FormatOption]) -> Result[String, FormatterIssue]
+  plural_category : (String, Double, Bool) -> Result[String, FormatterIssue]
 }
 pub fn Formatter::basic() -> Self
 
+pub(all) enum FormatterIssue {
+  UnsupportedOperation(String)
+  InvalidFormatterOption(String)
+  PlatformFormatterFailure(String)
+} derive(Eq, @debug.Debug)
+pub fn FormatterIssue::message(Self) -> String
+
 pub struct I18n {
   fallback_locale_code : String
-  schema_hash : String
-  catalogs : Array[Catalog]
+  contract_hash : String
+  profile : String
+  catalogs : Map[String, Catalog]
+  compiled_catalogs : Map[String, Map[String, CompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
+  diagnostic_capacity : Int
+  mut diagnostic_dropped : Int
 }
 pub fn I18n::catalog_locale_codes(Self) -> Array[String]
+pub fn I18n::contract_hash(Self) -> String
 pub fn I18n::fallback_locale_code(Self) -> String
 pub fn I18n::find_catalog(Self, String) -> Catalog?
 pub fn I18n::has_catalog(Self, String) -> Bool
 pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
 pub fn I18n::install_generated_catalog(Self, Catalog) -> Result[Unit, String]
-pub fn I18n::new(fallback_locale_code~ : String, schema_hash? : String, formatter? : Formatter) -> Self
-pub fn I18n::take_diagnostics(Self) -> Array[Diagnostic]
+pub fn I18n::new(fallback_locale_code~ : String, contract_hash? : String, profile? : String, formatter? : Formatter, diagnostic_capacity? : Int) -> Self
+pub fn I18n::take_diagnostics(Self) -> DiagnosticBatch
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
 
 pub(all) struct MessageArg {
   name : String
   value : MessageValue
-}
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MessageContract {
+  params : Array[MessageParamSpec]
+  allowed_tags : Array[String]
+  enforce : Bool
+} derive(Eq, @debug.Debug)
+pub fn MessageContract::new(Array[MessageParamSpec], allowed_tags? : Array[String]) -> Self
+pub fn MessageContract::open() -> Self
+
+pub(all) struct MessageParamSpec {
+  name : String
+  typ : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum MessagePart {
+  Text(String)
+  Open(String, Array[FormatOption])
+  Close(String)
+  Standalone(String, Array[FormatOption])
+} derive(Eq, @debug.Debug)
 
 pub(all) enum MessageValue {
   TextValue(String)
   IntValue(Int)
   DoubleValue(Double)
   BoolValue(Bool)
-  DateTimeValue(String)
+  InstantMillis(Int64)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2Error {
+  kind : Mf2ErrorKind
+  message : String
+  offset : Int
+} derive(Eq, @debug.Debug)
+pub fn Mf2Error::to_string(Self) -> String
+
+pub(all) enum Mf2ErrorKind {
+  Mf2SyntaxError
+  Mf2DataModelError
+  Mf2ResolutionError
+  Mf2FormattingError
+  Mf2LimitError
+} derive(Eq, @debug.Debug)
+
+pub enum Operand {
+  VariableOperand(String)
+  LiteralOperand(String)
+} derive(Eq, @debug.Debug)
+
+pub enum OptionExpression {
+  LiteralOption(String)
+  VariableOption(String)
+} derive(Eq, @debug.Debug)
+
+pub struct ParsedOption {
+  name : String
+  value : OptionExpression
+} derive(Eq, @debug.Debug)
+
+pub struct Pattern {
+  nodes : Array[PatternNode]
+  has_markup : Bool
+} derive(Eq, @debug.Debug)
+
+pub enum PatternNode {
+  PatternText(String)
+  PatternExpression(Expression)
+  PatternOpen(String, Array[ParsedOption])
+  PatternClose(String)
+  PatternStandalone(String, Array[ParsedOption])
 } derive(Eq, @debug.Debug)
 
 pub(all) enum RichPart {
@@ -103,14 +244,35 @@ pub(all) enum RichPart {
   RichOpen(String, Array[FormatOption])
   RichClose(String)
   RichStandalone(String, Array[FormatOption])
-} derive(@debug.Debug)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct TranslationError {
+  kind : TranslationErrorKind
+  requested_locale : String
+  message_id : String
+  format_errors : Array[Mf2Error]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum TranslationErrorKind {
+  TranslationMissing
+  TranslationFormattingFailed
+} derive(Eq, @debug.Debug)
 
 pub struct Translator {
   i18n : I18n
   locale_code : String
 }
 pub fn Translator::locale_code(Self) -> String
+pub fn Translator::t(Self, String, Array[MessageArg]) -> String
+pub fn Translator::t_parts(Self, String, Array[MessageArg]) -> Array[MessagePart]
 pub fn Translator::translate_raw(Self, String, Array[MessageArg]) -> String?
+pub fn Translator::try_t(Self, String, Array[MessageArg]) -> Result[String, TranslationError]
+pub fn Translator::try_t_parts(Self, String, Array[MessageArg]) -> Result[Array[MessagePart], TranslationError]
+
+pub struct Variant {
+  keys : Array[String]
+  pattern : Pattern
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

@@ -7,7 +7,7 @@ import {
 }
 
 // Values
-pub const SCHEMA_HASH : String = "v1-22-31955952"
+pub const CONTRACT_HASH : String = "a51bae300c17e84fe7d6bf7fab681afb846b9439307448c2a714f4766bd7b3f6"
 
 pub fn default_locale() -> Locale
 
@@ -25,12 +25,6 @@ pub(all) enum CommonText {
   SwitchLanguage
 } derive(Eq, @debug.Debug)
 
-pub(all) enum Diagnostic {
-  MessageFallback(String, String, String)
-  MissingMessage(String, String)
-  MessageFormatFailed(String, String, String)
-} derive(Eq, @debug.Debug)
-
 pub struct I18n {
   runtime : @runtime.I18n
 }
@@ -39,7 +33,7 @@ pub fn I18n::has_catalog(Self, Locale) -> Bool
 pub fn I18n::install_catalog_source(Self, Locale, String) -> Result[Unit, String]
 pub fn I18n::installed_locales(Self) -> Array[Locale]
 pub fn I18n::new() -> Self
-pub fn I18n::take_diagnostics(Self) -> Array[Diagnostic]
+pub fn I18n::take_diagnostics(Self) -> @runtime.DiagnosticBatch
 pub fn I18n::translator(Self, Locale) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
 pub fn I18n::translator_from_codes(Self, Array[String]) -> Translator
@@ -85,6 +79,7 @@ pub struct Translator {
 }
 pub fn Translator::locale(Self) -> Locale
 pub fn Translator::t(Self, I18nText) -> String
+pub fn Translator::try_t(Self, I18nText) -> Result[String, @runtime.TranslationError]
 
 // Type aliases
 

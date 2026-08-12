@@ -50,39 +50,39 @@ fn validate_identifier_collisions(
 ) -> Result[Unit, String] {
   let errors : Array[String] = []
   let group_names = groups(entries)
+  let generated_groups : Map[String, String] = Map([])
   for group in group_names {
-    if pascal(group) == "I18n" {
+    let generated = pascal(group)
+    if generated == "I18n" {
       errors.push("group generates the reserved I18nText type name: \{group}")
     }
-    if pascal(group) == "Self" {
+    if generated == "Self" {
       errors.push("group generates the reserved Self variant: \{group}")
     }
-  }
-  for i = 0; i < group_names.length(); i = i + 1 {
-    for j = i + 1; j < group_names.length(); j = j + 1 {
-      if pascal(group_names[i]) == pascal(group_names[j]) {
+    match generated_groups.get(generated) {
+      Some(previous) =>
         errors.push(
-          "groups generate the same enum variant: \{group_names[i]} and \{group_names[j]} -> \{pascal(group_names[i])}",
+          "groups generate the same enum variant: \{previous} and \{group} -> \{generated}",
         )
-      }
+      None => generated_groups[generated] = group
     }
   }
   for group in group_names {
     let group_entries = entries_for(entries, group)
+    let generated_keys : Map[String, String] = Map([])
     for entry in group_entries {
-      if pascal(entry.key) == "Self" {
+      let generated = pascal(entry.key)
+      if generated == "Self" {
         errors.push(
           "key generates the reserved Self variant in \{group}: \{entry.key}",
         )
       }
-    }
-    for i = 0; i < group_entries.length(); i = i + 1 {
-      for j = i + 1; j < group_entries.length(); j = j + 1 {
-        if pascal(group_entries[i].key) == pascal(group_entries[j].key) {
+      match generated_keys.get(generated) {
+        Some(previous) =>
           errors.push(
-            "keys generate the same enum variant in \{group}: \{group_entries[i].key} and \{group_entries[j].key} -> \{pascal(group_entries[i].key)}",
+            "keys generate the same enum variant in \{group}: \{previous} and \{entry.key} -> \{generated}",
           )
-        }
+        None => generated_keys[generated] = entry.key
       }
     }
   }
@@ -98,20 +98,20 @@ fn validate_locale_identifier_collisions(
   locales : Array[LocaleConfig],
 ) -> Result[Unit, String] {
   let errors : Array[String] = []
+  let generated_locales : Map[String, String] = Map([])
   for locale in locales {
-    if locale_variant(locale.code) == "Self" {
+    let generated = locale_variant(locale.code)
+    if generated == "Self" {
       errors.push(
         "locale code generates the reserved Self variant: \{locale.code}",
       )
     }
-  }
-  for i = 0; i < locales.length(); i = i + 1 {
-    for j = i + 1; j < locales.length(); j = j + 1 {
-      if locale_variant(locales[i].code) == locale_variant(locales[j].code) {
+    match generated_locales.get(generated) {
+      Some(previous) =>
         errors.push(
-          "locale codes generate the same enum variant: \{locales[i].code} and \{locales[j].code} -> \{locale_variant(locales[i].code)}",
+          "locale codes generate the same enum variant: \{previous} and \{locale.code} -> \{generated}",
         )
-      }
+      None => generated_locales[generated] = locale.code
     }
   }
   if errors.is_empty() {
@@ -124,8 +124,10 @@ fn validate_locale_identifier_collisions(
 ///|
 fn groups(entries : Array[Entry]) -> Array[String] {
   let result : Array[String] = []
+  let seen : Map[String, Bool] = Map([])
   for entry in entries {
-    if !result.contains(entry.group) {
+    if !seen.contains(entry.group) {
+      seen[entry.group] = true
       result.push(entry.group)
     }
   }
@@ -136,12 +138,22 @@ fn groups(entries : Array[Entry]) -> Array[String] {
 ///|
 fn entries_for(entries : Array[Entry], group : String) -> Array[Entry] {
   let result : Array[Entry] = []
-  for entry in entries {
-    if entry.group == group {
-      result.push(entry)
+  let lower_bound = group + "."
+  let mut low = 0
+  let mut high = entries.length()
+  while low < high {
+    let middle = low + (high - low) / 2
+    if message_id(entries[middle]).lexical_compare(lower_bound) < 0 {
+      low = middle + 1
+    } else {
+      high = middle
     }
   }
-  result.sort_by((left, right) => left.key.lexical_compare(right.key))
+  let mut cursor = low
+  while cursor < entries.length() && entries[cursor].group == group {
+    result.push(entries[cursor])
+    cursor = cursor + 1
+  }
   result
 }
 
@@ -240,33 +252,5 @@ fn is_lower_ascii(char : Char) -> Bool {
 
 ///|
 fn to_upper_ascii(char : Char) -> Char {
-  match char {
-    'a' => 'A'
-    'b' => 'B'
-    'c' => 'C'
-    'd' => 'D'
-    'e' => 'E'
-    'f' => 'F'
-    'g' => 'G'
-    'h' => 'H'
-    'i' => 'I'
-    'j' => 'J'
-    'k' => 'K'
-    'l' => 'L'
-    'm' => 'M'
-    'n' => 'N'
-    'o' => 'O'
-    'p' => 'P'
-    'q' => 'Q'
-    'r' => 'R'
-    's' => 'S'
-    't' => 'T'
-    'u' => 'U'
-    'v' => 'V'
-    'w' => 'W'
-    'x' => 'X'
-    'y' => 'Y'
-    'z' => 'Z'
-    _ => char
-  }
+  char.to_ascii_uppercase()
 }

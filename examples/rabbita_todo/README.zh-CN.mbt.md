@@ -10,14 +10,14 @@
 在仓库根目录执行：
 
 ~~~bash
-moon run cmd/i18n -- generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moon run cmd/i18n -- check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.1 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -25,8 +25,9 @@ moon run cmd/i18n -- check \
   examples/rabbita_todo/public/i18n
 ~~~
 
-两个 locale 当前都是 `22/22 (100%)`。生成器完整拥有 `i18n/` package，包括
-`moon.pkg` 与类型化 facade。
+两个 locale 当前都是 `22/22 (100%)`。生成器通过所有权 manifest 完整拥有
+`i18n/` package 和 catalog 目录；两个目录由可恢复事务一起替换，`check` 是 CI 中的
+只读漂移门禁。
 
 ## 运行
 
@@ -48,12 +49,12 @@ warren build --dist /tmp/moonbit-i18n-rabbita-todo
 localization/config.json + schema.json + locales/*.json
                          │
                          ▼
-                   cmd/i18n generate
+               moonx lampclaw/i18n/cmd/i18n generate
                          │
               ┌──────────┴──────────┐
               ▼                     ▼
 i18n/generated.mbt + moon.pkg  public/i18n/*.json
-类型化 facade + 内嵌数据       带版本 catalog
+类型化 facade + 内嵌数据       catalog v2 + 契约 hash
               │
               ▼
 main/moon.pkg 导入 lampclaw/i18n_rabbita_todo/i18n
