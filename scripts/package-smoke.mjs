@@ -14,7 +14,10 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const project = resolve(import.meta.dirname, "..");
-const version = "0.1.0-rc.1";
+const manifest = readFileSync(join(project, "moon.mod"), "utf8");
+const versionMatch = manifest.match(/^version = "([^"]+)"$/mu);
+assert.ok(versionMatch, "moon.mod version is missing");
+const version = versionMatch[1];
 const archive = join(
   project,
   "_build",

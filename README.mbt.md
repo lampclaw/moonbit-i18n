@@ -22,6 +22,9 @@ current Web profile through authoring and delivery improvements to full MF2 on
 the JavaScript backend. The
 [current MF2 profile](docs/mf2-profile.mbt.md) remains the source of truth for
 features shipped today; roadmap items are not yet supported behavior.
+The exact toolchain, operating-system, browser, backend, and prerelease
+compatibility commitments are listed in the
+[support policy](docs/support-policy.mbt.md).
 
 ## Install and run the CLI
 

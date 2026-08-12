@@ -37,6 +37,8 @@ from the published archive.
       example dependency, and `CHANGELOG.md`.
 - [ ] Confirm the documented strict MF2 profile and pinned Unicode snapshot;
       do not claim full Unicode MF2 conformance.
+- [ ] Confirm `docs/support-policy*.mbt.md` matches the exact CI matrix and
+      compatibility behavior exercised by this release.
 - [ ] Review both public roadmap languages. Confirm their current-status and
       milestone statements match the implementation, README, MF2 profile, and
       changelog; planned behavior must not appear as shipped behavior.

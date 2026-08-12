@@ -97,7 +97,9 @@ jobs:
         run: node scripts/check-api-docs.mjs
 
       - name: MF2 profile contract
-        run: node scripts/check-mf2-profile.mjs
+        run: |
+          node scripts/check-mf2-profile.mjs
+          node scripts/version-contract.mjs check
 
       - name: Performance budgets
         run: node scripts/check-benchmarks.mjs
@@ -141,7 +143,7 @@ jobs:
           package_list="$(moon package --frozen --list 2>&1)"
           printf '%s\n' "$package_list"
           if printf '%s\n' "$package_list" | grep -E \
-            '(^examples/|^scripts/|^benchmarks/|^tests/|^\.github/|^moon\.work$|^AGENTS\.md$|^CONTRIBUTING\.md$|^docs/release-checklist\.md$|_test\.mbt$|_wbtest\.mbt$|pkg\.generated\.mbti$)'; then
+            '(^examples/|^scripts/|^benchmarks/|^tests/|^\.github/|^moon\.work$|^package(-lock)?\.json$|^playwright\.config\.mjs$|^AGENTS\.md$|^CONTRIBUTING\.md$|^docs/release-checklist\.md$|^docs/releases/|_test\.mbt$|_wbtest\.mbt$|pkg\.generated\.mbti$)'; then
             echo "publish archive contains development-only files" >&2
             exit 1
           fi
@@ -150,6 +152,8 @@ jobs:
           printf '%s\n' "$package_list" | grep -q '^cmd/i18n/main.mbt$'
           printf '%s\n' "$package_list" | grep -q '^docs/roadmap.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/roadmap.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/support-policy.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/support-policy.zh-CN.mbt.md$'
 
       - name: Generated and interface drift
         run: |
@@ -273,22 +277,25 @@ jobs:
       - name: Wasm CLI version
         shell: bash
         run: |
-          test "$(moon run --frozen --target wasm cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+          package_version="$(node scripts/version-contract.mjs get)"
+          test "$(moon run --frozen --target wasm cmd/i18n -- --version)" = "moon-i18n $package_version"
 
       - name: Native CLI contract
         shell: bash
         run: |
           moon check --frozen --deny-warn --target native cmd/i18n
           moon test --frozen --deny-warn --target native cmd/i18n
-          test "$(moon run --frozen --target native cmd/i18n -- --version)" = "moon-i18n 0.1.0-rc.1"
+          package_version="$(node scripts/version-contract.mjs get)"
+          test "$(moon run --frozen --target native cmd/i18n -- --version)" = "moon-i18n $package_version"
 
       - name: Installed CLI launcher
         shell: bash
         run: |
           install_dir="$(mktemp -d)"
+          package_version="$(node scripts/version-contract.mjs get)"
           MOON_WORK=off moon tool build-binary-dep cmd/i18n --install-path "$install_dir"
           if [ "$RUNNER_OS" = "Windows" ]; then
-            test "$(pwsh -File "$install_dir/moon-i18n.ps1" --version)" = "moon-i18n 0.1.0-rc.1"
+            test "$(pwsh -File "$install_dir/moon-i18n.ps1" --version)" = "moon-i18n $package_version"
           else
-            test "$("$install_dir/moon-i18n" --version)" = "moon-i18n 0.1.0-rc.1"
+            test "$("$install_dir/moon-i18n" --version)" = "moon-i18n $package_version"
           fi
