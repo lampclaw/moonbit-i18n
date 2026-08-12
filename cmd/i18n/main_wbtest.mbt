@@ -427,10 +427,10 @@ async test "journal validation accepts v1 and v2 but rejects escaping paths" {
     parse_transaction_state(v1, package_dir, catalog_dir).catalog_dir,
     catalog_dir,
   )
-  let escaped = v2.replace(
-    old="\"pkgStage\": \"\{state.package_stage}\"",
-    new="\"pkgStage\": \"/\"",
-  )
+  let escaped = transaction_state_json({
+    ..state,
+    package_stage: resolved_path(path_join(root, "../escape")),
+  })
   try parse_transaction_state(escaped, package_dir, catalog_dir) catch {
     CommandFailed(message) => assert_true(message.contains("invalid"))
   } noraise {
