@@ -97,7 +97,10 @@ from the published archive.
       from a dirty or unreviewed worktree.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
-      `v0.1.0-rc.2` tag. Publish only `lampclaw/i18n` from that tagged commit.
+      `v0.1.0-rc.2` tag locally. Publish only `lampclaw/i18n` from that tagged
+      commit. Keep the tag local until the exact registry version and its CLI
+      asset are available so the tag-triggered Registry smoke cannot race the
+      registry build.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
       mooncakes.io for `lampclaw/i18n@0.1.0-rc.2` before considering any retry.
@@ -151,7 +154,6 @@ git -c gpg.format=ssh \
 git -c gpg.format=ssh \
   -c gpg.ssh.allowedSignersFile="$allowed_signers" \
   tag -v v0.1.0-rc.2
-git push origin v0.1.0-rc.2
 test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0-rc.2)"
 ~~~
 
@@ -168,12 +170,15 @@ accepted publish completed even if the pinned client returned 255:
 
 ~~~bash
 LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0-rc.2
+git push origin v0.1.0-rc.2
 ~~~
 
-Finally dispatch `.github/workflows/registry-smoke.yml` with version
-`0.1.0-rc.2`, inspect the mooncakes.io README, metadata, package list and API
-docs, and record the final registry URL and archive checksum. A `202` response
-alone is not the final proof; the clean exact-version consumer smoke is.
+Pushing the verified tag automatically dispatches
+`.github/workflows/registry-smoke.yml` for `0.1.0-rc.2`. The manual workflow
+dispatch remains available for a later rerun. Inspect the mooncakes.io README,
+metadata, package list and API docs, and record the final registry URL and
+archive checksum. A `202` response alone is not the final proof; the clean
+exact-version consumer smoke is.
 
 ## 0.1.0-rc.1 preparation record — 2026-08-12
 
