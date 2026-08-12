@@ -52,6 +52,11 @@ try {
   ]);
   const app = join(root, "smoke", "app");
   run("moon", ["add", coordinate], { cwd: app });
+  // The pinned Moon release's `moon new` template is not byte-for-byte in the
+  // form accepted by its own formatter (`[]` becomes `[ ]`, and the empty
+  // root package gains a newline). Normalize the fresh scaffold before the
+  // final `moon fmt --check` validates the generated application.
+  run("moon", ["fmt"], { cwd: app });
   const versionOutput = run("moonx", [cli, "--version"], {
     cwd: app,
     capture: true,
