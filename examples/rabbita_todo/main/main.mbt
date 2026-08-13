@@ -83,8 +83,14 @@ struct Model {
 ///|
 enum CatalogState {
   CatalogReady
-  CatalogLoading(@app_i18n.Locale)
+  CatalogLoading(@app_i18n.Locale, LocaleRequestSource)
   CatalogFailed(@app_i18n.Locale, String)
+} derive(Eq, Debug)
+
+///|
+enum LocaleRequestSource {
+  StartupPreference
+  UserPreference
 } derive(Eq, Debug)
 
 ///|
@@ -96,6 +102,33 @@ enum Msg {
   SetTab(TodoTab)
   ToggleLocale
   CatalogLoaded(@app_i18n.Locale, Result[String, Error])
+}
+
+///|
+fn initial_model() -> Model {
+  {
+    title: "",
+    items: SortedMap::new(),
+    next: 0,
+    tab: All,
+    locale: @app_i18n.default_locale(),
+    catalog_state: CatalogReady,
+  }
+}
+
+///|
+fn resolve_preferred_locale(
+  saved : String,
+  browser_codes : Array[String],
+) -> @app_i18n.Locale {
+  let requested : Array[String] = []
+  if !saved.is_empty() {
+    requested.push(saved)
+  }
+  for code in browser_codes {
+    requested.push(code)
+  }
+  @app_i18n.resolve_locale_codes(requested)
 }
 
 ///|
@@ -126,12 +159,55 @@ fn finish_catalog_load(
   i18n : @app_i18n.I18n,
   model : Model,
   locale : @app_i18n.Locale,
-  source : String,
+  catalog_source : String,
+  request_source : LocaleRequestSource,
 ) -> Model {
-  match i18n.install_catalog_source(locale, source) {
-    Ok(_) => { ..model, locale, catalog_state: CatalogReady }
+  match i18n.install_catalog_source(locale, catalog_source) {
+    Ok(_) => commit_locale(model, locale, request_source)
     Err(message) => { ..model, catalog_state: CatalogFailed(locale, message) }
   }
+}
+
+///|
+fn commit_locale(
+  model : Model,
+  locale : @app_i18n.Locale,
+  request_source : LocaleRequestSource,
+) -> Model {
+  if request_source is UserPreference {
+    @browser_preferences.save_locale_code(locale.code())
+  }
+  { ..model, locale, catalog_state: CatalogReady }
+}
+
+///|
+fn request_locale(
+  i18n : @app_i18n.I18n,
+  model : Model,
+  target : @app_i18n.Locale,
+  request_source : LocaleRequestSource,
+  emit : Emit[Msg],
+) -> (Model, @rabbita.Cmd) {
+  if i18n.has_catalog(target) {
+    (commit_locale(model, target, request_source), @rabbita.none)
+  } else {
+    (
+      { ..model, catalog_state: CatalogLoading(target, request_source) },
+      @http.get("/i18n/\{target.code()}.json").expect_text(
+        emit.map(result => CatalogLoaded(target, result)),
+      ),
+    )
+  }
+}
+
+///|
+fn initialize(i18n : @app_i18n.I18n, emit : Emit[Msg]) -> (Model, @rabbita.Cmd) {
+  let model = initial_model()
+  let target = resolve_preferred_locale(
+    @browser_preferences.saved_locale_code(),
+    @browser_preferences.browser_locale_codes(),
+  )
+  request_locale(i18n, model, target, StartupPreference, emit)
 }
 
 ///|
@@ -143,27 +219,21 @@ fn update(
 ) -> (Model, @rabbita.Cmd) {
   match msg {
     ToggleLocale => {
-      let target = other_locale(model.locale)
-      if i18n.has_catalog(target) {
-        (
-          { ..model, locale: target, catalog_state: CatalogReady },
-          @rabbita.none,
-        )
-      } else {
-        (
-          { ..model, catalog_state: CatalogLoading(target) },
-          @http.get("/i18n/\{target.code()}.json").expect_text(
-            emit.map(result => CatalogLoaded(target, result)),
-          ),
-        )
+      let target = match model.catalog_state {
+        CatalogFailed(failed, _) => failed
+        _ => other_locale(model.locale)
       }
+      request_locale(i18n, model, target, UserPreference, emit)
     }
     CatalogLoaded(locale, result) =>
       match model.catalog_state {
-        CatalogLoading(expected) if expected == locale =>
+        CatalogLoading(expected, request_source) if expected == locale =>
           match result {
             Ok(source) =>
-              (finish_catalog_load(i18n, model, locale, source), @rabbita.none)
+              (
+                finish_catalog_load(i18n, model, locale, source, request_source),
+                @rabbita.none,
+              )
             Err(_) =>
               (
                 {
@@ -374,15 +444,8 @@ fn tab_content(
 ///|
 fn app() -> Val[Html] {
   let i18n = @app_i18n.I18n::new()
-  let (model, emit) = @rabbita.create_state(
-    {
-      title: "",
-      items: SortedMap::new(),
-      next: 0,
-      tab: All,
-      locale: @app_i18n.default_locale(),
-      catalog_state: CatalogReady,
-    },
+  let (model, emit) = @rabbita.create_state_with_init(
+    init=fn(emit) { initialize(i18n, emit) },
     update=fn(model, msg, emit) { update(i18n, model, msg, emit) },
   )
   let locale = model.map(model => model.locale)
@@ -395,11 +458,11 @@ fn app() -> Val[Html] {
     let active = total - completed
     let t = i18n.translator(model.locale)
     let loading = match model.catalog_state {
-      CatalogLoading(_) => true
+      CatalogLoading(_, _) => true
       _ => false
     }
     let language_label = match model.catalog_state {
-      CatalogLoading(_) => t.t(@app_i18n.Common(@app_i18n.CatalogLoading))
+      CatalogLoading(_, _) => t.t(@app_i18n.Common(@app_i18n.CatalogLoading))
       CatalogFailed(_, _) => t.t(@app_i18n.Common(@app_i18n.CatalogRetry))
       CatalogReady => t.t(@app_i18n.Common(@app_i18n.SwitchLanguage))
     }
@@ -412,7 +475,7 @@ fn app() -> Val[Html] {
             .data_set("state", "ready"),
           "",
         )
-      CatalogLoading(_) =>
+      CatalogLoading(_, _) =>
         @html.span(
           class="catalog-status is-loading",
           attrs=@html.Attrs::build()

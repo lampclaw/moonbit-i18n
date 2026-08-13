@@ -2,7 +2,7 @@
 
 ## Pinned publish-client behavior
 
-The `0.1.0-rc.2` release uses Moon `0.1.20260803` with bundled
+The `0.1.0-rc.3` release uses Moon `0.1.20260803` with bundled
 `mooncake-bin 0.1.20260731`. With this exact pair, `moon publish --dry-run`
 can finish both archive validations, receive `202 Accepted`, and print the
 registry detail `Dry run completed successfully. No changes were made.`, then
@@ -62,7 +62,8 @@ from the published archive.
 - [ ] Build the Rabbita Todo release artifact and run the locked Playwright
       scenarios on Chromium, Firefox, and WebKit: locale switching, plural,
       number/datetime formatting, rich parts, fallback, dynamic catalog
-      installation/failure/retry, and diagnostics.
+      installation/failure/retry, preference persistence, unavailable storage,
+      and diagnostics.
 - [ ] Confirm destination-hashed `*.lampclaw.lock` coordination files stay in
       user state, release artifacts contain none, and generated packages ignore
       `generated.mbt` in `moon fmt`.
@@ -80,9 +81,9 @@ from the published archive.
       clean local workspace dependency, generate a bilingual app, run its
       JavaScript output, install a dynamic catalog, and execute the Wasm binary
       launcher.
-- [ ] Confirm `moon add lampclaw/i18n@0.1.0-rc.2` is the library workflow and
-      `moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2` is the primary CLI workflow.
-- [ ] Treat `moon add --bin lampclaw/i18n@0.1.0-rc.2` and global
+- [ ] Confirm `moon add lampclaw/i18n@0.1.0-rc.3` is the library workflow and
+      `moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3` is the primary CLI workflow.
+- [ ] Treat `moon add --bin lampclaw/i18n@0.1.0-rc.3` and global
       `moon install` as optional compatibility paths, not prerequisites for
       authoring.
 
@@ -97,13 +98,13 @@ from the published archive.
       from a dirty or unreviewed worktree.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
-      `v0.1.0-rc.2` tag locally. Publish only `lampclaw/i18n` from that tagged
+      `v0.1.0-rc.3` tag locally. Publish only `lampclaw/i18n` from that tagged
       commit. Keep the tag local until the exact registry version and its CLI
       asset are available so the tag-triggered Registry smoke cannot race the
       registry build.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
-      mooncakes.io for `lampclaw/i18n@0.1.0-rc.2` before considering any retry.
+      mooncakes.io for `lampclaw/i18n@0.1.0-rc.3` before considering any retry.
 - [ ] In a brand-new temporary module, run `moon add` for the exact version and
       execute the pinned CLI with `moonx`. Dispatch the `Registry smoke`
       workflow with the exact published version to repeat this on Linux,
@@ -150,11 +151,11 @@ allowed_signers="$(mktemp)"
 printf 'lampclaw@gmail.com %s\n' "$(cat ~/.ssh/id_ed25519_lampclaw_github.pub)" > "$allowed_signers"
 git -c gpg.format=ssh \
   -c user.signingkey=~/.ssh/id_ed25519_lampclaw_github.pub \
-  tag -s v0.1.0-rc.2 -m "lampclaw/i18n 0.1.0-rc.2"
+  tag -s v0.1.0-rc.3 -m "lampclaw/i18n 0.1.0-rc.3"
 git -c gpg.format=ssh \
   -c gpg.ssh.allowedSignersFile="$allowed_signers" \
-  tag -v v0.1.0-rc.2
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0-rc.2)"
+  tag -v v0.1.0-rc.3
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0-rc.3)"
 ~~~
 
 Then run the real command exactly once:
@@ -164,17 +165,17 @@ moon publish
 ~~~
 
 If it returns non-zero, stop. Do not rerun it. First open
-`https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.2` and attempt the exact
+`https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.3` and attempt the exact
 post-publish smoke below. A successful exact-version install proves the
 accepted publish completed even if the pinned client returned 255:
 
 ~~~bash
-LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0-rc.2
-git push origin v0.1.0-rc.2
+LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0-rc.3
+git push origin v0.1.0-rc.3
 ~~~
 
 Pushing the verified tag automatically dispatches
-`.github/workflows/registry-smoke.yml` for `0.1.0-rc.2`. The manual workflow
+`.github/workflows/registry-smoke.yml` for `0.1.0-rc.3`. The manual workflow
 dispatch remains available for a later rerun. Inspect the mooncakes.io README,
 metadata, package list and API docs, and record the final registry URL and
 archive checksum. A `202` response alone is not the final proof; the clean

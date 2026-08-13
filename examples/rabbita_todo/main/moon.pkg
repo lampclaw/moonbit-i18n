@@ -1,6 +1,7 @@
 import {
   "lampclaw/i18n_rabbita_todo/i18n" @app_i18n,
   "lampclaw/i18n_rabbita_todo/contract",
+  "lampclaw/i18n_rabbita_todo/browser_preferences",
   "moonbit-community/rabbita",
   "moonbit-community/rabbita/sub",
   "moonbit-community/rabbita/html",

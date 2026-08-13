@@ -1,13 +1,6 @@
 ///|
 fn empty_model() -> Model {
-  {
-    title: "",
-    items: SortedMap::new(),
-    next: 0,
-    tab: All,
-    locale: @app_i18n.EnUS,
-    catalog_state: CatalogReady,
-  }
+  initial_model()
 }
 
 ///|
@@ -57,6 +50,17 @@ test "generated Todo facade formats and negotiates locales" {
 }
 
 ///|
+test "locale preference resolution uses saved, browser, then default order" {
+  assert_eq(resolve_preferred_locale("zh-CN", ["en-US"]), @app_i18n.ZhCN)
+  assert_eq(
+    resolve_preferred_locale("fr-FR", ["de-DE", "zh_cn"]),
+    @app_i18n.ZhCN,
+  )
+  assert_eq(resolve_preferred_locale("", ["zh-CN"]), @app_i18n.ZhCN)
+  assert_eq(resolve_preferred_locale("", ["fr-FR"]), @app_i18n.EnUS)
+}
+
+///|
 test "generated facade installs catalogs and exposes app diagnostics" {
   let i18n = @app_i18n.I18n::new()
   let catalog = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
@@ -101,13 +105,14 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   let i18n = @app_i18n.I18n::new()
   let loading = {
     ..empty_model(),
-    catalog_state: CatalogLoading(@app_i18n.ZhCN),
+    catalog_state: CatalogLoading(@app_i18n.ZhCN, StartupPreference),
   }
   let invalid = finish_catalog_load(
     i18n,
     loading,
     @app_i18n.ZhCN,
     "{not a catalog",
+    StartupPreference,
   )
   assert_eq(invalid.locale, @app_i18n.EnUS)
   assert_true(invalid.catalog_state is CatalogFailed(@app_i18n.ZhCN, _))
@@ -116,7 +121,13 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   let source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
     @app_i18n.CONTRACT_HASH +
     "\",\"locale\":\"zh-CN\",\"messages\":{\"todo_ui.title\":\"任务\"}}"
-  let ready = finish_catalog_load(i18n, invalid, @app_i18n.ZhCN, source)
+  let ready = finish_catalog_load(
+    i18n,
+    invalid,
+    @app_i18n.ZhCN,
+    source,
+    StartupPreference,
+  )
   assert_eq(ready.locale, @app_i18n.ZhCN)
   assert_eq(ready.catalog_state, CatalogReady)
   assert_true(i18n.has_catalog(@app_i18n.ZhCN))

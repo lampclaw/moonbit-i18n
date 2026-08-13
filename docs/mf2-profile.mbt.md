@@ -2,7 +2,7 @@
 
 [中文](mf2-profile.zh-CN.mbt.md)
 
-Version `0.1.0-rc.2` uses
+Version `0.1.0-rc.3` uses
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. This is a versioned project
 profile derived from MessageFormat 2 concepts, not a claim of complete Unicode
 MessageFormat 2 conformance.
@@ -14,7 +14,7 @@ dated 2026-06-11. The immutable pin and machine-readable matrix live under
 
 ## Compatibility matrix
 
-| Area | `0.1.0-rc.2` contract |
+| Area | `0.1.0-rc.3` contract |
 |---|---|
 | Patterns and literals | Text, escapes, quoted literals, and the supported unquoted literal grammar |
 | Variables | Generated typed contracts for `String`, `Int`, `Double`, `Bool`, and `InstantMillis` |

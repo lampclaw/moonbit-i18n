@@ -3,21 +3,21 @@
 [English](README.mbt.md)
 
 这个浏览器示例基于 Rabbita 官方 Todo，展示完整的生成优先工作流。应用的维护源码
-只导入自己的生成 package，不直接导入 i18n runtime。
+导入自己的生成 package 和应用拥有的浏览器 adapter，不直接导入 i18n runtime。
 
 ## 生成与校验
 
 在仓库根目录执行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -57,10 +57,11 @@ i18n/generated.mbt + moon.pkg  public/i18n/*.json
 类型化 facade + 内嵌数据       catalog v2 + 契约 hash
               │
               ▼
-main/moon.pkg 导入 lampclaw/i18n_rabbita_todo/i18n
-              │
-              ▼
-Rabbita model / update / view 调用 Translator::t
+main/moon.pkg 导入生成 i18n + browser_preferences
+              │                         │
+              ▼                         ▼
+Rabbita model / update / view       localStorage / navigator
+调用 Translator::t                 应用 adapter
 ~~~
 
 生成 facade 负责 locale 协商、内嵌与动态 catalog、JavaScript `Intl` 格式化、
@@ -71,10 +72,22 @@ JavaScript bundle 只内嵌英文 fallback catalog。第一次切换语言时从
 `/i18n/zh-CN.json` 获取中文 catalog，完成校验和原子安装后复用，不再重复请求。
 请求失败或 catalog 无效时保持当前 locale 不变，并显示可重试状态。
 
+示例使用浏览器 `localStorage` 的
+`lampclaw.i18n.rabbita-todo.locale` 保存用户明确选择的语言。启动时按“保存值、
+`navigator.languages`、英文 fallback”的顺序协商。恢复中文偏好时，必须先成功
+校验动态 catalog 才提交中文 locale，因此页面可能短暂显示内嵌英文的加载状态。
+浏览器推断出的语言不会自动保存；只有用户主动切换或重试成功才形成长期偏好。
+存储是尽力而为的能力：隐私策略或安全策略阻止存储时，当前会话仍可正常切换。
+刷新会创建新的内存 `I18n` 实例，因此需要重新安装中文 catalog；常规 HTTP 缓存
+仍可避免再次传输。Todo 项目数据本身有意不做持久化。
+
+locale 检测、加载和持久化都是应用拥有的 adapter。生成 facade 接收 locale code
+和 catalog 数据，但不访问浏览器存储，也不自行发起网络请求。
+
 小型 `contract/` package 是框架 adapter 和浏览器验收 fixture：它把结构化
 `MessagePart` 转成 Rabbita HTML，并在三种支持的浏览器 engine 中验证 number、
-datetime、rich parts、fallback 与 diagnostic。`main/` 中维护的业务源码仍只导入
-生成 facade。
+datetime、rich parts、fallback 与 diagnostic。`main/` 中维护源码的本地化调用仍
+只通过生成 facade；`browser_preferences/` 单独拥有宿主相关的偏好边界。
 
 ## 来源与许可证
 

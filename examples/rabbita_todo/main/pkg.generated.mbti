@@ -12,6 +12,8 @@ import {
 // Types and methods
 type CatalogState derive(Eq, @debug.Debug)
 
+type LocaleRequestSource derive(Eq, @debug.Debug)
+
 type Model derive(Eq, @debug.Debug)
 
 type Msg
