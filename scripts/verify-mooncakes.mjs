@@ -8,7 +8,12 @@ if (expectedChecksum) assert.match(expectedChecksum, /^[0-9a-f]{64}$/u);
 
 const deadline = Date.now() + Number(process.env.LAMPCLAW_REGISTRY_WAIT_MS ?? 900_000);
 const base = `https://assets.mooncakes.io/assets/lampclaw/i18n@${version}`;
-const requiredPackages = ["cmd/i18n", "generator", "runtime", "runtime/js"];
+// Mooncakes' generated documentation index is an API index, not the source
+// package manifest. An executable-only package with no public API may be
+// omitted even though its archive and portable binary asset are available.
+// CLI delivery is therefore exercised by registry-smoke.mjs; this verifier
+// requires every package that exposes the library's public API.
+const requiredApiPackages = ["generator", "runtime", "runtime/js"];
 
 const get = async (url) => {
   const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
@@ -30,12 +35,18 @@ const verify = async () => {
   const moduleResource = await (await get(`${base}/resource.json`)).json();
   assert.equal(moduleResource.kind, "module");
   assert.match(moduleResource.readme_content, /lampclaw\/i18n/u);
+  assert.ok(
+    moduleResource.readme_content.includes(
+      `moonx lampclaw/i18n/cmd/i18n@${version}`,
+    ),
+    "README does not document the exact-version CLI coordinate",
+  );
   if (process.env.LAMPCLAW_EXPECT_ROADMAP !== "0") {
     assert.match(moduleResource.readme_content, /product roadmap|产品路线图/u);
   }
 
   const moduleIndex = await (await get(`${base}/module_index.json`)).text();
-  for (const path of requiredPackages) {
+  for (const path of requiredApiPackages) {
     assert.ok(moduleIndex.includes(`lampclaw/i18n/${path}`), `package missing from module index: ${path}`);
     const packageData = await (await get(`${base}/${path}/package_data.json`)).json();
     assert.equal(packageData.name, `lampclaw/i18n/${path}`);
