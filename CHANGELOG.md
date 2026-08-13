@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Post-release engineering, browser, Registry smoke, and consumer product
+  gates now use Node.js 26.7.0 exclusively; the redundant Node.js 24 matrix is
+  no longer maintained.
+
 ## [0.1.0] - 2026-08-13
 
 ### Added
