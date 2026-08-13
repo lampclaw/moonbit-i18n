@@ -4,21 +4,22 @@
 
 This browser example adapts Rabbita's official Todo application and shows the
 complete generator-first workflow. Maintained application source imports its
-own generated package; it does not import the i18n runtime.
+own generated package and application-owned browser adapter; it does not
+import the i18n runtime.
 
 ## Generate and validate
 
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -59,10 +60,11 @@ i18n/generated.mbt + moon.pkg  public/i18n/*.json
 typed facade + embedded data   catalog v2 + contract hash
               │
               ▼
-main/moon.pkg imports lampclaw/i18n_rabbita_todo/i18n
-              │
-              ▼
-Rabbita model / update / view calls Translator::t
+main/moon.pkg imports generated i18n + browser_preferences
+              │                         │
+              ▼                         ▼
+Rabbita model / update / view       localStorage / navigator
+calls Translator::t                 application adapter
 ~~~
 
 The generated facade owns locale negotiation, embedded and dynamic catalogs,
@@ -75,11 +77,27 @@ Chinese catalog is fetched from `/i18n/zh-CN.json` on first use, validated and
 installed atomically, then reused without another request. A failed request or
 invalid catalog leaves the current locale unchanged and exposes a retry state.
 
+The example keeps an explicit language choice in browser `localStorage` under
+`lampclaw.i18n.rabbita-todo.locale`. On startup it negotiates in this order:
+the saved choice, `navigator.languages`, then the English fallback. A restored
+Chinese preference is committed only after its dynamic catalog validates, so
+the application may briefly show the embedded English loading state. Browser
+language inference is not saved until the user explicitly switches or retries.
+Storage is best effort: blocked or unavailable storage never prevents an
+in-session language change. Refreshing creates a new in-memory `I18n` instance,
+so the Chinese catalog is installed again; normal HTTP caching may serve it
+without another transfer. Todo items themselves are intentionally not stored.
+
+Locale detection, loading, and persistence remain application-owned adapters.
+The generated facade accepts locale codes and catalog data but does not access
+browser storage or perform network requests.
+
 The small `contract/` package is a framework adapter and browser acceptance
 fixture. It turns structured `MessagePart` values into Rabbita HTML and proves
 number, datetime, rich-parts, fallback, and diagnostic behavior in the three
-supported browser engines. Maintained business source in `main/` continues to
-import only the generated facade.
+supported browser engines. Localization calls in maintained business source
+continue to use only the generated facade; `browser_preferences/` separately
+owns the host-specific preference boundary.
 
 ## Origin and license
 

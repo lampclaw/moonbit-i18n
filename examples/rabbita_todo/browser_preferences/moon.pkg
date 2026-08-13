@@ -1,0 +1,3 @@
+supported_targets = "js"
+
+warnings = "-a"

@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "lampclaw/i18n_rabbita_todo/browser_preferences"
+
+// Values
+pub fn browser_locale_codes() -> Array[String]
+
+pub fn save_locale_code(String) -> Unit
+
+pub fn saved_locale_code() -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

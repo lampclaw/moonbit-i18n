@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.1.0-rc.2` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
+`0.1.0-rc.3` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
 facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
@@ -12,7 +12,7 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.1.0-rc.2` 是可供 Web/JavaScript 项目进行工程验证的 release candidate，不是
+`0.1.0-rc.3` 是可供 Web/JavaScript 项目进行工程验证的 release candidate，不是
 原型，也不表示完整通过 Unicode MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
@@ -26,18 +26,18 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.1.0-rc.2
+moon add lampclaw/i18n@0.1.0-rc.3
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 --help
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.1.0-rc.2` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.1.0-rc.3` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.2` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.3` 全局安装，命令名为
 `moon-i18n`。
 
 本项目刻意只发布一个模块。因此，即使应用只导入 runtime，`moon add` 也会解析 CLI
@@ -113,14 +113,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.2 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -201,7 +201,7 @@ MessageFormat 2。精确能力矩阵和固定上游快照见
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.2/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.3/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

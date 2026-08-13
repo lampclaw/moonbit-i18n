@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0-rc.3] - 2026-08-13
+
+### Fixed
+
+- The Rabbita Todo example now persists explicit locale choices, restores them
+  after refresh through saved/browser/default negotiation, and remains usable
+  when browser storage is unavailable. Dynamic catalogs are still validated
+  before the restored locale is committed.
+
 ## [0.1.0-rc.2] - 2026-08-12
 
 ### Added
@@ -62,6 +71,7 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...HEAD
+[0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1

@@ -18,7 +18,7 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The `0.1.0-rc.2` baseline is already beyond a prototype:
+The `0.1.0-rc.3` baseline is already beyond a prototype:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
   string message identifiers;
