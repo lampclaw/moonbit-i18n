@@ -50,7 +50,7 @@ from the published archive.
 ## Quality gates
 
 - [ ] Run the complete command list in `CONTRIBUTING.md` with the pinned
-      MoonBit toolchain and Node.js 24; run the Node.js 26 smoke job.
+      MoonBit toolchain and Node.js 26.7.0.
 - [ ] Run the portable CLI test matrix on Ubuntu, macOS, and Windows for both
       Wasm and native targets where supported by the runner.
 - [ ] Confirm runtime coverage is at least 90%, generator and CLI coverage are
@@ -183,6 +183,83 @@ metadata and public library API docs, and record the final registry URL and
 archive checksum. The executable-only CLI need not appear as an empty API
 page; its exact-version execution is the delivery proof. A `202` response
 alone is not the final proof; the clean exact-version consumer smoke is.
+
+## 0.1.0 release record — 2026-08-13
+
+Immutable release identity:
+
+- release commit and signed tag target:
+  `9bc0398f3f9ae5408fb61d3a431a97fbb34e8cc3`;
+- tag: `v0.1.0`, verified with Lampclaw ED25519 key fingerprint
+  `SHA256:YrC/9aayrFCWl773eSEhE6G3FgROFEc/VQmxTawowDA`;
+- archive SHA-256:
+  `55723dd43a8558419c262ea7dfa5abf68484e241bc2d5a72674bdca2f6a754e8`;
+- release-branch CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31663592091>;
+- same-commit `main` CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31663767828>;
+- immutable-tag CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31664202516>; and
+- exact-version Linux/macOS/Windows Registry smoke:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31664202554>.
+
+The release branch, `main`, and immutable tag each passed all eight Test
+workflow jobs. The tag-triggered Registry smoke passed all three supported
+desktop systems against the exact public version.
+
+The pinned Moon `0.1.20260803` dry run completed both local and extracted
+archive checks, received `202 Accepted`, and was accepted only through the
+documented exit-255 rule. The real `moon publish` command was invoked exactly
+once. It started at `2026-08-13T03:27:21Z`, completed at
+`2026-08-13T03:27:23Z`, exited 0, and reported `Server status: 200 OK`. No real
+publish retry was attempted.
+
+The Mooncakes manifest reported version `0.1.0`, build status `success`,
+creation time `2026-08-13T03:27:22.907180+00:00`, and the same archive
+checksum. The registry page is
+<https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0>. Its rendered README,
+metadata, roadmap references, runtime API, generator API, JavaScript formatter
+API, source archive, and portable CLI asset were fetched or exercised
+successfully. All 109 public library items have documentation. As with RC.3,
+the executable-only `cmd/i18n` leaf is proven through exact-version execution
+rather than an empty generated API page.
+
+A brand-new temporary module passed exact-version `moon add`, pinned `moonx`,
+optional `moon add --bin`, English/Chinese generation and read-only checking,
+JavaScript check/build/run, and dynamic `zh-CN` catalog installation. The same
+flow then passed on Ubuntu 24.04, macOS 15, and Windows 2025 through the
+tag-triggered workflow. The tag was not pushed until Mooncakes assets and the
+local exact-version smoke succeeded.
+
+The stable release is semantically identical to the owner-approved RC.3:
+catalog v2, generated APIs, runtime behavior, and profile
+`lampclaw-mf2-strict-v1+lampclaw-datetime-v1` did not change. Native, Wasm,
+Wasm-GC, and JavaScript tests passed 115/115, 115/115, 97/97, and 105/105.
+Runtime, generator, CLI, and core coverage passed at 90.3%, 88.3%, 86.9%, and
+88.8%. The three measured benchmark ratios were 0.41, 0.35, and 0.47 of their
+budgets. The archive passed its boundary, documentation, clean-package,
+JavaScript execution, dynamic catalog, and binary launcher gates. Rabbita Todo
+passed all 18 scenarios across Chromium, Firefox, and WebKit; `examples/`
+remains excluded from the published archive.
+
+After publication, maintained-consumer acceptance followed the release owner's
+current product policy and tested only Node.js `26.7.0`; no Node.js 24
+consumer run was required. All three consumers moved the runtime and CLI pins
+together without generated artifact drift:
+
+- `bingque-com`: commit `3249964` pushed to `origin/main`, 485/485 messages,
+  99 main tests, 4 release-documentation tests, 7 tutorial tests, 1 course
+  example test, and the production build passed;
+- `lampclaw-com`: local commit `3abebb7`, 222/222 messages, 20 focused tests,
+  documentation snapshot validation, and the production build passed; the
+  repository has no configured remote; and
+- `apexlsai_com`: local commit `6f67c9c`, 497/497 messages, 11 site tests, 10
+  MoonBit tests, policy and formatting checks, and the production build
+  passed; the repository has no configured remote.
+
+There are no known P0/P1 Web release blockers. The supported behavior remains
+the documented strict project profile rather than a claim of complete Unicode
+MessageFormat 2 conformance.
 
 ## 0.1.0-rc.3 release record — 2026-08-13
 
