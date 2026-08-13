@@ -115,9 +115,11 @@ from the published archive.
       `install_catalog_source`, and verify Chinese output after installation.
 - [ ] Test the optional binary installation paths separately; do not let their
       failure obscure successful library and `moonx` consumption.
-- [ ] Open the mooncakes.io release page and inspect README, metadata, package
-      list, roadmap links, runtime API docs, generator API docs, and formatter
-      API docs.
+- [ ] Open the mooncakes.io release page and inspect README, metadata, roadmap
+      links, runtime API docs, generator API docs, and formatter API docs. The
+      executable-only `cmd/i18n` package has no public API; verify its delivery
+      through exact-version `moonx` and optional binary installation instead
+      of requiring an empty API page in the generated documentation index.
 - [ ] Record the registry URL, signed tag, release notes, archive SHA-256, and
       any known RC limitations.
 
@@ -177,9 +179,82 @@ git push origin v0.1.0-rc.3
 Pushing the verified tag automatically dispatches
 `.github/workflows/registry-smoke.yml` for `0.1.0-rc.3`. The manual workflow
 dispatch remains available for a later rerun. Inspect the mooncakes.io README,
-metadata, package list and API docs, and record the final registry URL and
-archive checksum. A `202` response alone is not the final proof; the clean
-exact-version consumer smoke is.
+metadata and public library API docs, and record the final registry URL and
+archive checksum. The executable-only CLI need not appear as an empty API
+page; its exact-version execution is the delivery proof. A `202` response
+alone is not the final proof; the clean exact-version consumer smoke is.
+
+## 0.1.0-rc.3 release record — 2026-08-13
+
+Immutable release identity:
+
+- release commit and signed tag target:
+  `52e7f7d07acd76c3043cb655e9989add13fdc922`;
+- tag: `v0.1.0-rc.3`, verified with Lampclaw ED25519 key fingerprint
+  `SHA256:YrC/9aayrFCWl773eSEhE6G3FgROFEc/VQmxTawowDA`;
+- archive SHA-256:
+  `548aaea1f139bd796f97f8191b809756a5a10bb5a4227285f55df9a7f10074cc`;
+- release-branch CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31658009412>;
+- same-commit `main` CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31658233861>;
+- immutable-tag CI:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31659487795>; and
+- exact-version Linux/macOS/Windows Registry smoke:
+  <https://github.com/lampclaw/moonbit-i18n/actions/runs/31659487807>.
+
+The pinned Moon `0.1.20260803` dry run completed both local and extracted
+archive checks, received `202 Accepted`, and was accepted only through the
+documented exit-255 rule. The real `moon publish` command was invoked exactly
+once, exited 0, and reported `Server status: 200 OK`; no real publish retry was
+attempted.
+
+The Mooncakes manifest reported version `0.1.0-rc.3`, build status `success`,
+creation time `2026-08-13T01:40:45.211958+00:00`, and the same archive
+checksum. The registry page is
+<https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0-rc.3>. Its rendered README,
+metadata, roadmap references, runtime API, generator API, JavaScript formatter
+API, source archive, and portable CLI asset were fetched or exercised
+successfully.
+
+Mooncakes' generated API index omitted the executable-only `cmd/i18n` leaf for
+this version. The leaf has no public API, is present in the published source
+archive, and both pinned `moonx` execution and optional `moon add --bin`
+installation passed locally and on Ubuntu 24.04, macOS 15, and Windows 2025.
+The release verifier consequently treats exact-version execution as the CLI
+delivery proof while continuing to require every public library API package in
+the generated documentation index. No replacement RC was published for an
+empty documentation leaf.
+
+The release gates passed with Moon `0.1.20260803`, moonc
+`0.10.6+80dc50f24`, and Mooncake `0.1.20260731`. Native, Wasm, Wasm-GC, and
+JavaScript tests passed 115/115, 115/115, 97/97, and 105/105 respectively.
+Runtime, generator, CLI, and core coverage passed at 90.3%, 88.3%, 86.9%, and
+88.8%; all 109 public items were documented; and the three benchmark ratios
+were 0.41, 0.39, and 0.47 of budget. The archive passed boundary checks, clean
+package generation, JavaScript build/run, dynamic catalog installation,
+documentation generation, and binary launcher execution.
+
+The Rabbita Todo example now resolves a saved locale before browser
+preferences and the English default. Explicit successful switches persist,
+dynamic catalogs are validated before committing locale state, failed loads
+do not overwrite the preference, and unavailable browser storage is nonfatal.
+Its 28/28 messages per locale, generated artifacts, Node.js 24 release gates,
+Node.js 26.6.0 checks, and 18 Playwright cases across Chromium, Firefox, and
+WebKit passed. Examples remain excluded from the published archive.
+
+Maintained consumers were advanced to the exact published RC without generated
+artifact drift:
+
+- `bingque-com`: commit `4935395` pushed to `origin/main`, 485/485 messages,
+  99 main tests, 4 release-documentation tests, 7 tutorial tests, 1 course
+  example test, and the release build passed on Node.js 26.6.0;
+- `lampclaw-com`: local commit `93d1fc1`, 142/142 messages; the clean committed
+  baseline passed 19 focused tests and the release build. Unrelated in-progress
+  navigation and brand edits remain uncommitted in its primary worktree and
+  were excluded from the migration commit and isolated validation; and
+- `apexlsai_com`: local commit `5e0f80f`, 497/497 messages, 11 site tests, 10
+  MoonBit tests, and the release build passed.
 
 ## 0.1.0-rc.2 release record — 2026-08-12
 
