@@ -6,6 +6,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-13
+
+### Added
+
+- First stable Web/JavaScript strict-v1 baseline, promoting the complete
+  runtime, typed generated facade, catalog v2, authoring CLI, XLIFF workflow,
+  browser contract, packaging, and engineering gates proven by the three
+  release candidates below.
+
+### Changed
+
+- Stable version references now use `0.1.0`. Runtime behavior, the catalog
+  wire format, generated APIs, and the MF2-derived profile are unchanged from
+  the human-approved `0.1.0-rc.3` candidate.
+
 ## [0.1.0-rc.3] - 2026-08-13
 
 ### Fixed
@@ -71,7 +86,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...v0.1.0
 [0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1
