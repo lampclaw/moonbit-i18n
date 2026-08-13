@@ -10,8 +10,7 @@
 | 界面 | 发布门槛 | 支持级别 |
 |---|---|---|
 | MoonBit 工具链 | archive `0.10.6+80dc50f24`、Moon `0.1.20260803`、moonc `0.10.6` | `0.1.x` 发布固定且必需 |
-| JavaScript runtime | Node.js `24.18.1` | 主要服务端/runtime 门槛 |
-| JavaScript runtime | Node.js `26.7.0` | 兼容 smoke |
+| JavaScript runtime | Node.js `26.7.0` | 唯一的服务端/runtime 与产品门槛 |
 | 浏览器 runtime | 锁定 Playwright `1.62.1` 提供的 Chromium、Firefox、WebKit | 生成 facade 与应用场景 |
 | CLI 操作系统 | Ubuntu 24.04、macOS 15、Windows 2025 | Wasm `moonx`、Native CLI 和安装 launcher |
 | 可移植 core | Native、Wasm、Wasm-GC、JavaScript | 编译与目标无关行为 |

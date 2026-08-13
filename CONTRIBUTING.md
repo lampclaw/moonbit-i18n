@@ -1,8 +1,8 @@
 # Contributing
 
 Use toolchain archive `0.10.6+80dc50f24` (Moon `0.1.20260803`, moonc `0.10.6`)
-and Node.js `24.18.1` for the release gate. Node.js `26.x` is an additional
-compatibility smoke target. Dependency versions in `moon.mod` must stay exact.
+and Node.js `26.7.0` for the engineering and product gates. Dependency versions
+in `moon.mod` must stay exact.
 
 ## Roadmap and architectural changes
 

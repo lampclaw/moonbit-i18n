@@ -10,8 +10,7 @@ only when it is named here and exercised by the release gates.
 | Surface | Release gate | Support level |
 |---|---|---|
 | MoonBit toolchain | archive `0.10.6+80dc50f24`, Moon `0.1.20260803`, moonc `0.10.6` | Pinned and required for `0.1.x` releases |
-| JavaScript runtime | Node.js `24.18.1` | Primary server/runtime gate |
-| JavaScript runtime | Node.js `26.7.0` | Compatibility smoke |
+| JavaScript runtime | Node.js `26.7.0` | Sole server/runtime and product gate |
 | Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.62.1` | Generated facade and application scenarios |
 | CLI operating systems | Ubuntu 24.04, macOS 15, Windows 2025 | Wasm `moonx`, native CLI, and installed launcher |
 | Portable core | Native, Wasm, Wasm-GC, JavaScript | Compile and target-independent behavior |

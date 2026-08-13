@@ -17,12 +17,11 @@ env:
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
   MOON_VERSION: 0.1.20260803
   MOONC_VERSION: 0.10.6
-  NODE_PRIMARY: 24.18.1
-  NODE_SMOKE: 26.7.0
+  NODE_VERSION: 26.7.0
 
 jobs:
   quality:
-    name: Engineering readiness · Node 24
+    name: Engineering readiness · Node 26
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -34,10 +33,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Node.js ${{ env.NODE_PRIMARY }}
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: ${{ env.NODE_PRIMARY }}
+          node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
 
       - name: Setup MoonBit
@@ -62,8 +61,8 @@ jobs:
             echo "expected moonc $MOONC_VERSION, got $installed_moonc" >&2
             exit 1
           }
-          test "$installed_node" = "$NODE_PRIMARY" || {
-            echo "expected Node $NODE_PRIMARY, got $installed_node" >&2
+          test "$installed_node" = "$NODE_VERSION" || {
+            echo "expected Node $NODE_VERSION, got $installed_node" >&2
             exit 1
           }
           moon update
@@ -181,10 +180,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Node.js ${{ env.NODE_PRIMARY }}
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: ${{ env.NODE_PRIMARY }}
+          node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
 
       - name: Setup MoonBit
@@ -201,7 +200,7 @@ jobs:
           installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
           test "$installed_moon" = "$MOON_VERSION"
           test "$installed_moonc" = "$MOONC_VERSION"
-          test "$(node -p 'process.versions.node')" = "$NODE_PRIMARY"
+          test "$(node -p 'process.versions.node')" = "$NODE_VERSION"
           moon update
           moon run --target wasm cmd/i18n -- check \
             examples/rabbita_todo/localization/config.json \
@@ -220,44 +219,6 @@ jobs:
       - name: Browser acceptance scenarios
         run: npm run test:browser -- --project="${{ matrix.browser }}"
 
-  node-26-smoke:
-    name: JavaScript smoke · Node 26
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js ${{ env.NODE_SMOKE }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: ${{ env.NODE_SMOKE }}
-          package-manager-cache: false
-
-      - name: Setup MoonBit
-        run: |
-          curl --proto '=https' --tlsv1.2 -fsSL https://cli.moonbitlang.com/install/unix.sh -o /tmp/moonbit-install.sh
-          printf '%s  %s\n' "$MOONBIT_INSTALLER_SHA256" /tmp/moonbit-install.sh | sha256sum -c -
-          bash /tmp/moonbit-install.sh "$MOONBIT_TOOLCHAIN"
-          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
-
-      - name: Verify versions and smoke-test JavaScript
-        run: |
-          version_output="$(moon version --all)"
-          installed_moon="$(printf '%s\n' "$version_output" | awk '$1 == "moon" { print $2; exit }')"
-          installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
-          test "$installed_moon" = "$MOON_VERSION"
-          test "$installed_moonc" = "$MOONC_VERSION"
-          test "$(node -p 'process.versions.node')" = "$NODE_SMOKE"
-          moon update
-          moon check --deny-warn --target js
-          moon test --frozen --deny-warn --target js
-
   portable-cli:
     name: Portable CLI · ${{ matrix.os }}
     strategy:
@@ -270,6 +231,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
 
       - name: Setup MoonBit on Unix
         if: runner.os != 'Windows'
@@ -302,6 +269,7 @@ jobs:
           installed_moonc="$(printf '%s\n' "$version_output" | awk '$1 == "moonc" { sub(/^v/, "", $2); split($2, parts, "+"); print parts[1]; exit }')"
           test "$installed_moon" = "$MOON_VERSION"
           test "$installed_moonc" = "$MOONC_VERSION"
+          test "$(node -p 'process.versions.node')" = "$NODE_VERSION"
           moon update
           moon check --deny-warn --target wasm cmd/i18n
           # Install dependencies reachable only from the CLI white-box tests;
