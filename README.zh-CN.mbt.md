@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.1.0-rc.3` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
+`0.1.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
 facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
@@ -12,13 +12,13 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.1.0-rc.3` 是可供 Web/JavaScript 项目进行工程验证的 release candidate，不是
-原型，也不表示完整通过 Unicode MessageFormat 2。公开的
+`0.1.0` 是稳定的 Web/JavaScript strict-v1 基线，不是原型，也不表示完整通过
+Unicode MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
 路线图中的规划项不代表当前已经支持。
-精确的工具链、操作系统、浏览器、后端和 prerelease 兼容承诺见
+精确的工具链、操作系统、浏览器、后端和 `0.x` 兼容承诺见
 [支持政策](docs/support-policy.zh-CN.mbt.md)。
 
 ## 安装与运行 CLI
@@ -26,18 +26,18 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.1.0-rc.3
+moon add lampclaw/i18n@0.1.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 --help
+moonx lampclaw/i18n/cmd/i18n@0.1.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.1.0-rc.3` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.1.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.1.0-rc.3` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.1.0` 全局安装，命令名为
 `moon-i18n`。
 
 本项目刻意只发布一个模块。因此，即使应用只导入 runtime，`moon add` 也会解析 CLI
@@ -113,14 +113,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 generate \
+moonx lampclaw/i18n/cmd/i18n@0.1.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0-rc.3 check \
+moonx lampclaw/i18n/cmd/i18n@0.1.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -194,14 +194,14 @@ function 会被明确拒绝，而不是近似处理。这是严格的项目子�
 MessageFormat 2。精确能力矩阵和固定上游快照见
 [`docs/mf2-profile.zh-CN.mbt.md`](docs/mf2-profile.zh-CN.mbt.md)。
 
-完整 BCP 47 canonicalization 与 Unicode bidi isolation 不属于本次 RC。限制包括：
+完整 BCP 47 canonicalization 与 Unicode bidi isolation 不属于本次发布。限制包括：
 1,000 个 locale、64 MiB locale 总输入、64 MiB 生成 MoonBit、16 MiB/100,000 条消息
 的 catalog、每条消息 64 KiB，以及每个生成消息 64 个参数或 rich tag。
 
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.3/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

@@ -14,7 +14,7 @@
 `lampclaw/i18n` 的目标是成为 MoonBit 原生、生成优先、类型安全、标准驱动的国际化
 基础设施，具有可移植核心和可替换的目标平台 formatter。
 
-`0.1.0-rc.3` 基线已经超出原型阶段：
+稳定版 `0.1.0` 基线已经超出原型阶段：
 
 - 应用代码使用生成的类型安全 MoonBit facade，而不是裸字符串消息 ID；
 - schema、locale 资源、生成源码、catalog 和所有权 manifest 构成确定性的 authoring
@@ -96,8 +96,8 @@ canonical authoring 模型继续是项目 JSON schema、config 和 locale 资源
 
 ## 短期：`0.1.x`——冻结 Web 基线
 
-本阶段目标是把现有 release candidate 收敛为非 prerelease 的 `0.1.0` Web 基线。
-本阶段不新增 MF2 语法或框架 package。
+**状态：已在 `0.1.0` 稳定。** release candidate 在以下全部门槛通过后晋升为非
+prerelease Web 基线。本阶段没有新增 MF2 语法或框架 package。
 
 ### 交付项
 
@@ -114,12 +114,13 @@ canonical authoring 模型继续是项目 JSON schema、config 和 locale 资源
 
 ### 出口门槛
 
-满足以下条件时才能发布 `0.1.0`：
+`0.1.0` 在满足以下条件后发布：
 
 - 没有已知的 P0/P1 Web 发布阻塞问题；
 - 在所有受支持桌面 CI 系统上，对精确 registry 版本完成全新模块完整流程；
 - 受支持浏览器通过可观察的应用场景；
-- Mooncakes 正确显示 README、元数据、package list 和公共 API 文档；
+- Mooncakes 正确显示 README、元数据和所有公共库 API 页面；无公共 API 的 CLI
+  executable 则通过精确版本安装与执行验证；
 - 当前 strict profile 已冻结并准确记录，且没有宣称完整 Unicode MF2；
 - 维护中的消费者不依赖未发布的 workspace 或 submodule 源码。
 

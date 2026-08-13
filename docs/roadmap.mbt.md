@@ -18,7 +18,7 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The `0.1.0-rc.3` baseline is already beyond a prototype:
+The stable `0.1.0` baseline is beyond a prototype:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
   string message identifiers;
@@ -121,9 +121,9 @@ During `0.x`, public APIs are still pre-1.0, but compatibility is intentional:
 
 ## Short term: `0.1.x` — freeze the Web baseline
 
-The objective is to graduate the existing release candidate into a
-non-prerelease `0.1.0` Web baseline. No new MF2 syntax or framework package is
-part of this phase.
+**Status: stable in `0.1.0`.** The release candidate graduated into the
+non-prerelease Web baseline after every gate below passed. No new MF2 syntax or
+framework package was part of this phase.
 
 ### Deliverables
 
@@ -144,14 +144,15 @@ part of this phase.
 
 ### Exit gate
 
-`0.1.0` may be released when:
+`0.1.0` was released after:
 
 - there are no known P0/P1 Web release blockers;
 - the complete clean-module flow succeeds against the exact registry version
   on all supported desktop CI systems;
 - supported browsers pass the observable application scenarios;
-- Mooncakes renders the README, metadata, package list, and public API docs
-  correctly;
+- Mooncakes rendered the README, metadata, and every public library API page
+  correctly, while the executable-only CLI passed exact-version installation
+  and execution checks;
 - the current strict profile is frozen and documented without claiming full
   Unicode MF2 conformance;
 - maintained consumers require no unpublished workspace or submodule source.
