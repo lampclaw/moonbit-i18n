@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-14
+
+### Fixed
+
+- `scaffold` now removes the two coordination locks derived from its unique
+  staging paths after generation completes. The first generation at the final
+  destination therefore leaves exactly one persistent lock per output instead
+  of retaining two unreachable staging locks.
+- Mooncakes verification now accepts every planned `0.x` version rather than
+  rejecting versions outside the original `0.1.0` line.
+
 ## [0.2.0] - 2026-08-14
 
 ### Added
@@ -112,7 +123,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...v0.1.0
 [0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...v0.1.0-rc.3

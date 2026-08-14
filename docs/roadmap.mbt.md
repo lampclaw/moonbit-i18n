@@ -161,7 +161,7 @@ framework package was part of this phase.
 
 ### `0.2.x` — authoring and diagnostics
 
-**Status: stable in `0.2.0`.** The canonical JSON format and strict-v1 runtime
+**Status: stable in `0.2.1`.** The canonical JSON format and strict-v1 runtime
 profile remain unchanged. This release adds only explicit authoring workflow,
 diagnostic, and reproducibility contracts.
 
@@ -178,11 +178,16 @@ Exit gate: a new user can scaffold, generate, diagnose an invalid message,
 repair it, and build the application on every supported CLI platform; repeated
 generation produces no diff.
 
-`0.2.0` met this gate with an atomically published bilingual scaffold, stable
+`0.2.1` met this gate with an atomically published bilingual scaffold, stable
 human/JSON diagnostics carrying paths and spans, a versioned SHA-256
 input/output manifest, byte-for-byte check mode, and a locked true no-op path
 that preserves generated interfaces. The clean-module scenario is part of the
 package and cross-platform Registry smoke gates.
+
+The initial `0.2.0` registry artifact passed build and documentation checks,
+but exact-version smoke found that scaffold staging locks remained in the user
+cache. It was not overwritten; `0.2.1` removes those unreachable locks and is
+the accepted `0.2.x` release.
 
 ### `0.3.x` — translation lifecycle and interchange
 

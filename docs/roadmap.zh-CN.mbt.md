@@ -128,7 +128,7 @@ prerelease Web 基线。本阶段没有新增 MF2 语法或框架 package。
 
 ### `0.2.x`——authoring 与诊断
 
-**状态：已在 `0.2.0` 稳定。** canonical JSON 格式和 strict-v1 runtime profile
+**状态：已在 `0.2.1` 稳定。** canonical JSON 格式和 strict-v1 runtime profile
 保持不变；该版本只增加显式 authoring workflow、diagnostic 与可复现性契约。
 
 - 增加 CLI scaffold，生成采用 canonical JSON authoring 布局和生成应用 package 的
@@ -141,10 +141,14 @@ prerelease Web 基线。本阶段没有新增 MF2 语法或框架 package。
 出口门槛：新用户可以在所有受支持 CLI 平台上完成 scaffold、generate、定位一条非法
 消息、修复并构建应用；重复生成不产生 diff。
 
-`0.2.0` 通过以下证据满足门槛：原子发布的双语言 scaffold；携带路径和 span 的稳定
+`0.2.1` 通过以下证据满足门槛：原子发布的双语言 scaffold；携带路径和 span 的稳定
 human/JSON diagnostics；版本化 SHA-256 输入/输出 manifest；逐字节 check mode；以及
 在锁内保留生成 interface 的真正 no-op 路径。clean-module 场景进入 package smoke 和
 跨平台 Registry smoke 门禁。
+
+最初的 `0.2.0` registry artifact 通过了 build 与文档检查，但 exact-version smoke
+发现 scaffold 的 staging lock 留在用户 cache。该版本没有被覆盖；`0.2.1` 删除这些
+不可达 lock，并作为被接受的 `0.2.x` 版本。
 
 ### `0.3.x`——翻译生命周期与互操作
 
