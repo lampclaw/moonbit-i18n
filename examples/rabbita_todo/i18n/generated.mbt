@@ -64,6 +64,111 @@ pub fn locale_from_code(code : String, fallback : Locale) -> Locale {
 }
 
 ///|
+/// A catalog namespace that can be deployed and installed independently.
+pub(all) enum CatalogNamespace {
+  /// Message namespace `common`.
+  CatalogCommon
+  /// Message namespace `contract`.
+  CatalogContract
+  /// Message namespace `todo_ui`.
+  CatalogTodoUi
+} derive(Eq, Debug)
+
+///|
+/// Returns the canonical schema-group name for this namespace.
+pub fn CatalogNamespace::code(self : CatalogNamespace) -> String {
+  match self {
+    CatalogCommon => "common"
+    CatalogContract => "contract"
+    CatalogTodoUi => "todo_ui"
+  }
+}
+
+///|
+/// Returns every independently deployable namespace in lexical order.
+pub fn catalog_namespaces() -> Array[CatalogNamespace] {
+  [CatalogCommon, CatalogContract, CatalogTodoUi]
+}
+
+///|
+/// Immutable deployment metadata for one generated catalog chunk.
+pub(all) struct CatalogChunkMetadata {
+  /// Locale carried by the chunk.
+  locale : Locale
+  /// Independently installable message namespace.
+  chunk_namespace : CatalogNamespace
+  /// Relative path in the generated deployment directory.
+  path : String
+  /// Lowercase SHA-256 of the exact UTF-8 response bytes.
+  sha256 : String
+  /// Expected UTF-8 response byte count.
+  bytes : Int
+} derive(Eq, Debug)
+
+///|
+/// Returns deployment metadata for a locale/namespace pair.
+pub fn catalog_chunk_metadata(
+  locale : Locale,
+  chunk_namespace : CatalogNamespace,
+) -> CatalogChunkMetadata? {
+  if locale == EnUS && chunk_namespace == CatalogCommon {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "en-US--common.json",
+      sha256: "bec0371b3ee358f0268fd500cf12bc71ff60e94cde403cbd30fe311f17de3625",
+      bytes: 502,
+    })
+  }
+  if locale == EnUS && chunk_namespace == CatalogContract {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "en-US--contract.json",
+      sha256: "e8d3d6399e2a7c40dfee0dc3e2037d337efbe50670eaa3858fc9b2a75ca0f6b0",
+      bytes: 497,
+    })
+  }
+  if locale == EnUS && chunk_namespace == CatalogTodoUi {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "en-US--todo_ui.json",
+      sha256: "88d31c83b42d24b7cf949c45aea1cde077967005e42f1cac2c63be4df410886b",
+      bytes: 1061,
+    })
+  }
+  if locale == ZhCN && chunk_namespace == CatalogCommon {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "zh-CN--common.json",
+      sha256: "0c86f496b75c5a834eee0b2c6d445efbd0a01f23cb7114b34232325381f67eeb",
+      bytes: 497,
+    })
+  }
+  if locale == ZhCN && chunk_namespace == CatalogContract {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "zh-CN--contract.json",
+      sha256: "ae13adf1358eac304aa850a4eecf074073b681df91f713aa371243e61a7b286e",
+      bytes: 503,
+    })
+  }
+  if locale == ZhCN && chunk_namespace == CatalogTodoUi {
+    return Some({
+      locale,
+      chunk_namespace,
+      path: "zh-CN--todo_ui.json",
+      sha256: "39a16a2bce383c6e001bd9ce94fc30545cf5d3b8a5ce5d8458d23fab6f5eeab8",
+      bytes: 1100,
+    })
+  }
+  None
+}
+
+///|
 /// A type-safe text message request.
 pub(all) enum I18nText {
   /// A message in the `common` group.
@@ -389,18 +494,47 @@ pub fn I18n::install_catalog_source(
 }
 
 ///|
-/// Reports whether a catalog is currently installed for a locale.
-pub fn I18n::has_catalog(self : I18n, locale : Locale) -> Bool {
-  self.runtime.has_catalog(locale.code())
+/// Validates and atomically installs one dynamic namespace chunk.
+pub fn I18n::install_catalog_chunk_source(
+  self : I18n,
+  locale : Locale,
+  chunk_namespace : CatalogNamespace,
+  source : String,
+) -> Result[Unit, String] {
+  self
+    .runtime
+    .install_catalog_chunk_source_for(
+      locale.code(),
+      chunk_namespace.code(),
+      source,
+    )
 }
 
 ///|
-/// Returns all locales whose catalogs are currently installed.
-pub fn I18n::installed_locales(self : I18n) -> Array[Locale] {
+/// Reports whether one namespace is installed for a locale.
+pub fn I18n::has_catalog_namespace(
+  self : I18n,
+  locale : Locale,
+  chunk_namespace : CatalogNamespace,
+) -> Bool {
+  self.runtime.has_catalog_namespace(locale.code(), chunk_namespace.code())
+}
+
+///|
+/// Reports whether every generated namespace is installed for a locale.
+pub fn I18n::has_catalog(self : I18n, locale : Locale) -> Bool {
   self
     .runtime
-    .catalog_locale_codes()
-    .map(code => locale_from_code(code, fallback_locale()))
+    .has_catalog_namespaces(
+      locale.code(),
+      catalog_namespaces().map(value => value.code()),
+    )
+}
+
+///|
+/// Returns all locales whose generated namespaces are installed.
+pub fn I18n::installed_locales(self : I18n) -> Array[Locale] {
+  all_locales().filter(locale => self.has_catalog(locale))
 }
 
 ///|

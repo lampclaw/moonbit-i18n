@@ -19,6 +19,31 @@ test "catalog v2 round trips through JSON" {
 }
 
 ///|
+test "catalog v2 namespace chunks round trip and enforce membership" {
+  let chunk = Catalog::from_generated_chunk_entries(
+    locale_code="zh-CN",
+    chunk_namespace="account settings",
+    contract_hash=TEST_CONTRACT_HASH,
+    entries=[{ id: "account settings.title", message: "账户设置" }],
+  )
+  guard parse_catalog(chunk.to_json_string()) is Ok(parsed) else {
+    fail("expected a valid namespace chunk")
+  }
+  assert_eq(parsed.chunk_namespace(), Some("account settings"))
+  assert_eq(parsed.find("account settings.title"), Some("账户设置"))
+  let outside = Catalog::from_generated_chunk_entries(
+    locale_code="zh-CN",
+    chunk_namespace="account",
+    contract_hash=TEST_CONTRACT_HASH,
+    entries=[{ id: "common.title", message: "标题" }],
+  )
+  assert_true(
+    outside.compile_messages()
+    is Err("catalog chunk message is outside namespace account: common.title"),
+  )
+}
+
+///|
 test "catalog reports translated coverage using indexed lookups" {
   let catalog = Catalog::from_generated_entries(
     locale_code="ar",
@@ -156,6 +181,22 @@ test "catalog parser validates every v2 field and entry shape" {
   assert_true(
     parse_catalog(prefix + ",\"direction\":1,\"messages\":{}}")
     is Err("direction must be a string"),
+  )
+  assert_true(
+    parse_catalog(prefix + ",\"namespace\":1,\"messages\":{}}")
+    is Err("namespace must be a string"),
+  )
+  assert_true(
+    parse_catalog(prefix + ",\"namespace\":\"bad/name\",\"messages\":{}}")
+    is Err(
+      "catalog namespace must contain only ASCII letters, digits, '_', '-' or spaces"
+    ),
+  )
+  assert_true(
+    parse_catalog(
+      prefix + ",\"namespace\":\"common\",\"messages\":{\"other.value\":\"x\"}}",
+    )
+    is Err("catalog chunk message is outside namespace common: other.value"),
   )
   guard parse_catalog(prefix + ",\"direction\":\"rtl\",\"messages\":{}}")
     is Ok(rtl) else {

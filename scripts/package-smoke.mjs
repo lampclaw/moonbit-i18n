@@ -98,7 +98,7 @@ try {
     "app/localization/schema.json",
     JSON.stringify(
       {
-        messages: { common: ["hello"] },
+        messages: { account: ["title"], common: ["hello"] },
         params: { "common.hello": [{ name: "name", type: "String" }] },
         descriptions: { "common.hello": "Greets a named user." },
       },
@@ -108,11 +108,11 @@ try {
   );
   write(
     "app/localization/locales/en-US.json",
-    '{"common":{"hello":"Hello {$name}"}}\n',
+    '{"account":{"title":"Account"},"common":{"hello":"Hello {$name}"}}\n',
   );
   write(
     "app/localization/locales/zh-CN.json",
-    '{"common":{"hello":"你好 {$name}"}}\n',
+    '{"account":{"title":"账户"},"common":{"hello":"你好 {$name}"}}\n',
   );
 
   const generationArgs = [
@@ -225,8 +225,24 @@ try {
   );
   assert.match(readFileSync(migrationReport, "utf8"), /"lossCount": 0/u);
 
-  const dynamicCatalog = readFileSync(
-    join(app, "public", "i18n", "zh-CN.json"),
+  const deploymentManifest = JSON.parse(
+    readFileSync(join(app, "public", "i18n", "manifest.json"), "utf8"),
+  );
+  assert.equal(deploymentManifest.manifestVersion, 1);
+  assert.equal(deploymentManifest.fallbackLocale, "en-US");
+  assert.deepEqual(deploymentManifest.namespaces, ["account", "common"]);
+  assert.equal(deploymentManifest.chunks.length, 4);
+  for (const chunk of deploymentManifest.chunks) {
+    const bytes = readFileSync(join(app, "public", "i18n", chunk.path));
+    assert.equal(bytes.length, chunk.bytes);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), chunk.sha256);
+  }
+  const dynamicAccount = readFileSync(
+    join(app, "public", "i18n", "zh-CN--account.json"),
+    "utf8",
+  );
+  const dynamicCommon = readFileSync(
+    join(app, "public", "i18n", "zh-CN--common.json"),
     "utf8",
   );
   mkdirSync(join(app, "cmd", "main"), { recursive: true });
@@ -236,8 +252,9 @@ try {
   );
   write(
     "app/cmd/main/main.mbt",
-    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  match i18n.install_catalog_source(@app_i18n.ZhCN, source) {\n    Ok(_) => ()\n    Err(message) => abort("catalog rejected: \\{message}")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  println("package smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
+    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    "{not valid JSON",\n  ) is Ok(_) {\n    abort("corrupt chunk was accepted")\n  }\n  let common_source = ${JSON.stringify(dynamicCommon)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    common_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("common chunk rejected: \\{message}")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("partially loaded locale was reported complete")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "Account" {\n    abort("unloaded namespace did not recover through fallback")\n  }\n  let account_source = ${JSON.stringify(dynamicAccount)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogAccount,\n    account_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("account chunk rejected: \\{message}")\n  }\n  if !i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("fully loaded locale was not reported complete")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "账户" {\n    abort("second namespace did not install independently")\n  }\n  let stale = common_source.replace_all(\n    old=@app_i18n.CONTRACT_HASH,\n    new="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",\n  )\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    stale,\n  ) is Ok(_) {\n    abort("incompatible chunk was accepted")\n  }\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("failed replacement damaged the installed chunk")\n  }\n  println("package smoke: Hello MoonBit / 你好 MoonBit / 账户")\n}\n`,
   );
+  run("moon", ["fmt"], { cwd: app });
   run("moon", ["check", "--deny-warn", "--target", "js"], { cwd: app });
   run("moon", ["fmt", "--check"], { cwd: app });
   run("moon", ["build", "--release", "--target", "js"], { cwd: app });
@@ -246,7 +263,7 @@ try {
     ["run", "--release", "--target", "js", "cmd/main"],
     { cwd: app, capture: true },
   );
-  assert.match(output, /Hello MoonBit \/ 你好 MoonBit/u);
+  assert.match(output, /Hello MoonBit \/ 你好 MoonBit \/ 账户/u);
 
   const docs = join(root, "docs");
   run("moon", ["doc", "--target-dir", docs], {

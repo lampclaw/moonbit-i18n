@@ -61,15 +61,18 @@ pub struct Catalog {
   contract_hash : String
   locale_code : String
   direction : String
+  chunk_namespace : String?
   entries : Map[String, String]
   validation_error : String?
 }
 pub fn Catalog::catalog_version(Self) -> Int
+pub fn Catalog::chunk_namespace(Self) -> String?
 pub fn Catalog::compile_messages(Self) -> Result[Map[String, CompiledMessage], String]
 pub fn Catalog::contract_hash(Self) -> String
 pub fn Catalog::coverage(Self, Array[String]) -> Double
 pub fn Catalog::direction(Self) -> String
 pub fn Catalog::find(Self, String) -> String?
+pub fn Catalog::from_generated_chunk_entries(locale_code~ : String, chunk_namespace~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
 pub fn Catalog::from_generated_entries(locale_code~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
 pub fn Catalog::locale_code(Self) -> String
 pub fn Catalog::message_count(Self) -> Int
@@ -144,6 +147,7 @@ pub struct I18n {
   contract_hash : String
   profile : String
   catalogs : Map[String, Catalog]
+  catalog_chunks : Map[String, Catalog]
   compiled_catalogs : Map[String, Map[String, CompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
@@ -151,10 +155,16 @@ pub struct I18n {
   mut diagnostic_dropped : Int
 }
 pub fn I18n::catalog_locale_codes(Self) -> Array[String]
+pub fn I18n::catalog_namespaces(Self, String) -> Array[String]
 pub fn I18n::contract_hash(Self) -> String
 pub fn I18n::fallback_locale_code(Self) -> String
 pub fn I18n::find_catalog(Self, String) -> Catalog?
+pub fn I18n::find_catalog_chunk(Self, String, String) -> Catalog?
 pub fn I18n::has_catalog(Self, String) -> Bool
+pub fn I18n::has_catalog_namespace(Self, String, String) -> Bool
+pub fn I18n::has_catalog_namespaces(Self, String, Array[String]) -> Bool
+pub fn I18n::has_whole_catalog(Self, String) -> Bool
+pub fn I18n::install_catalog_chunk_source_for(Self, String, String, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
 pub fn I18n::install_generated_catalog(Self, Catalog) -> Result[Unit, String]

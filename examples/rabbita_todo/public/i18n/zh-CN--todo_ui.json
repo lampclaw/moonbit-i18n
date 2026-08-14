@@ -5,14 +5,6 @@
   "locale": "zh-CN",
   "direction": "ltr",
   "messages": {
-    "common.catalog_error": "无法加载该语言。",
-    "common.catalog_loading": "正在加载语言…",
-    "common.catalog_retry": "重试",
-    "common.current_language": "当前语言",
-    "common.switch_language": "English",
-    "contract.formatted_number": "契约数字：{$value :number}",
-    "contract.last_updated": "更新于 {$when :lampclaw:datetime dateStyle=medium timeZone=UTC}",
-    "contract.rich_notice": "{#strong}类型安全{/strong}的本地化",
     "todo_ui.active_count": "{$count :number} 项待办",
     "todo_ui.add": "添加",
     "todo_ui.delete": "删除",
@@ -33,5 +25,6 @@
     "todo_ui.tab_done": "已完成",
     "todo_ui.tab_stats": "统计",
     "todo_ui.title": "待办事项"
-  }
+  },
+  "namespace": "todo_ui"
 }

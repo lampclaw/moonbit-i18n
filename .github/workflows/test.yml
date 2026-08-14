@@ -131,6 +131,7 @@ jobs:
           moon install moonbit-community/warren@0.2.2
           cd examples/rabbita_todo
           warren build --dist /tmp/moonbit-i18n-rabbita-todo
+          node ../../scripts/check-web-size.mjs /tmp/moonbit-i18n-rabbita-todo
           if find /tmp/moonbit-i18n-rabbita-todo -name '*.lampclaw.lock' -print -quit | grep -q .; then
             echo "release artifact contains a generation coordination lock" >&2
             exit 1
@@ -156,6 +157,8 @@ jobs:
           printf '%s\n' "$package_list" | grep -q '^docs/support-policy.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.zh-CN.mbt.md$'
 
       - name: Generated and interface drift
         run: |

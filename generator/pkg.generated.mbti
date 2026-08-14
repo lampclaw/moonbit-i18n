@@ -22,7 +22,7 @@ pub fn export_xliff_with_state(String, String, String, String, String?, String?)
 
 pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -> Result[Artifacts, String]
 
-pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
+pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String, catalog_chunks? : Array[CatalogChunkArtifact]) -> String
 
 pub fn generate_with_diagnostics(String, String, Array[LocaleSource], config_path? : String, schema_path? : String, locale_directory? : String, enforce_coverage? : Bool) -> Result[Artifacts, Array[Diagnostic]]
 
@@ -51,8 +51,20 @@ pub(all) struct Artifacts {
   code : String
   package_manifest : String
   catalogs : Array[(String, String)]
+  catalog_chunks : Array[CatalogChunkArtifact]
+  deployment_manifest : String
   coverage_report : String
   contract_hash : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CatalogChunkArtifact {
+  locale : String
+  chunk_namespace : String
+  path : String
+  source : String
+  sha256 : String
+  bytes : Int
+  message_count : Int
 } derive(Eq, @debug.Debug)
 
 pub(all) struct Diagnostic {

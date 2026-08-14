@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "unit": "bytes",
+  "budgets": {
+    "generatedJavaScript": 262144,
+    "generatedJavaScriptGzip": 65536,
+    "embeddedLocaleChunks": 8192,
+    "dynamicChunk": 65536,
+    "deploymentManifest": 65536
+  }
+}

@@ -111,6 +111,7 @@ test "catalog completion is atomic and preserves the current locale on failure" 
     i18n,
     loading,
     @app_i18n.ZhCN,
+    @app_i18n.CatalogTodoUi,
     "{not a catalog",
     StartupPreference,
   )
@@ -118,17 +119,32 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   assert_true(invalid.catalog_state is CatalogFailed(@app_i18n.ZhCN, _))
   assert_false(i18n.has_catalog(@app_i18n.ZhCN))
 
-  let source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+  let todo_source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
     @app_i18n.CONTRACT_HASH +
-    "\",\"locale\":\"zh-CN\",\"messages\":{\"todo_ui.title\":\"任务\"}}"
-  let ready = finish_catalog_load(
+    "\",\"locale\":\"zh-CN\",\"namespace\":\"todo_ui\",\"messages\":{\"todo_ui.title\":\"任务\"}}"
+  let partial = finish_verified_catalog_load(
     i18n,
     invalid,
     @app_i18n.ZhCN,
-    source,
+    @app_i18n.CatalogTodoUi,
+    todo_source,
+    StartupPreference,
+  )
+  assert_eq(partial.locale, @app_i18n.EnUS)
+  assert_true(partial.catalog_state is CatalogFailed(@app_i18n.ZhCN, _))
+  let common_source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+    @app_i18n.CONTRACT_HASH +
+    "\",\"locale\":\"zh-CN\",\"namespace\":\"common\",\"messages\":{\"common.catalog_retry\":\"重试\"}}"
+  let ready = finish_verified_catalog_load(
+    i18n,
+    partial,
+    @app_i18n.ZhCN,
+    @app_i18n.CatalogCommon,
+    common_source,
     StartupPreference,
   )
   assert_eq(ready.locale, @app_i18n.ZhCN)
   assert_eq(ready.catalog_state, CatalogReady)
-  assert_true(i18n.has_catalog(@app_i18n.ZhCN))
+  assert_true(required_namespaces_ready(i18n, @app_i18n.ZhCN))
+  assert_false(i18n.has_catalog(@app_i18n.ZhCN))
 }

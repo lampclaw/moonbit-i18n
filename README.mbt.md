@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.3.0` ships one module containing the runtime, generator, and a
+MoonBit. `0.4.0` ships one module containing the runtime, generator, and a
 portable `moonx` CLI. Generated application facades currently target
 JavaScript and use the host's `Intl` implementation behind a `Result` boundary.
 
@@ -14,8 +14,9 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.3.0` is the stable translation-lifecycle and interchange release on top of
-the Web/JavaScript strict-v1 runtime baseline and `0.2.x` authoring contract.
+`0.4.0` is the stable production Web delivery release on top of the
+Web/JavaScript strict-v1 runtime, `0.2.x` authoring, and `0.3.x` translation
+lifecycle contracts.
 It is not a prototype and not a claim of complete Unicode MessageFormat 2
 conformance. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
@@ -32,24 +33,24 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.3.0
+moon add lampclaw/i18n@0.4.0
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.4.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.3.0` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.4.0` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.3.0`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.4.0`; it is named `moon-i18n`.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.4.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -78,6 +79,10 @@ app/
 │   ├── generated.mbt
 │   ├── generation-manifest.json
 │   └── moon.pkg
+├── public/i18n/          # generated deployment manifest + namespace chunks
+│   ├── manifest.json
+│   ├── en-US--common.json
+│   └── zh-CN--common.json
 └── main/
     ├── main.mbt
     └── moon.pkg
@@ -130,22 +135,23 @@ release coverage gate:
 }
 ~~~
 
-Here only English is embedded. The generated `zh-CN.json` catalog can be
-downloaded later and installed dynamically.
+Here only English is embedded. The generated `zh-CN--common.json` namespace
+chunk can be downloaded later, verified against `manifest.json`, and installed
+independently.
 
 ## Generate and check
 
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.3.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -204,11 +210,16 @@ let count = t.t(
 )
 ~~~
 
-For a dynamically deployed locale, fetch its generated catalog as text and
-install it before creating or using that locale's translator:
+For a dynamically deployed locale, select a locale/namespace entry from the
+deployment manifest, verify the exact byte count and SHA-256 in application
+code, and install the text before using that route:
 
 ~~~moonbit
-match i18n.install_catalog_source(@app_i18n.ZhCN, downloaded_catalog_json) {
+match i18n.install_catalog_chunk_source(
+  @app_i18n.ZhCN,
+  @app_i18n.CatalogCommon,
+  verified_catalog_json,
+) {
   Ok(_) => ()
   Err(message) => println("catalog rejected: \{message}")
 }
@@ -218,8 +229,10 @@ let zh = i18n.translator(@app_i18n.ZhCN)
 The facade also provides locale negotiation, strict `try_t`/`try_t_parts`,
 convenience `t`/`t_parts`, catalog status, and bounded deduplicated diagnostics.
 Dynamic installation checks catalog version, formatter profile, SHA-256
-contract hash, locale identity, message validity, and resource limits before
-changing runtime state.
+contract hash, locale and namespace identity, message validity, and resource
+limits before changing runtime state. Network, cache, integrity, retry, and
+locale-commit policy remain application-owned; see the
+[production Web delivery contract](docs/web-delivery.mbt.md).
 
 ## Tooling and supported profile
 
@@ -248,7 +261,7 @@ message, and 64 parameters or declared rich tags per generated message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.3.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.4.0/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

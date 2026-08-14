@@ -1,0 +1,78 @@
+{
+  "manifestVersion": 1,
+  "generator": "lampclaw/i18n",
+  "catalogVersion": 2,
+  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
+  "fallbackLocale": "en-US",
+  "embeddedLocales": [
+    "en-US"
+  ],
+  "namespaces": [
+    "common",
+    "contract",
+    "todo_ui"
+  ],
+  "chunks": [
+    {
+      "locale": "en-US",
+      "namespace": "common",
+      "path": "en-US--common.json",
+      "sha256": "bec0371b3ee358f0268fd500cf12bc71ff60e94cde403cbd30fe311f17de3625",
+      "bytes": 502,
+      "messageCount": 5,
+      "direction": "ltr",
+      "embeddedLocale": true
+    },
+    {
+      "locale": "en-US",
+      "namespace": "contract",
+      "path": "en-US--contract.json",
+      "sha256": "e8d3d6399e2a7c40dfee0dc3e2037d337efbe50670eaa3858fc9b2a75ca0f6b0",
+      "bytes": 497,
+      "messageCount": 3,
+      "direction": "ltr",
+      "embeddedLocale": true
+    },
+    {
+      "locale": "en-US",
+      "namespace": "todo_ui",
+      "path": "en-US--todo_ui.json",
+      "sha256": "88d31c83b42d24b7cf949c45aea1cde077967005e42f1cac2c63be4df410886b",
+      "bytes": 1061,
+      "messageCount": 20,
+      "direction": "ltr",
+      "embeddedLocale": true
+    },
+    {
+      "locale": "zh-CN",
+      "namespace": "common",
+      "path": "zh-CN--common.json",
+      "sha256": "0c86f496b75c5a834eee0b2c6d445efbd0a01f23cb7114b34232325381f67eeb",
+      "bytes": 497,
+      "messageCount": 5,
+      "direction": "ltr",
+      "embeddedLocale": false
+    },
+    {
+      "locale": "zh-CN",
+      "namespace": "contract",
+      "path": "zh-CN--contract.json",
+      "sha256": "ae13adf1358eac304aa850a4eecf074073b681df91f713aa371243e61a7b286e",
+      "bytes": 503,
+      "messageCount": 3,
+      "direction": "ltr",
+      "embeddedLocale": false
+    },
+    {
+      "locale": "zh-CN",
+      "namespace": "todo_ui",
+      "path": "zh-CN--todo_ui.json",
+      "sha256": "39a16a2bce383c6e001bd9ce94fc30545cf5d3b8a5ce5d8458d23fab6f5eeab8",
+      "bytes": 1100,
+      "messageCount": 20,
+      "direction": "ltr",
+      "embeddedLocale": false
+    }
+  ]
+}

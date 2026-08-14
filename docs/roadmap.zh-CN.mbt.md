@@ -172,6 +172,11 @@ context、state 和 MF2 payload；过期翻译不能被静默接受。
 
 ### `0.4.x`——生产级 Web 交付
 
+**状态：已在 `0.4.0` 稳定。** canonical authoring 仍是每个 locale 一个 JSON
+resource。schema group 会成为可独立安装的 catalog-v2 chunk，确定性 deployment
+manifest 携带精确字节数和 SHA-256 identity。fetch、cache、integrity retry、持久化和
+locale commit 均由应用持有。
+
 - 在不改变 canonical locale 源格式的前提下，生成面向 namespace 的 catalog chunk
   和确定性部署 manifest。
 - 记录由应用持有的 loading、cache、integrity check、retry 与 fallback 配方。
@@ -182,6 +187,11 @@ context、state 和 MF2 payload；过期翻译不能被静默接受。
 
 出口门槛：应用可以内嵌 fallback locale、独立延迟加载 chunk、拒绝不兼容或损坏的
 chunk、通过文档化 fallback 恢复，并保持在公开体积预算内。
+
+`0.4.0` 以类型化 namespace metadata、原子 chunk 合并、message-level fallback、
+无框架加载配方、维护中浏览器示例的应用侧 integrity check、损坏/过期替换测试，以及
+强制 raw/gzip 体积上限达到该门槛。由于尚未满足两个消费者和明确维护者的门槛，没有
+新增 framework package。
 
 ## 中期：`0.5.x–0.8.x`——向 Unicode MF2 收敛
 

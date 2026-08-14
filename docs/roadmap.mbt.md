@@ -217,6 +217,12 @@ evidence exists yet.
 
 ### `0.4.x` — production Web delivery
 
+**Status: stable in `0.4.0`.** Canonical authoring remains one JSON resource
+per locale. Schema groups become independently installable catalog-v2 chunks,
+and a deterministic deployment manifest carries exact byte and SHA-256
+identity. Fetching, cache, integrity retry, persistence, and locale commit stay
+application-owned.
+
 - Generate namespace-oriented catalog chunks and a deterministic deployment
   manifest without changing the canonical locale source format.
 - Document application-owned loading, caching, integrity checking, retry, and
@@ -230,6 +236,12 @@ evidence exists yet.
 Exit gate: an application can embed its fallback locale, lazy-load independent
 chunks, reject an incompatible or corrupt chunk, recover through documented
 fallback, and remain within published size budgets.
+
+`0.4.0` meets this gate with typed namespace metadata, atomic chunk merging,
+message-level fallback, a framework-neutral loading recipe, application-side
+integrity checks in the maintained browser example, corrupt/stale replacement
+tests, and enforced raw/gzip size ceilings. No framework package was added
+because the two-consumer and maintainer gate has not been met.
 
 ## Medium term: `0.5.x–0.8.x` — converge on Unicode MF2
 

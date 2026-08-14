@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdtempSync,
@@ -22,6 +23,8 @@ const state = join(root, "state");
 const versionParts = version.split(".").map((part) => Number.parseInt(part, 10));
 const supportsLifecycle =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 3);
+const supportsChunks =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 4);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -190,11 +193,41 @@ try {
     ],
     { cwd: app },
   );
-  assert.ok(existsSync(join(app, "public", "i18n", "zh-CN.json")));
+  const dynamicCatalogName = supportsChunks
+    ? "zh-CN--common.json"
+    : "zh-CN.json";
+  assert.ok(existsSync(join(app, "public", "i18n", dynamicCatalogName)));
   const dynamicCatalog = readFileSync(
-    join(app, "public", "i18n", "zh-CN.json"),
+    join(app, "public", "i18n", dynamicCatalogName),
     "utf8",
   );
+  if (supportsChunks) {
+    const deployment = JSON.parse(
+      readFileSync(join(app, "public", "i18n", "manifest.json"), "utf8"),
+    );
+    const entry = deployment.chunks.find(
+      (chunk) => chunk.locale === "zh-CN" && chunk.namespace === "common",
+    );
+    assert.ok(entry, "deployment manifest omitted the Chinese common chunk");
+    assert.equal(entry.path, dynamicCatalogName);
+    assert.equal(
+      createHash("sha256").update(dynamicCatalog).digest("hex"),
+      entry.sha256,
+    );
+  }
+  const dynamicInstall = supportsChunks
+    ? `match i18n.install_catalog_chunk_source(
+    @app_i18n.ZhCN,
+    @app_i18n.CatalogCommon,
+    source,
+  ) {
+    Ok(_) => ()
+    Err(message) => abort("catalog chunk rejected: \\{message}")
+  }`
+    : `match i18n.install_catalog_source(@app_i18n.ZhCN, source) {
+    Ok(_) => ()
+    Err(message) => abort("catalog rejected: \\{message}")
+  }`;
 
   if (supportsLifecycle) {
     const xliff = join(app, "translation.xlf");
@@ -285,8 +318,9 @@ try {
   );
   writeFileSync(
     join(app, "main", "main.mbt"),
-    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  match i18n.install_catalog_source(@app_i18n.ZhCN, source) {\n    Ok(_) => ()\n    Err(message) => abort("catalog rejected: \\{message}")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
+    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  ${dynamicInstall}\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
   );
+  run("moon", ["fmt"], { cwd: app });
   run("moon", ["check", "--deny-warn", "--target", "js"], { cwd: app });
   run("moon", ["fmt", "--check"], { cwd: app });
   run("moon", ["build", "--release", "--target", "js"], { cwd: app });

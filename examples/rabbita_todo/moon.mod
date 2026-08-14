@@ -1,10 +1,11 @@
 name = "lampclaw/i18n_rabbita_todo"
 
-version = "0.3.0"
+version = "0.4.0"
 
 import {
-  "lampclaw/i18n@0.3.0",
+  "lampclaw/i18n@0.4.0",
   "moonbit-community/rabbita@0.14.2",
+  "moonbitlang/x@0.4.49",
 }
 
 readme = "README.mbt.md"
