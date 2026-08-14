@@ -41,8 +41,9 @@ All notable changes to this project are documented here. The format follows
   catalogs to the pinned MF2 model before an atomic install, then dispatches
   text and rich-parts formatting through the matching evaluator.
 - Performance acceptance now uses the median of three unchanged-budget samples
-  to classify shared-runner noise without weakening the ratio or absolute
-  ceilings.
+  and expands only an initial over-budget result to seven samples. This
+  classifies shared-runner contention without weakening the ratio or absolute
+  ceilings, and CI annotations include exact failing measurements.
 - The standards-profile Rabbita bundle is measured at 429 KiB raw / 116 KiB
   gzip (76 KiB Brotli). Its checked ceilings are now 448/128 KiB because
   dynamic standards catalogs retain the complete runtime MF2 validator and

@@ -101,7 +101,10 @@ from the published archive.
 - [ ] Confirm runtime coverage is at least 90%, generator and CLI coverage are
       each at least 85%, and core overall coverage is at least 85%.
 - [ ] Confirm every benchmark is within 1.5× of its checked budget and below
-      the 20 µs absolute ceiling on the release runner.
+      the 20 µs absolute ceiling on the release runner. The gate uses the
+      median of three process-isolated samples; only an initial over-budget
+      result expands to seven samples, retaining the same limits while
+      distinguishing shared-runner contention from a repeatable regression.
 - [ ] Regenerate Rabbita through the CLI, run `check`, and verify no generated
       or interface drift remains.
 - [ ] Build the Rabbita Todo release artifact and run the locked Playwright
