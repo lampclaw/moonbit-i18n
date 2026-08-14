@@ -36,7 +36,7 @@ crosses this formatter boundary.
 
 ## Catalog compatibility contract
 
-The `0.4.0` release accepts exactly catalog format version `2` and profile
+The `0.5.0` release accepts exactly catalog format version `2` and profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. `contractHash` is the SHA-256 digest
 of a canonical UTF-8 contract containing the profile, message IDs, parameter
 types, and allowed markup names. A catalog is accepted only when version,

@@ -12,14 +12,14 @@ import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \

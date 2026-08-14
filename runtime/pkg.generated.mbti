@@ -26,7 +26,13 @@ pub const MF2_MAX_MESSAGE_BYTES : Int = 65536
 
 pub const MF2_MAX_OPTIONS : Int = 64
 
+pub const MF2_MAX_PATTERN_PARTS : Int = 65536
+
+pub const MF2_MAX_SELECTORS : Int = 64
+
 pub const MF2_MAX_VARIANTS : Int = 4096
+
+pub const MF2_SYNTAX_PROFILE : String = "unicode-mf2-ldml48.2-syntax-v1"
 
 pub fn compile_mf2_message(String, MessageContract) -> Result[CompiledMessage, Array[Mf2Error]]
 
@@ -40,15 +46,27 @@ pub fn format_text(CompiledMessage, String, Array[MessageArg], Formatter) -> Res
 
 pub fn locale_lookup_chain(String) -> Array[String]
 
+pub fn mf2_model_to_json(Mf2MessageModel) -> Result[String, Array[Mf2Error]]
+
 pub fn normalize_locale_code(String) -> Result[String, String]
 
 pub fn parse_catalog(String) -> Result[Catalog, String]
 
+pub fn parse_mf2_model_json(String) -> Result[Mf2MessageModel, String]
+
+pub fn parse_mf2_syntax(String) -> Result[Mf2MessageModel, Mf2Error]
+
+pub fn parse_valid_mf2_model(String) -> Result[Mf2MessageModel, Array[Mf2Error]]
+
 pub fn resolve_locale_code(Array[String], Array[String], String) -> String
+
+pub fn serialize_mf2_model(Mf2MessageModel) -> Result[String, Array[Mf2Error]]
 
 pub fn validate_mf2_message(String, Array[String]) -> Result[Unit, String]
 
 pub fn validate_mf2_message_with_args(String, Array[MessageArg]) -> Result[Unit, String]
+
+pub fn validate_mf2_model(Mf2MessageModel) -> Array[Mf2Error]
 
 pub fn validate_rich_tags(Array[RichPart], Array[String]) -> Result[Unit, String]
 
@@ -208,10 +226,32 @@ pub(all) enum MessageValue {
 
 pub(all) struct Mf2Error {
   kind : Mf2ErrorKind
+  code : Mf2ErrorCode
   message : String
   offset : Int
 } derive(Eq, @debug.Debug)
 pub fn Mf2Error::to_string(Self) -> String
+
+pub(all) enum Mf2ErrorCode {
+  Mf2SyntaxCode
+  Mf2DataModelCode
+  Mf2ResolutionCode
+  Mf2VariantKeyMismatchCode
+  Mf2MissingFallbackVariantCode
+  Mf2MissingSelectorAnnotationCode
+  Mf2DuplicateDeclarationCode
+  Mf2DuplicateOptionNameCode
+  Mf2DuplicateVariantCode
+  Mf2UnresolvedVariableCode
+  Mf2UnknownFunctionCode
+  Mf2BadSelectorCode
+  Mf2BadOperandCode
+  Mf2BadOptionCode
+  Mf2BadVariantKeyCode
+  Mf2UnsupportedOperationCode
+  Mf2FormattingCode
+  Mf2LimitCode
+} derive(Eq, @debug.Debug)
 
 pub(all) enum Mf2ErrorKind {
   Mf2SyntaxError
@@ -219,6 +259,78 @@ pub(all) enum Mf2ErrorKind {
   Mf2ResolutionError
   Mf2FormattingError
   Mf2LimitError
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2MessageModel {
+  Mf2PatternMessage(Array[Mf2ModelDeclaration], Mf2ModelPattern)
+  Mf2SelectMessage(Array[Mf2ModelDeclaration], Array[String], Array[Mf2ModelVariant])
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelAttribute {
+  name : String
+  value : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2ModelDeclaration {
+  Mf2ModelInput(String, Mf2ModelExpression)
+  Mf2ModelLocal(String, Mf2ModelExpression)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelExpression {
+  arg : Mf2ModelValue?
+  function_ref : Mf2ModelFunction?
+  attributes : Array[Mf2ModelAttribute]
+  offset : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelFunction {
+  name : String
+  options : Array[Mf2ModelOption]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelMarkup {
+  kind : Mf2ModelMarkupKind
+  name : String
+  options : Array[Mf2ModelOption]
+  attributes : Array[Mf2ModelAttribute]
+  offset : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2ModelMarkupKind {
+  Mf2MarkupOpen
+  Mf2MarkupStandalone
+  Mf2MarkupClose
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelOption {
+  name : String
+  value : Mf2ModelValue
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelPattern {
+  parts : Array[Mf2ModelPatternPart]
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2ModelPatternPart {
+  Mf2ModelText(String)
+  Mf2ModelExpressionPart(Mf2ModelExpression)
+  Mf2ModelMarkupPart(Mf2ModelMarkup)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2ModelValue {
+  Mf2ModelLiteral(String)
+  Mf2ModelVariable(String)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2ModelVariant {
+  keys : Array[Mf2ModelVariantKey]
+  value : Mf2ModelPattern
+  offset : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2ModelVariantKey {
+  Mf2ModelLiteralKey(String)
+  Mf2ModelCatchallKey
 } derive(Eq, @debug.Debug)
 
 pub enum Operand {

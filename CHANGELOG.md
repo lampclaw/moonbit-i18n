@@ -6,6 +6,38 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-14
+
+### Added
+
+- Standalone `unicode-mf2-ldml48.2-syntax-v1` parser for the complete pinned
+  Unicode MessageFormat grammar, with separate well-formedness and validity
+  APIs, compact complex messages, declarations, expressions, options,
+  attributes, markup, selectors, variants, and quoted forms.
+- Public normative interchange model with deterministic functional MF2 syntax
+  serialization and deterministic JSON encode/decode. Unknown JSON extension
+  fields are ignored while invalid model shapes fail closed.
+- Unicode 16 NFC normalization for names and NFC-equivalent duplicate
+  declaration, option, and variant detection.
+- Stable machine-readable `Mf2ErrorCode` values for syntax, validity,
+  resolution, formatting, and resource-limit categories.
+- Vendored Unicode-licensed pinned syntax/data-model fixtures, reproducible
+  SHA-256-verified sync/generation scripts, and all-target tests covering 114
+  accepted syntax, 133 syntax-error, and 23 data-model cases.
+
+### Changed
+
+- The existing catalog, generator, and generated application workflow remains
+  on `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`; the new syntax profile is
+  deliberately standalone until resolution and authoring-profile phases land.
+- Runtime now uses `tonyfettes/normalization@0.4.0` for portable NFC behavior.
+
+### Security
+
+- Syntax, public models, and interchange JSON are validated before
+  serialization or acceptance and retain explicit byte, nesting, declaration,
+  variant, option, and pattern-part limits.
+
 ## [0.4.0] - 2026-08-14
 
 ### Added
@@ -199,7 +231,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...v0.2.1

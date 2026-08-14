@@ -1,6 +1,6 @@
 name = "lampclaw/i18n"
 
-version = "0.4.0"
+version = "0.5.0"
 
 preferred_target = "native"
 
@@ -21,6 +21,7 @@ import {
   "moonbitlang/x@0.4.49",
   "moonbitlang/parser@0.3.13",
   "moonbitlang/async@0.20.3",
+  "tonyfettes/normalization@0.4.0",
 }
 
 options(
