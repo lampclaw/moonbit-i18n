@@ -107,6 +107,7 @@ fn diagnostic_code(message : String) -> String {
   } else if message.contains("invalid i18n config JSON") {
     "I18N1001"
   } else if message.contains("config") ||
+    message.contains("messageProfile") ||
     message.contains("sourceLocale") ||
     message.contains("defaultLocale") ||
     message.contains("fallbackLocale") ||
@@ -117,6 +118,8 @@ fn diagnostic_code(message : String) -> String {
     "I18N2001"
   } else if message.contains("schema") {
     "I18N2002"
+  } else if message.contains("private function :lampclaw:datetime") {
+    "I18N3004"
   } else if message.contains("invalid MF2 message") {
     "I18N3001"
   } else if message.contains("locale coverage") {
@@ -139,6 +142,7 @@ fn diagnostic_source(
   sources : Array[LocaleSource],
 ) -> (String, String) {
   if message.contains("config") ||
+    message.contains("messageProfile") ||
     message.contains("sourceLocale") ||
     message.contains("defaultLocale") ||
     message.contains("fallbackLocale") ||
@@ -182,7 +186,24 @@ pub fn generate_with_diagnostics(
   enforce_coverage? : Bool = true,
 ) -> Result[Artifacts, Array[Diagnostic]] {
   match generate(config_source, schema_source, sources, enforce_coverage~) {
-    Ok(artifacts) => Ok(artifacts)
+    Ok(artifacts) => {
+      let diagnostics : Array[Diagnostic] = []
+      for diagnostic in artifacts.diagnostics {
+        let path = if diagnostic.code == "I18N1003" {
+          config_path
+        } else {
+          let separator = if locale_directory.has_suffix("/") ||
+            locale_directory.has_suffix("\\") {
+            ""
+          } else {
+            "/"
+          }
+          "\{locale_directory}\{separator}\{diagnostic.path}"
+        }
+        diagnostics.push({ ..diagnostic, path, })
+      }
+      Ok({ ..artifacts, diagnostics, })
+    }
     Err(message) => {
       let (path, source) = diagnostic_source(
         message, config_path, config_source, schema_path, schema_source, locale_directory,

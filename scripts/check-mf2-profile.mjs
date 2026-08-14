@@ -6,12 +6,34 @@ const read = path => readFile(new URL(path, root), "utf8");
 
 const pin = (await read("tests/unicode-mf2/PINNED_COMMIT")).trim();
 const matrix = JSON.parse(await read("tests/unicode-mf2/profile.json"));
+const requirements = JSON.parse(await read("tests/unicode-mf2/requirements.json"));
+const differential = JSON.parse(
+  await read("tests/unicode-mf2/differential-report.json"),
+);
 assert.match(pin, /^[0-9a-f]{40}$/u);
 assert.equal(matrix.upstreamCommit, pin);
 assert.equal(
   matrix.conformanceClaim,
   "unicode-mf2-syntax-data-model-resolution-and-stable-default-functions-js",
 );
+assert.equal(matrix.standardMessageProfile, "unicode-mf2-ldml48.2-js-v1");
+assert.equal(matrix.authoringProfiles.compatibility, matrix.catalogProfile);
+assert.equal(matrix.authoringProfiles.standards, matrix.standardMessageProfile);
+assert.equal(requirements.messageProfile, matrix.standardMessageProfile);
+assert.deepEqual(matrix.requirementMatrix, {
+  path: "tests/unicode-mf2/requirements.json",
+  normativeRows: requirements.requirements.length,
+  stableFunctions: requirements.stableDefaultRegistry.length,
+  stableOptions: requirements.stableDefaultRegistry.reduce(
+    (sum, entry) => sum + entry.options.length,
+    0,
+  ),
+  unexplainedGaps: 0,
+});
+assert.equal(differential.messageProfile, matrix.standardMessageProfile);
+assert.equal(matrix.differential.cases, differential.totalCases);
+assert.equal(matrix.differential.unexplainedSemanticFailures, 0);
+assert.deepEqual(differential.unexplainedSemanticFailures, []);
 assert.deepEqual(matrix.stableDefaultFunctions, [
   "string",
   "number",
@@ -89,6 +111,8 @@ const sources = Object.fromEntries(
   await Promise.all(
     [
       "runtime/catalog.mbt",
+      "generator/parser.mbt",
+      "generator/generate.mbt",
       "runtime/mf2_syntax.mbt",
       "runtime/mf2_format.mbt",
       "runtime/mf2_registry.mbt",
@@ -106,6 +130,7 @@ const sources = Object.fromEntries(
       "docs/mf2-resolution-formatting.zh-CN.mbt.md",
       "docs/mf2-default-functions.mbt.md",
       "docs/mf2-default-functions.zh-CN.mbt.md",
+      "examples/rabbita_todo/localization/config.json",
     ].map(async path => [path, await read(path)]),
   ),
 );
@@ -118,6 +143,22 @@ for (const path of [
 ]) {
   assert.ok(sources[path].includes(matrix.catalogProfile), path);
 }
+for (const path of [
+  "runtime/catalog.mbt",
+  "docs/mf2-profile.mbt.md",
+  "docs/mf2-profile.zh-CN.mbt.md",
+  "examples/rabbita_todo/localization/config.json",
+]) {
+  assert.ok(sources[path].includes(matrix.standardMessageProfile), path);
+}
+assert.ok(
+  sources["generator/parser.mbt"].includes("@runtime.MF2_STANDARD_MESSAGE_PROFILE"),
+  "generator/parser.mbt: standards profile must use the runtime contract constant",
+);
+assert.ok(
+  sources["generator/generate.mbt"].includes("profile=config.message_profile"),
+  "generator/generate.mbt: selected profile must propagate into generated catalogs",
+);
 for (const path of [
   "runtime/mf2_syntax.mbt",
   "runtime/mf2_profile_test.mbt",
@@ -172,7 +213,8 @@ assert.match(sources["runtime/js/formatter.mbt"], /Intl\.PluralRules/u);
 assert.match(sources["runtime/js/formatter.mbt"], /Intl\.DateTimeFormat/u);
 
 process.stdout.write(
-  `MF2 catalog profile synchronized: ${matrix.catalogProfile}\n` +
+    `MF2 catalog profile synchronized: ${matrix.catalogProfile}\n` +
+    `MF2 standards authoring profile synchronized: ${matrix.standardMessageProfile}\n` +
     `MF2 syntax profile synchronized: ${matrix.syntaxProfile}\n` +
     `MF2 resolution profile synchronized: ${matrix.resolutionProfile}\n` +
     `MF2 default registry synchronized: ${matrix.defaultFunctionProfile}\n` +

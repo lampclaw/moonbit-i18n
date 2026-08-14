@@ -6,6 +6,61 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-14
+
+### Added
+
+- Explicit `messageProfile` authoring with the aggregate
+  `unicode-mf2-ldml48.2-js-v1` standards profile across config validation,
+  profile-specific contract hashing, catalog-v2/chunk generation, deployment
+  manifests, generated `MESSAGE_PROFILE`, and runtime installation.
+- Compatibility migration diagnostics: omitted profiles continue as
+  strict-v1 with warning `I18N1003`; private `:lampclaw:datetime` usage warns
+  as `I18N3003` in compatibility mode and fails as `I18N3004` in standards
+  mode. Human and JSON warnings are emitted on successful CLI commands.
+- A machine-readable requirement matrix mapping 20 scoped normative rows,
+  every stable default function, and all 40 stable options to executable
+  evidence, with a checker that rejects missing or unexplained gaps.
+- A Node 26-only independent differential suite pinned to
+  `messageformat@4.0.0`. Its 24 cases distinguish exact/error semantics from
+  host CLDR text; the accepted report has no unexplained semantic failures.
+- English and Chinese message-profile migration guides covering staged
+  compatibility, private datetime conversion, bidi-visible test changes, full
+  regeneration, and atomic deployment.
+
+### Changed
+
+- New CLI scaffolds and the maintained Rabbita browser application now author
+  standards-mode messages. The private datetime example uses standard `:date`;
+  generated application calls and catalog wire version remain unchanged.
+- Pseudo-locale, XLIFF lifecycle, i18next, and ARB tooling accept the selected
+  message profile through their APIs and CLI `--message-profile` option, so
+  standards-mode messages are validated end to end without weakening the
+  compatibility default.
+- `I18n` compiles compatibility catalogs to the legacy model and standards
+  catalogs to the pinned MF2 model before an atomic install, then dispatches
+  text and rich-parts formatting through the matching evaluator.
+- Performance acceptance now uses the median of three unchanged-budget samples
+  to classify shared-runner noise without weakening the ratio or absolute
+  ceilings.
+- The standards-profile Rabbita bundle is measured at 429 KiB raw / 116 KiB
+  gzip (76 KiB Brotli). Its checked ceilings are now 448/128 KiB because
+  dynamic standards catalogs retain the complete runtime MF2 validator and
+  formatter; generation-only dependencies remain unreachable.
+- Release policy now treats synchronized bilingual README, profile, migration,
+  roadmap, changelog, version, and API documentation as a checked pre-publish
+  gate.
+
+### Security
+
+- Standards-mode generated and dynamic catalogs reject private or unknown
+  functions before installation; profile and contract mismatches fail closed,
+  so compatibility and standards catalogs cannot be mixed in one runtime.
+- Whole catalogs and namespace chunks for one locale reject conflicting text
+  directions before mutation, keeping bidi isolation deterministic.
+- Full-model schema validation rejects undeclared variables and undeclared
+  rich-markup names before generated artifacts are written.
+
 ## [0.7.0] - 2026-08-14
 
 ### Added
@@ -305,7 +360,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...v0.5.0

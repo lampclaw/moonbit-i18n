@@ -10,14 +10,14 @@
 在仓库根目录执行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.7.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.8.0 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.7.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.8.0 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -27,7 +27,8 @@ moonx lampclaw/i18n/cmd/i18n@0.7.0 check \
 
 两个 locale 当前都是 `28/28 (100%)`。生成器通过所有权 manifest 完整拥有
 `i18n/` package 和 catalog 目录；两个目录由可恢复事务一起替换，`check` 是 CI 中的
-只读漂移门禁。
+只读漂移门禁。这个示例显式使用 `unicode-mf2-ldml48.2-js-v1` authoring；生成的
+catalog 会携带该 profile 标识，runtime 会拒绝由其他 profile 生成的 catalog。
 
 ## 运行
 

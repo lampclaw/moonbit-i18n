@@ -21,6 +21,7 @@ test "generate typed bindings and embedded catalogs" {
     ),
   )
   assert_true(code.contains("pub const CONTRACT_HASH : String = \"v1-test\""))
+  assert_true(code.contains("pub const MESSAGE_PROFILE : String"))
   assert_true(code.contains("pub(all) enum I18nText"))
   assert_true(code.contains("pub(all) enum CatalogNamespace"))
   assert_true(code.contains("pub fn CatalogNamespace::code"))
@@ -35,6 +36,7 @@ test "generate typed bindings and embedded catalogs" {
   assert_true(code.contains("message: \"{$count :number} clicks\""))
   assert_true(code.contains("pub fn I18n::new() -> I18n"))
   assert_true(code.contains("formatter=@runtime_js.formatter()"))
+  assert_true(code.contains("profile=MESSAGE_PROFILE"))
   assert_true(code.contains("pub fn I18n::default_translator"))
   assert_true(code.contains("pub fn I18n::translator_from_codes"))
   assert_true(code.contains("pub fn resolve_locale_codes"))

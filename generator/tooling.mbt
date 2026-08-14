@@ -54,12 +54,14 @@ fn source_message(locale : LocaleResource, id : String) -> String? {
 }
 
 ///|
-/// Produces an `en-XA` or `ar-XB` pseudo-locale while preserving MF2 syntax.
+/// Produces an `en-XA` or `ar-XB` pseudo-locale while preserving the selected
+/// MF2 message profile.
 pub fn pseudo_locale(
   schema_source : String,
   source_locale_code : String,
   source_locale_source : String,
   mode : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   if mode != "en-XA" && mode != "ar-XB" {
     return Err("pseudo locale must be en-XA or ar-XB")
@@ -69,7 +71,12 @@ pub fn pseudo_locale(
     Err(message) => return Err(message)
   }
   let locale = match
-    parse_locale(source_locale_code, source_locale_source, schema) {
+    parse_locale(
+      source_locale_code,
+      source_locale_source,
+      schema,
+      message_profile~,
+    ) {
     Ok(value) => value
     Err(message) => return Err(message)
   }
@@ -82,7 +89,7 @@ pub fn pseudo_locale(
     messages.push((message_id(entry), pseudo_message(entry.text, mode)))
   }
   let resource = locale_json(schema, messages)
-  match parse_locale(mode, resource, schema) {
+  match parse_locale(mode, resource, schema, message_profile~) {
     Ok(_) => Ok(resource)
     Err(message) => Err("generated pseudo locale is invalid: \{message}")
   }

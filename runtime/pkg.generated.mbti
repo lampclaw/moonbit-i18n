@@ -42,6 +42,8 @@ pub const MF2_MAX_VARIANTS : Int = 4096
 
 pub const MF2_RESOLUTION_PROFILE : String = "unicode-mf2-ldml48.2-resolution-v1"
 
+pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+
 pub const MF2_SYNTAX_PROFILE : String = "unicode-mf2-ldml48.2-syntax-v1"
 
 pub fn canonicalize_locale_tag(String) -> Result[String, LocaleError]
@@ -63,6 +65,8 @@ pub fn format_mf2_standalone(String, Mf2FormattingContext) -> Mf2FormatResult
 pub fn format_parts(CompiledMessage, String, Array[MessageArg], Formatter) -> Result[Array[MessagePart], Mf2Error]
 
 pub fn format_text(CompiledMessage, String, Array[MessageArg], Formatter) -> Result[String, Mf2Error]
+
+pub fn is_supported_message_profile(String) -> Bool
 
 pub fn locale_lookup_chain(String) -> Array[String]
 
@@ -114,12 +118,17 @@ pub fn Catalog::contract_hash(Self) -> String
 pub fn Catalog::coverage(Self, Array[String]) -> Double
 pub fn Catalog::direction(Self) -> String
 pub fn Catalog::find(Self, String) -> String?
-pub fn Catalog::from_generated_chunk_entries(locale_code~ : String, chunk_namespace~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
-pub fn Catalog::from_generated_entries(locale_code~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String) -> Self
+pub fn Catalog::from_generated_chunk_entries(locale_code~ : String, chunk_namespace~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String, profile? : String) -> Self
+pub fn Catalog::from_generated_entries(locale_code~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String, profile? : String) -> Self
 pub fn Catalog::locale_code(Self) -> String
 pub fn Catalog::message_count(Self) -> Int
 pub fn Catalog::profile(Self) -> String
 pub fn Catalog::to_json_string(Self) -> String
+
+pub enum CatalogCompiledMessage {
+  LegacyCatalogMessage(CompiledMessage)
+  StandardCatalogMessage(Mf2MessageModel)
+}
 
 pub(all) struct CatalogEntry {
   id : String
@@ -203,7 +212,7 @@ pub struct I18n {
   profile : String
   catalogs : Map[String, Catalog]
   catalog_chunks : Map[String, Catalog]
-  compiled_catalogs : Map[String, Map[String, CompiledMessage]]
+  compiled_catalogs : Map[String, Map[String, CatalogCompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
   diagnostic_capacity : Int
@@ -224,6 +233,7 @@ pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
 pub fn I18n::install_generated_catalog(Self, Catalog) -> Result[Unit, String]
 pub fn I18n::new(fallback_locale_code~ : String, contract_hash? : String, profile? : String, formatter? : Formatter, diagnostic_capacity? : Int) -> Self
+pub fn I18n::profile(Self) -> String
 pub fn I18n::take_diagnostics(Self) -> DiagnosticBatch
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator

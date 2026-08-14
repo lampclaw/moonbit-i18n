@@ -31,8 +31,9 @@ Playwright engine 是可复现的浏览器契约，并不表示支持基于这�
   或 decoding contract 改变时才改变 catalog version。
 - 生成源码、CLI 与库必须使用同一个精确版本；升级时必须重新生成并提交产物。
 - 在 `1.0` 前，不可避免的公共破坏通常要在更早的 minor version 提供诊断与迁移路径。
-  当前 strict-v1 profile 保持冻结，直到后续 minor 通过显式版本化 profile 和迁移
-  路径引入新语义。
+  `0.8.0` 的标准 profile 已经显式版本化。暂时省略 `messageProfile` 会选择冻结的
+  strict-v1 兼容 profile，并报告 `I18N1003`；在 `1.0` 之前它将变成必填字段。
+  私有 `:lampclaw:datetime` 只保留在兼容 profile，并报告迁移诊断 `I18N3003`。
 
 精确的已发布消息语法与语义由 [MF2 派生 profile](mf2-profile.zh-CN.mbt.md) 定义，
 不能以路线图中的规划能力为准。

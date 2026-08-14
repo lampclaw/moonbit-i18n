@@ -1,7 +1,7 @@
 {
   "catalogVersion": 2,
-  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
-  "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
+  "profile": "unicode-mf2-ldml48.2-js-v1",
+  "contractHash": "060e11b3bb7f0da1849d22d5394d705bf1f1a7dae0c2549532ae0ab6586a0683",
   "locale": "zh-CN",
   "direction": "ltr",
   "messages": {

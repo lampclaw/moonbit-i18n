@@ -37,8 +37,11 @@ the JavaScript product-conformance statement.
   Regenerate committed output when upgrading.
 - Before `1.0`, an unavoidable breaking public change normally receives a
   diagnostic and migration path in an earlier minor version. The current
-  strict-v1 profile remains frozen until a later minor introduces an explicit
-  versioned profile and migration path.
+  `0.8.0` standards profile is explicit and versioned. Omitting
+  `messageProfile` temporarily selects the frozen strict-v1 compatibility
+  profile with diagnostic `I18N1003`; explicit selection becomes mandatory
+  before `1.0`. The private `:lampclaw:datetime` function remains compatibility
+  only and reports migration diagnostic `I18N3003`.
 
 The exact shipped message syntax and semantics are defined by the
 [MF2-derived profile](mf2-profile.mbt.md), not by planned roadmap work.

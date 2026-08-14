@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.7.0` 以一个模块发布 runtime、generator、可移植 `moonx` CLI，以及独立的固定
+`0.8.0` 以一个模块发布 runtime、generator、可移植 `moonx` CLI，以及独立的固定
 Unicode MF2 语法/data-model、resolution、stable 默认函数与公开 registry API。生成的应用 facade 当前面向
 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
@@ -13,11 +13,16 @@ JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 ## 路线图与当前状态
 
-`0.7.0` 保留稳定生产级 Web 交付流程，并在完整 syntax/data-model 与 resolution core
-上增加固定的 stable required MF2 默认函数、structured formatter field、完整 Node 26
-`Intl` provider 与带 namespace 的 custom function。现有
-生成应用继续使用 Web/JavaScript strict-v1 catalog profile。它不是原型，也不表示完整
-通过 Unicode MessageFormat 2。公开的
+`0.8.0` 完成路线图第一阶段的 Unicode MF2 集成收口。新 scaffold 和维护中的浏览器
+应用会端到端使用显式 `unicode-mf2-ldml48.2-js-v1` message profile：authoring
+校验、contract hash、内嵌/动态 catalog-v2、生成 facade 与 Node 26 formatting 共享
+同一个 profile identity。未填写 `messageProfile` 的旧配置继续按 strict-v1 兼容解释，
+同时得到迁移 warning；私有 `:lampclaw:datetime` 不能进入 standards-mode catalog。
+
+该版本还发布机器可读的规范 requirement matrix，以及相对独立实现
+`messageformat@4.0.0` 的 differential 证据。它已不是原型，但在完成最终 stable 版本
+冻结和公共契约审查之前，不提前作出 `1.0.0` 的完整 Unicode MessageFormat 2 声明。
+公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
@@ -30,24 +35,24 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.7.0
+moon add lampclaw/i18n@0.8.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.7.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.8.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.7.0` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.8.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.7.0` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.8.0` 全局安装，命令名为
 `moon-i18n`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.7.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.8.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -115,6 +120,7 @@ markup 名称。
 
 ~~~json
 {
+  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
   "sourceLocale": "en-US",
   "defaultLocale": "zh-CN",
   "fallbackLocale": "en-US",
@@ -135,14 +141,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.7.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.8.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.7.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.8.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -170,7 +176,8 @@ locale 始终必须完整；空字符串或只有空白的消息视为未翻译�
 
 在任意命令后追加 `--diagnostic-format=json` 可获得版本化的 CI/editor 格式；默认的
 人类可读形式是 `path:line:column: error[CODE]: message`。两种形式都携带稳定 code、
-源路径和半开 span。详见[诊断契约](docs/diagnostics.zh-CN.mbt.md)。
+源路径和半开 span。成功生成也可能输出 profile 迁移 warning；warning 不改变生成
+字节或退出状态。详见[诊断契约](docs/diagnostics.zh-CN.mbt.md)。
 
 ## 应用使用
 
@@ -220,16 +227,24 @@ formatter profile、SHA-256 契约 hash、locale/namespace 身份、消息有效
 ## 工具与支持 profile
 
 CLI 还提供 `coverage`、`pseudo`、带状态的 `export-xliff`/`import-xliff`，以及单向
-`import-i18next`/`import-arb` 迁移。XLIFF 2.1 导入会核验 source 内容及两端
+`import-i18next`/`import-arb` 迁移。这些独立命令不读取应用 config，因此应传入
+`--message-profile unicode-mf2-ldml48.2-js-v1`；省略时保留临时兼容默认。XLIFF 2.1
+导入会核验 source 内容及两端
 locale，拒绝不安全 XML 和 MF2 字段内的 inline XML，并返回版本化 lifecycle state
 与 loss report。translator note、reviewed/final state、受支持 metadata、显式 ID
 rename/removal 的完整契约见[翻译生命周期文档](docs/translation-lifecycle.zh-CN.mbt.md)。
 
-应用 catalog profile 为 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。它支持 MF2
-pattern、declaration、matcher、markup parts、`:string`、`:number`、`:integer`、
-`:offset`，以及针对 `InstantMillis` 的 `:lampclaw:datetime`。不支持的可选 registry
-function 会被明确拒绝，而不是近似处理。这是严格的项目子集，不表示完整通过 Unicode
-MessageFormat 2。精确能力矩阵和固定上游快照见
+新应用应显式选择 `unicode-mf2-ldml48.2-js-v1`。它为生成应用组合固定的完整
+syntax/data-model、resolution、bidi、stable 默认 registry 和 Node 26 JavaScript
+provider。Stable function 范围为 `:string`、`:number`、`:integer`、`:offset`、
+`:currency` 和 `:percent`；已经实现的 `:date`、`:time`、`:datetime` 在固定上游
+规范中仍标记为 Draft。
+
+兼容 profile `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` 继续供旧项目读取，并且只在
+该 profile 中保留私有 `:lampclaw:datetime`。省略 `messageProfile` 目前表示带
+`I18N1003` warning 的兼容模式；在 1.0 前迁移窗口内可以显式使用兼容 profile。逐步
+操作见 [message profile 迁移指南](docs/message-profile-migration.zh-CN.mbt.md)。精确能力
+矩阵和固定上游快照见
 [`docs/mf2-profile.zh-CN.mbt.md`](docs/mf2-profile.zh-CN.mbt.md)。
 
 工具可以通过 `parse_mf2_syntax`、`parse_valid_mf2_model`、
@@ -239,7 +254,9 @@ data-model fixture。独立的 `unicode-mf2-ldml48.2-resolution-v1` profile 增�
 `Mf2FormattingContext`、`Mf2Input`、`format_mf2_standalone` 与
 `format_mf2_model_standalone`，并同时返回 best-effort 文本、structured part 与 typed
 error。`unicode-mf2-ldml48.2-default-functions-v1` 增加 stable required registry、
-Node 26 `Intl` adapter 与公开 namespaced custom registry。详见
+Node 26 `Intl` adapter 与公开 namespaced custom registry。机器可读矩阵覆盖 20 条
+scope 内规范 requirement、全部 6 个 stable function 和 40 个 stable option；独立
+suite 当前记录 24 个 case，没有无法解释的 semantic failure。详见
 [语法与 interchange 指南](docs/mf2-syntax-data-model.zh-CN.mbt.md)。
 
 Resolution、bidi、安全 structured output 与严格 locale 边界详见
@@ -254,7 +271,7 @@ KiB，以及每个 message 64 个参数、input 或 rich tag。
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.7.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.8.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

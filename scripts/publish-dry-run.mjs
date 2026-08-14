@@ -32,6 +32,18 @@ const requireSuccess = (command, args) => {
   return `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
 };
 
+const releaseGates = [
+  ["node", ["scripts/check-doc-sync.mjs"]],
+  ["node", ["scripts/check-api-docs.mjs"]],
+  ["node", ["scripts/check-mf2-requirements.mjs"]],
+  ["node", ["scripts/check-mf2-differential.mjs"]],
+  ["node", ["scripts/check-mf2-profile.mjs"]],
+  ["node", ["scripts/version-contract.mjs", "check"]],
+];
+for (const [command, args] of releaseGates) {
+  process.stdout.write(requireSuccess(command, args));
+}
+
 const moonVersion = requireSuccess("moon", ["version", "--all"]);
 const mooncakeVersion = requireSuccess("mooncake", ["--version"]);
 process.stdout.write(moonVersion);

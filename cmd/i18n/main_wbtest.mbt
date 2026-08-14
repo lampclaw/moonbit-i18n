@@ -91,7 +91,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.7.0"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.8.0"))
   assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }
@@ -635,39 +635,91 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command(["check", config, schema, locales, package_dir, catalog_dir])
   run_command(["coverage", config, schema, locales])
   let pseudo_file = path_join(root, "en-XA.json")
-  run_command(["pseudo", schema, "en-US", source, "en-XA", pseudo_file])
+  run_command([
+    "pseudo",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    schema,
+    "en-US",
+    source,
+    "en-XA",
+    pseudo_file,
+  ])
   assert_true(read_file(pseudo_file).contains("["))
   let xliff_file = path_join(root, "messages.xlf")
   run_command([
-    "export-xliff", schema, "en-US", source, "zh-CN", target, xliff_file,
+    "export-xliff",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    schema,
+    "en-US",
+    source,
+    "zh-CN",
+    target,
+    xliff_file,
   ])
   assert_true(read_file(xliff_file).contains("version=\"2.1\""))
   let imported_file = path_join(root, "imported.json")
   let state_file = path_join(root, "exchange-state.json")
   let report_file = path_join(root, "xliff-report.json")
   run_command([
-    "import-xliff", "--state-output", state_file, "--report-output", report_file,
-    schema, "en-US", source, "zh-CN", xliff_file, imported_file,
+    "import-xliff",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    "--state-output",
+    state_file,
+    "--report-output",
+    report_file,
+    schema,
+    "en-US",
+    source,
+    "zh-CN",
+    xliff_file,
+    imported_file,
   ])
   assert_true(read_file(imported_file).contains("todo_ui"))
   assert_true(read_file(state_file).contains("sourceSha256"))
   assert_true(read_file(report_file).contains("xliff-import"))
   let default_imported_file = path_join(root, "default-imported.json")
   run_command([
-    "import-xliff", schema, "en-US", source, "zh-CN", xliff_file, default_imported_file,
+    "import-xliff",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    schema,
+    "en-US",
+    source,
+    "zh-CN",
+    xliff_file,
+    default_imported_file,
   ])
   assert_true(file_exists(default_imported_file + ".xliff-state.json"))
   assert_true(file_exists(default_imported_file + ".xliff-report.json"))
   let roundtrip_xliff = path_join(root, "roundtrip.xlf")
   run_command([
-    "export-xliff", "--state", state_file, schema, "en-US", source, "zh-CN", imported_file,
+    "export-xliff",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    "--state",
+    state_file,
+    schema,
+    "en-US",
+    source,
+    "zh-CN",
+    imported_file,
     roundtrip_xliff,
   ])
   assert_true(read_file(roundtrip_xliff).contains("segment id=\"s1\""))
   let i18next_output = path_join(root, "i18next.json")
   let i18next_report = path_join(root, "i18next-report.json")
   run_command([
-    "import-i18next", schema, "zh-CN", target, i18next_output, i18next_report,
+    "import-i18next",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    schema,
+    "zh-CN",
+    target,
+    i18next_output,
+    i18next_report,
   ])
   assert_true(read_file(i18next_output).contains("todo_ui"))
   assert_true(read_file(i18next_report).contains("i18next-import"))
@@ -682,7 +734,14 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
     arb_input, "{ \"@@locale\": \"fr\", \"welcome\": \"Bonjour {name}\" }",
   )
   run_command([
-    "import-arb", migration_schema, "fr", arb_input, arb_output, arb_report,
+    "import-arb",
+    "--message-profile",
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    migration_schema,
+    "fr",
+    arb_input,
+    arb_output,
+    arb_report,
   ])
   assert_true(read_file(arb_output).contains("Bonjour {$name}"))
   assert_true(read_file(arb_report).contains("arb-import"))

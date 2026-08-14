@@ -63,6 +63,12 @@ pub(all) struct LocaleConfig {
 ///|
 /// Canonical, validated generator configuration.
 pub(all) struct I18nConfig {
+  /// Catalog authoring/runtime profile selected for generated messages.
+  message_profile : String
+  /// Whether `messageProfile` was explicitly present in the source config.
+  /// This distinguishes intentional compatibility mode from the temporary
+  /// pre-1.0 default used for older projects.
+  message_profile_explicit : Bool
   /// Locale that defines authoring completeness.
   source_locale : String
   /// Locale selected when negotiation finds no requested match.

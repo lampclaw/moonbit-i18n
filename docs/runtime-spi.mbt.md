@@ -39,8 +39,10 @@ The separate standards-core path uses `parse_valid_mf2_model` followed by
 `format_mf2_standalone`. Its `Mf2FormatResult` returns best-effort text,
 renderer-independent structured parts, and all discovered typed errors.
 `Mf2FormattingContext` requires strict BCP 47 locales and explicit value/message
-direction metadata. This path is not used by catalog-v2 until the authoring
-profile switch in `0.8.x`; see
+direction metadata. Catalog-v2 entries with
+`unicode-mf2-ldml48.2-js-v1` are parsed once into this model during atomic
+installation and formatted through the pinned default registry. Compatibility
+catalogs continue to use `CompiledMessage`; see
 [`mf2-resolution-formatting.mbt.md`](mf2-resolution-formatting.mbt.md).
 
 For Node 26 JavaScript, `@runtime_js.format_mf2` supplies the pinned stable
@@ -52,11 +54,13 @@ Unicode conformance; see
 
 ## Catalog compatibility contract
 
-The `0.7.0` release accepts exactly catalog format version `2` and profile
-`lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. `contractHash` is the SHA-256 digest
-of a canonical UTF-8 contract containing the profile, message IDs, parameter
-types, and allowed markup names. A catalog is accepted only when version,
-profile, contract hash, and normalized locale all match.
+The `0.8.0` release accepts catalog format version `2` with either the
+compatibility profile `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` or the
+standards authoring profile `unicode-mf2-ldml48.2-js-v1`. One `I18n` instance
+requires exactly one profile; catalogs cannot be mixed. `contractHash` is the
+SHA-256 digest of a canonical UTF-8 contract containing the selected profile,
+message IDs, parameter types, and allowed markup names. A catalog is accepted
+only when version, profile, contract hash, and normalized locale all match.
 
 Parsing and installation are bounded: JSON source and embedded message data
 are each limited to 16 MiB, a catalog to 100,000 messages, each message to 64
@@ -99,15 +103,13 @@ diagnostics that could not be retained. `take_diagnostics()` drains the buffer.
 
 ## Profile boundary
 
-The stable profile supports patterns, declarations, matching, markup parts,
-`:string`, `:number`, `:integer`, and `:offset`, with
-`:lampclaw:datetime` as the project extension for `InstantMillis`. Full CLDR
-plural/date behavior is supplied by the JS formatter. Optional registry
-functions, bidi isolation, full BCP 47 canonicalization, and arbitrary
-user-defined functions are not part of this catalog profile and are rejected.
-The separately named standards profiles now supply resolution, bidi, strict
-BCP 47, stable default functions, and a public custom registry without
-changing catalog semantics.
-This name intentionally avoids claiming complete Unicode MF2 conformance; see
+The compatibility profile preserves patterns, declarations, matching, legacy
+markup parts, `:string`, `:number`, `:integer`, `:offset`, and private
+`:lampclaw:datetime`. The standards authoring profile uses the complete pinned
+model, resolution, bidi, stable default registry, and separately marked draft
+date/time functions. Generated standards catalogs reject every private or
+custom function. Low-level callers may still register namespaced custom
+functions, but their behavior is outside generated authoring and conformance.
+Neither profile name claims the final 1.0 complete Unicode MF2 contract; see
 [`mf2-profile.mbt.md`](mf2-profile.mbt.md) for the pinned reference snapshot
 and the compatibility matrix.

@@ -8,7 +8,7 @@
   },
   "contract": {
     "formatted_number": "Contract number: {$value :number}",
-    "last_updated": "Updated {$when :lampclaw:datetime dateStyle=medium timeZone=UTC}",
+    "last_updated": "Updated {$when :date length=medium timeZone=UTC}",
     "rich_notice": "{#strong}Typed{/strong} localization"
   },
   "todo_ui": {

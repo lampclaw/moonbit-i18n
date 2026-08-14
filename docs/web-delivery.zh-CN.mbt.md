@@ -46,8 +46,9 @@ if i18n.has_catalog_namespace(
 
 只有生成出的全部 namespace 都已安装时，`has_catalog(locale)` 才返回 true。只需要
 部分路由的应用应使用 `has_catalog_namespace`。缺失 namespace 或 message 会继续走
-常规 locale/fallback 链。格式损坏、contract 过期、profile/locale/namespace 不匹配
-的 chunk，会在替换现有可用数据之前被拒绝。
+常规 locale/fallback 链。格式损坏、contract 过期、profile/locale/namespace 不匹配，
+或与同一 locale 已安装 catalog 的 direction 冲突的 chunk，会在替换现有可用数据之前
+被拒绝。
 
 为兼容旧用户，whole-locale catalog v2 仍然可解析、安装；新的 CLI 输出采用 chunk
 和 deployment manifest。
@@ -120,21 +121,25 @@ async function loadRouteNamespaces(baseURL, locale, names, install) {
 `todo_ui` chunk；失败时保留英文，只重试缺失 chunk，并且只有两个必要 namespace
 都通过后才持久化显式语言选择。
 
-## 公开的原始字节预算
+## 公开的 release 预算
 
 release gate 会读取生成 manifest、验证每个 chunk hash，并强制以下上限：
 
 | 产物 | 预算 |
 | --- | ---: |
-| 浏览器 release JavaScript | 256 KiB |
-| gzip 后的浏览器 JavaScript | 64 KiB |
+| 浏览器 release JavaScript | 448 KiB |
+| gzip 后的浏览器 JavaScript | 128 KiB |
 | 所有 embedded-locale chunk | 8 KiB |
 | 单个动态 namespace chunk | 64 KiB |
 | deployment manifest | 64 KiB |
 
-0.4 reference application 当前约为：JavaScript 201 KiB、gzip 48 KiB、embedded
-locale chunk 合计 2.1 KiB、最大动态 chunk 1.1 KiB、manifest 2.1 KiB。这些值是防止
-回退的 ceiling，不代表所有应用 bundle 都具有相同体积。
+使用固定 release 工具链时，0.8 standards-profile reference application 实测为：
+JavaScript 429 KiB、gzip 116 KiB（Brotli 76 KiB）、embedded-locale chunk 合计
+2.0 KiB、最大动态 chunk 1.1 KiB、manifest 2.1 KiB。raw/gzip 上限相对 0.4
+compatibility baseline 增加，是因为浏览器要安装 standards catalog，就必须保留完整
+MF2 syntax/data-model 校验器、resolver、bidi 行为和默认 function dispatch；仅生成期代码
+仍不可达。这些经过检查的值是防止回退的 ceiling，不代表所有应用 bundle 都具有相同
+体积。
 
 0.4 不新增 framework-specific package：目前还没有两个独立消费者需要同一套
 lifecycle adapter、且有明确维护者负责它的证据。

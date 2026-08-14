@@ -93,15 +93,20 @@ jobs:
         run: node scripts/check-coverage.mjs
 
       - name: Public API documentation
-        run: node scripts/check-api-docs.mjs
+        run: |
+          node scripts/check-doc-sync.mjs
+          node scripts/check-api-docs.mjs
 
       - name: MF2 profile contract
         run: |
+          npm ci
           node scripts/sync-mf2-upstream-fixtures.mjs --check
           node scripts/generate-mf2-syntax-tests.mjs --check
           node scripts/generate-mf2-format-tests.mjs --check
           node scripts/generate-mf2-function-tests.mjs --check
           node scripts/sync-bcp47-registry.mjs --check
+          node scripts/check-mf2-requirements.mjs
+          node scripts/check-mf2-differential.mjs
           node scripts/check-mf2-profile.mjs
           node scripts/version-contract.mjs check
 
@@ -172,6 +177,12 @@ jobs:
           printf '%s\n' "$package_list" | grep -q '^docs/mf2-resolution-formatting.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/mf2-default-functions.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/mf2-default-functions.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/mf2-profile.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/mf2-profile.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/message-profile-migration.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/message-profile-migration.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/diagnostics.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/diagnostics.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.mbt.md$'

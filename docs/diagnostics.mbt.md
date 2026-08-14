@@ -12,6 +12,12 @@ half-open span. Lines and columns are one-based; `byteOffset` is a zero-based
 UTF-8 offset. A parser that cannot safely narrow a location reports the full
 bounded source rather than inventing precision.
 
+Starting in `0.8.0`, successful `generate`, `check`, and `coverage` commands may
+also write migration warnings to stderr. They retain exit status zero and do
+not change generated output. JSON mode emits one complete diagnostic object per
+warning; consumers should treat stderr as a sequence of JSON values rather
+than one enclosing array.
+
 ## Stable error codes
 
 | Code | Meaning |
@@ -19,10 +25,13 @@ bounded source rather than inventing precision.
 | `I18N0001` | CLI usage, filesystem, ownership, or transaction failure |
 | `I18N1001` | Invalid configuration JSON |
 | `I18N1002` | Invalid configuration value or relationship |
+| `I18N1003` | Warning: `messageProfile` is omitted and temporarily defaults to compatibility mode |
 | `I18N2001` | Invalid schema JSON |
 | `I18N2002` | Invalid schema value or generated-name contract |
 | `I18N3001` | Invalid message syntax or message contract |
 | `I18N3002` | Invalid locale resource or locale relationship |
+| `I18N3003` | Warning: compatibility message uses private `:lampclaw:datetime` |
+| `I18N3004` | Standards-mode message contains private `:lampclaw:datetime` |
 | `I18N4001` | Release coverage requirement not met |
 | `I18N5001` | Other deterministic generation failure |
 | `I18N9001` | A configured resource limit was exceeded |

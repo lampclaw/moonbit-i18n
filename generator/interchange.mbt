@@ -100,6 +100,7 @@ pub fn export_xliff(
   source_locale_source : String,
   target_locale_code : String,
   target_locale_source : String?,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   export_xliff_with_state(
     schema_source,
@@ -108,6 +109,7 @@ pub fn export_xliff(
     target_locale_code,
     target_locale_source,
     None,
+    message_profile~,
   )
 }
 
@@ -121,6 +123,7 @@ pub fn import_xliff(
   source_locale_source : String,
   target_locale_code : String,
   xliff_source : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   match
     import_xliff_with_state(
@@ -130,6 +133,7 @@ pub fn import_xliff(
       target_locale_code,
       xliff_source,
       None,
+      message_profile~,
     ) {
     Ok(value) => Ok(value.locale_source)
     Err(message) => Err(message)
@@ -147,13 +151,19 @@ pub fn export_xliff_with_state(
   target_locale_code : String,
   target_locale_source : String?,
   exchange_state_source : String?,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   let schema = match parse_schema(schema_source) {
     Ok(value) => value
     Err(message) => return Err(message)
   }
   let source_locale = match
-    parse_locale(source_locale_code, source_locale_source, schema) {
+    parse_locale(
+      source_locale_code,
+      source_locale_source,
+      schema,
+      message_profile~,
+    ) {
     Ok(value) => value
     Err(message) => return Err(message)
   }
@@ -168,7 +178,7 @@ pub fn export_xliff_with_state(
   }
   let target_locale = match target_locale_source {
     Some(source) =>
-      match parse_locale(target_code, source, schema) {
+      match parse_locale(target_code, source, schema, message_profile~) {
         Ok(value) => Some(value)
         Err(message) => return Err(message)
       }
@@ -351,6 +361,7 @@ pub fn import_xliff_with_state(
   target_locale_code : String,
   xliff_source : String,
   id_migrations_source : String?,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[XliffImportArtifacts, String] {
   if @utf8.encode(xliff_source).length() > XLIFF_MAX_SOURCE_BYTES {
     return Err("XLIFF exceeds the input size limit")
@@ -360,7 +371,12 @@ pub fn import_xliff_with_state(
     Err(message) => return Err(message)
   }
   let source_locale = match
-    parse_locale(source_locale_code, source_locale_source, schema) {
+    parse_locale(
+      source_locale_code,
+      source_locale_source,
+      schema,
+      message_profile~,
+    ) {
     Ok(value) => value
     Err(message) => return Err(message)
   }
@@ -400,7 +416,7 @@ pub fn import_xliff_with_state(
     }
   }
   let locale_source = locale_json(schema, translated)
-  match parse_locale(target_code, locale_source, schema) {
+  match parse_locale(target_code, locale_source, schema, message_profile~) {
     Ok(_) => ()
     Err(message) => return Err("invalid imported XLIFF target: \{message}")
   }
@@ -429,8 +445,15 @@ pub fn import_i18next_json(
   schema_source : String,
   locale_code : String,
   input_source : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
-  import_ecosystem_json(schema_source, locale_code, input_source, "i18next")
+  import_ecosystem_json(
+    schema_source,
+    locale_code,
+    input_source,
+    "i18next",
+    message_profile~,
+  )
 }
 
 ///|
@@ -441,8 +464,15 @@ pub fn import_flutter_arb(
   schema_source : String,
   locale_code : String,
   input_source : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
-  import_ecosystem_json(schema_source, locale_code, input_source, "arb")
+  import_ecosystem_json(
+    schema_source,
+    locale_code,
+    input_source,
+    "arb",
+    message_profile~,
+  )
 }
 
 ///|
@@ -452,6 +482,7 @@ fn import_ecosystem_json(
   locale_code : String,
   input_source : String,
   kind : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
   if @utf8.encode(input_source).length() > XLIFF_MAX_SOURCE_BYTES {
     return Err("\{kind} input exceeds the input size limit")
@@ -571,7 +602,8 @@ fn import_ecosystem_json(
     }
     match converted {
       Ok(message) =>
-        match validate_migrated_message(schema, entry, message) {
+        match
+          validate_migrated_message(schema, entry, message, message_profile~) {
           Ok(_) => {
             translated.push((id, message))
             seen_ids[id] = true
@@ -598,7 +630,7 @@ fn import_ecosystem_json(
     }
   }
   let locale_source = locale_json(schema, translated)
-  match parse_locale(locale, locale_source, schema) {
+  match parse_locale(locale, locale_source, schema, message_profile~) {
     Ok(_) => ()
     Err(message) => return Err("invalid generated migration output: \{message}")
   }
@@ -1619,18 +1651,29 @@ fn validate_migrated_message(
   schema : Schema,
   entry : Entry,
   message : String,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[Unit, String] {
-  let params = entry.params.map(param => @runtime.MessageParamSpec::{
-    name: param.name,
-    typ: param.typ,
-  })
-  let contract = @runtime.MessageContract::new(
-    params,
-    allowed_tags=schema_allowed_tags(schema, message_id(entry)),
-  )
-  match @runtime.compile_mf2_message(message, contract) {
-    Ok(_) => Ok(())
-    Err(errors) => Err(errors[0].message)
+  if message_profile == @runtime.CATALOG_PROFILE {
+    let params = entry.params.map(param => @runtime.MessageParamSpec::{
+      name: param.name,
+      typ: param.typ,
+    })
+    let contract = @runtime.MessageContract::new(
+      params,
+      allowed_tags=schema_allowed_tags(schema, message_id(entry)),
+    )
+    match @runtime.compile_mf2_message(message, contract) {
+      Ok(_) => Ok(())
+      Err(errors) => Err(errors[0].message)
+    }
+  } else if message_profile == @runtime.MF2_STANDARD_MESSAGE_PROFILE {
+    let model = match @runtime.parse_valid_mf2_model(message) {
+      Ok(value) => value
+      Err(errors) => return Err(errors[0].message)
+    }
+    validate_standard_message_contract(model, schema, entry)
+  } else {
+    Err("unsupported messageProfile: \{message_profile}")
   }
 }
 

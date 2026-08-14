@@ -50,9 +50,9 @@ if i18n.has_catalog_namespace(
 `has_catalog(locale)` becomes true only when every generated namespace is
 installed. Applications that need only selected routes should use
 `has_catalog_namespace`. A missing namespace or message continues through the
-normal locale and fallback chains. A malformed, stale-contract,
-wrong-profile, wrong-locale, or wrong-namespace chunk is rejected before it can
-replace working data.
+normal locale and fallback chains. A malformed, stale-contract, wrong-profile,
+wrong-locale, wrong-namespace, or conflicting-direction chunk is rejected
+before it can replace working data.
 
 Whole-locale catalog v2 parsing and installation remain supported for
 compatibility. New CLI output uses chunks and the deployment manifest.
@@ -129,23 +129,28 @@ English, requests the `common` and `todo_ui` Chinese chunks independently,
 keeps English on failure, retries only missing chunks, and persists an explicit
 locale choice only after both required namespaces validate.
 
-## Published raw-byte budgets
+## Published release budgets
 
 The release gate reads the generated manifest, verifies every chunk hash, and
 enforces these raw release limits:
 
 | Artifact | Budget |
 | --- | ---: |
-| Browser release JavaScript | 256 KiB |
-| Gzip-compressed browser JavaScript | 64 KiB |
+| Browser release JavaScript | 448 KiB |
+| Gzip-compressed browser JavaScript | 128 KiB |
 | All chunks for embedded locales | 8 KiB |
 | One dynamic namespace chunk | 64 KiB |
 | Deployment manifest | 64 KiB |
 
-The 0.4 reference application measures approximately 201 KiB JavaScript,
-48 KiB gzip, 2.1 KiB of embedded-locale chunks, a 1.1 KiB largest dynamic
-chunk, and a 2.1 KiB manifest. These budgets are regression ceilings, not
-promises that every application bundle has the same size.
+The 0.8 standards-profile reference application measures 429 KiB JavaScript,
+116 KiB gzip (76 KiB Brotli), 2.0 KiB of embedded-locale chunks, a 1.1 KiB
+largest dynamic chunk, and a 2.1 KiB manifest with the pinned release
+toolchain. The raw/gzip ceilings increased from the 0.4 compatibility baseline
+because runtime-installed standards catalogs must retain the complete MF2
+syntax/data-model validator, resolver, bidi behavior, and default-function
+dispatch in the browser bundle. Generation-only code is still unreachable.
+These checked limits are regression ceilings, not promises that every
+application bundle has the same size.
 
 No framework-specific package is introduced in 0.4. The current evidence does
 not yet show two independent consumers needing the same owned lifecycle

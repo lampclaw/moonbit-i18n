@@ -58,6 +58,44 @@ test "state-aware XLIFF round trip preserves identity context state and MF2" {
 }
 
 ///|
+test "XLIFF lifecycle validates standards-profile functions" {
+  let schema =
+    #|{
+    #|  "messages": { "common": ["updated"] },
+    #|  "params": {
+    #|    "common.updated": [{ "name": "when", "type": "InstantMillis" }]
+    #|  }
+    #|}
+  let source =
+    #|{"common":{"updated":"Updated {$when :date length=medium timeZone=UTC}"}}
+  let target =
+    #|{"common":{"updated":"Mis à jour {$when :date length=medium timeZone=UTC}"}}
+  guard export_xliff(
+      schema,
+      "en-US",
+      source,
+      "fr",
+      Some(target),
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Ok(xliff) else {
+    fail("standards-profile XLIFF export should succeed")
+  }
+  guard import_xliff(
+      schema,
+      "en-US",
+      source,
+      "fr",
+      xliff,
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Ok(imported) else {
+    fail("standards-profile XLIFF import should succeed")
+  }
+  assert_true(imported.contains(":date length=medium timeZone=UTC"))
+}
+
+///|
 test "XLIFF lifecycle rejects stale sidecars and stale translated sources" {
   let schema = "{ \"messages\": { \"common\": [\"save\"] } }"
   let source = "{ \"common\": { \"save\": \"Save\" } }"

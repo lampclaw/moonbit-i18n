@@ -2,10 +2,28 @@
   "upstreamRepository": "https://github.com/unicode-org/message-format-wg",
   "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
   "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "standardMessageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "authoringProfiles": {
+    "compatibility": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+    "standards": "unicode-mf2-ldml48.2-js-v1"
+  },
   "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
   "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
   "defaultFunctionProfile": "unicode-mf2-ldml48.2-default-functions-v1",
   "conformanceClaim": "unicode-mf2-syntax-data-model-resolution-and-stable-default-functions-js",
+  "requirementMatrix": {
+    "path": "tests/unicode-mf2/requirements.json",
+    "normativeRows": 20,
+    "stableFunctions": 6,
+    "stableOptions": 40,
+    "unexplainedGaps": 0
+  },
+  "differential": {
+    "path": "tests/unicode-mf2/differential-report.json",
+    "reference": "messageformat@4.0.0",
+    "cases": 24,
+    "unexplainedSemanticFailures": 0
+  },
   "syntaxFixtureCounts": {
     "wellFormed": 114,
     "syntaxErrors": 133,
@@ -57,10 +75,7 @@
     "normative-json-interchange-data-model",
     "deterministic-functional-syntax-roundtrip"
   ],
-  "syntaxProfileDeferredFeatures": [
-    "catalog-authoring-message-profile-selection",
-    "normative-requirement-matrix"
-  ],
+  "syntaxProfileDeferredFeatures": [],
   "resolutionProfileAcceptedFeatures": [
     "ordered-at-most-once-declaration-resolution",
     "normative-option-and-variable-resolution",
@@ -74,10 +89,7 @@
     "rfc4647-lookup-negotiation-boundaries",
     "bounded-input-output-and-structured-results"
   ],
-  "resolutionProfileDeferredFeatures": [
-    "catalog-authoring-message-profile-selection",
-    "independent-differential-conformance"
-  ],
+  "resolutionProfileDeferredFeatures": [],
   "defaultFunctionProfileAcceptedFeatures": [
     "stable-string-number-integer-offset-currency-percent-functions",
     "stable-required-option-validation-and-inheritance",
@@ -90,8 +102,7 @@
   "defaultFunctionProfileDeferredFeatures": [
     "draft-unit-function",
     "native-cldr-provider",
-    "wasm-cldr-provider",
-    "independent-differential-conformance"
+    "wasm-cldr-provider"
   ],
   "acceptedFeatures": [
     "simple-patterns",
@@ -101,9 +112,13 @@
     "line-oriented-matchers-with-required-fallback",
     "balanced-markup-parts",
     "string-number-integer-offset-functions",
-    "lampclaw-instant-millis-datetime-extension"
+    "lampclaw-instant-millis-datetime-extension",
+    "explicit-message-profile-authoring",
+    "standards-mode-generated-catalogs",
+    "machine-readable-normative-requirement-matrix",
+    "independent-node-26-differential-conformance"
   ],
-  "rejectedFeatures": [
+  "compatibilityProfileRejectedFeatures": [
     "unicode-mf2-error-recovery-and-fallback-values",
     "unicode-mf2-bidi-isolation",
     "unicode-mf2-nfc-identifier-normalization",

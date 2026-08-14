@@ -20,6 +20,10 @@ pub(all) struct CatalogChunkArtifact {
 ///|
 /// Complete output of one deterministic generator run.
 pub(all) struct Artifacts {
+  /// Message profile used by bindings, catalogs, and contract hashing.
+  message_profile : String
+  /// Non-fatal migration and authoring diagnostics emitted by this run.
+  diagnostics : Array[Diagnostic]
   /// Generated MoonBit facade source before formatting.
   code : String
   /// Generated `moon.pkg` contents for the facade package.
@@ -61,7 +65,7 @@ pub fn generate(
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  let hash = contract_hash(schema)
+  let hash = contract_hash(schema, profile=config.message_profile)
   let normalized_sources = match normalize_sources(sources) {
     Ok(value) => value
     Err(message) => return Err(message)
@@ -77,7 +81,13 @@ pub fn generate(
       Some(value) => value
       None => return Err("missing locale source: \{locale_config.code}")
     }
-    match parse_locale(locale_config.code, source, schema) {
+    match
+      parse_locale(
+        locale_config.code,
+        source,
+        schema,
+        message_profile=config.message_profile,
+      ) {
       Ok(locale) => locales.push(locale)
       Err(message) => return Err(message)
     }
@@ -121,6 +131,7 @@ pub fn generate(
       contract_hash=hash,
       entries~,
       direction=locale_direction(config, locale.locale),
+      profile=config.message_profile,
     )
     let catalog_source = catalog.to_json_string()
     match @runtime.parse_catalog(catalog_source) {
@@ -139,6 +150,7 @@ pub fn generate(
         contract_hash=hash,
         entries=chunk_entries,
         direction=locale_direction(config, locale.locale),
+        profile=config.message_profile,
       )
       let chunk_source = chunk.to_json_string() + "\n"
       match @runtime.parse_catalog(chunk_source) {
@@ -168,6 +180,8 @@ pub fn generate(
     Err(message) => return Err(message)
   }
   Ok({
+    message_profile: config.message_profile,
+    diagnostics: generation_warnings(config, config_source, normalized_sources),
     code,
     package_manifest: generated_package_manifest(),
     catalogs,
@@ -218,7 +232,7 @@ fn deployment_manifest(
     "manifestVersion": Json::number(1.0),
     "generator": Json::string("lampclaw/i18n"),
     "catalogVersion": Json::number(@runtime.CATALOG_VERSION.to_double()),
-    "profile": Json::string(@runtime.CATALOG_PROFILE),
+    "profile": Json::string(config.message_profile),
     "contractHash": Json::string(hash),
     "fallbackLocale": Json::string(config.fallback_locale),
     "embeddedLocales": Json::array(embedded_values),
@@ -330,9 +344,12 @@ fn coverage_percent(value : Double) -> Int {
 }
 
 ///|
-fn contract_hash(schema : Schema) -> String {
+fn contract_hash(
+  schema : Schema,
+  profile? : String = @runtime.CATALOG_PROFILE,
+) -> String {
   let canonical = StringBuilder::new()
-  canonical.write_string(@runtime.CATALOG_PROFILE)
+  canonical.write_string(profile)
   canonical.write_char('\n')
   for entry in schema.entries {
     canonical.write_string(message_id(entry))
@@ -354,4 +371,36 @@ fn contract_hash(schema : Schema) -> String {
   @crypto.bytes_to_hex_string(
     @crypto.sha256(@utf8.encode(canonical.to_string())),
   )
+}
+
+///|
+fn generation_warnings(
+  config : I18nConfig,
+  config_source : String,
+  sources : Array[LocaleSource],
+) -> Array[Diagnostic] {
+  let diagnostics : Array[Diagnostic] = []
+  if !config.message_profile_explicit {
+    diagnostics.push({
+      code: "I18N1003",
+      severity: Warning,
+      message: "messageProfile is omitted; compatibility mode is temporary and an explicit messageProfile will be required before 1.0",
+      path: "<config>",
+      span: full_source_span(config_source),
+    })
+  }
+  if config.message_profile == @runtime.CATALOG_PROFILE {
+    for source in sources {
+      if source.source.contains(":lampclaw:datetime") {
+        diagnostics.push({
+          code: "I18N3003",
+          severity: Warning,
+          message: "private :lampclaw:datetime is supported only by the compatibility profile; migrate to the standards profile and :datetime, :date, or :time",
+          path: source.code + ".json",
+          span: full_source_span(source.source),
+        })
+      }
+    }
+  }
+  diagnostics
 }
