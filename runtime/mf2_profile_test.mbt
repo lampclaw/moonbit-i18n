@@ -6,6 +6,10 @@ test "legacy catalog and pinned standalone profile identities are deliberate" {
   assert_eq(CATALOG_PROFILE, "lampclaw-mf2-strict-v1+lampclaw-datetime-v1")
   assert_eq(MF2_SYNTAX_PROFILE, "unicode-mf2-ldml48.2-syntax-v1")
   assert_eq(MF2_RESOLUTION_PROFILE, "unicode-mf2-ldml48.2-resolution-v1")
+  assert_eq(
+    MF2_DEFAULT_REGISTRY_PROFILE,
+    "unicode-mf2-ldml48.2-default-functions-v1",
+  )
   assert_eq(MF2_REFERENCE_COMMIT.length(), 40)
 }
 

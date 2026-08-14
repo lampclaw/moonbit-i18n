@@ -43,9 +43,16 @@ direction metadata. This path is not used by catalog-v2 until the authoring
 profile switch in `0.8.x`; see
 [`mf2-resolution-formatting.mbt.md`](mf2-resolution-formatting.mbt.md).
 
+For Node 26 JavaScript, `@runtime_js.format_mf2` supplies the pinned stable
+default registry and structured `Intl` fields. Frameworks can obtain
+`@runtime_js.mf2_registry()`, register `Mf2FunctionHandler` values, and call
+`@runtime.format_mf2`. Custom functions must be namespaced and remain outside
+Unicode conformance; see
+[`mf2-default-functions.mbt.md`](mf2-default-functions.mbt.md).
+
 ## Catalog compatibility contract
 
-The `0.6.0` release accepts exactly catalog format version `2` and profile
+The `0.7.0` release accepts exactly catalog format version `2` and profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. `contractHash` is the SHA-256 digest
 of a canonical UTF-8 contract containing the profile, message IDs, parameter
 types, and allowed markup names. A catalog is accepted only when version,
@@ -98,8 +105,9 @@ The stable profile supports patterns, declarations, matching, markup parts,
 plural/date behavior is supplied by the JS formatter. Optional registry
 functions, bidi isolation, full BCP 47 canonicalization, and arbitrary
 user-defined functions are not part of this catalog profile and are rejected.
-The separately named 0.6 resolution-core profile supplies bidi and strict BCP
-47 APIs without changing catalog semantics.
+The separately named standards profiles now supply resolution, bidi, strict
+BCP 47, stable default functions, and a public custom registry without
+changing catalog semantics.
 This name intentionally avoids claiming complete Unicode MF2 conformance; see
 [`mf2-profile.mbt.md`](mf2-profile.mbt.md) for the pinned reference snapshot
 and the compatibility matrix.

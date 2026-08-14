@@ -27,6 +27,8 @@ const supportsChunks =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 4);
 const supportsResolution =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 6);
+const supportsDefaultFunctions =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 7);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -315,11 +317,26 @@ try {
   }
 
   const runtimeImport = supportsResolution
-    ? '  "lampclaw/i18n/runtime" @runtime,\n'
+    ?
+      '  "lampclaw/i18n/runtime" @runtime,\n' +
+      (supportsDefaultFunctions
+        ? '  "lampclaw/i18n/runtime/js" @runtime_js,\n'
+        : "")
     : "";
-  const resolutionSmoke = supportsResolution
+  let resolutionSmoke = supportsResolution
     ? `  if @runtime.canonicalize_locale_tag("iw-BU") != Ok("he-MM") {\n    abort("strict BCP 47 canonicalization failed")\n  }\n  let context = match @runtime.Mf2FormattingContext::new(\n    locale="en-US",\n    inputs=[\n      @runtime.Mf2Input::new("name", @runtime.TextValue("MoonBit")),\n    ],\n    bidi_isolation=@runtime.Mf2NoBidiIsolation,\n  ) {\n    Ok(value) => value\n    Err(error) => abort(error.to_string())\n  }\n  let standalone = @runtime.format_mf2_standalone(\n    "Standalone {$name}",\n    context,\n  )\n  if standalone.value != "Standalone MoonBit" || !standalone.errors.is_empty() {\n    abort("standalone MF2 resolution failed")\n  }\n`
     : "";
+  const defaultFunctionSmoke = supportsDefaultFunctions
+    ? `  let currency = @runtime_js.format_mf2(
+    "{42 :currency currency=EUR}",
+    context,
+  )
+  if currency.value != "€42.00" || !currency.errors.is_empty() {
+    abort("default-function registry failed")
+  }
+`
+    : "";
+  resolutionSmoke = resolutionSmoke + defaultFunctionSmoke;
   writeFileSync(
     join(app, "main", "moon.pkg"),
     `import {\n  "smoke/scaffolded/i18n" @app_i18n,\n${runtimeImport}}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n`,

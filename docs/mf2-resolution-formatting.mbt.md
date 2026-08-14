@@ -2,10 +2,11 @@
 
 [中文](mf2-resolution-formatting.zh-CN.mbt.md)
 
-Version `0.6.0` adds the standalone profile
-`unicode-mf2-ldml48.2-resolution-v1`. It builds on the pinned syntax and
-interchange model without changing the existing catalog profile or canonical
-JSON authoring workflow.
+The profile `unicode-mf2-ldml48.2-resolution-v1`, introduced in `0.6.0`,
+remains the target-independent resolution core in `0.7.0`. It builds on the
+pinned syntax/interchange model and now feeds the separately versioned
+`unicode-mf2-ldml48.2-default-functions-v1` registry without changing the
+existing catalog profile or canonical JSON authoring workflow.
 
 This phase implements the target-independent semantics between parsing and the
 default function registry:
@@ -25,11 +26,12 @@ default function registry:
 - structured output retains markup, attributes, resolved options, IDs, value
   direction, and isolation controls as inert data.
 
-The stable default function registry and public custom-function registry are
-the `0.7.x` boundary. Therefore `format_mf2_standalone` treats an annotated
-function as `unknown-function` in `0.6.0`; this is deliberate rather than a
-partial approximation. The internal conformance provider is test-only and is
-not a consumer extension point.
+`format_mf2_standalone` now uses the portable default registry. It handles
+locale-neutral strings and basic numbers, while CLDR-dependent behavior emits
+an explicit unsupported-operation error. JavaScript applications should use
+`@runtime_js.format_mf2`, or pass `@runtime_js.mf2_registry()` to
+`@runtime.format_mf2`, for complete Node 26 `Intl` behavior and public custom
+functions. See the [default-function guide](mf2-default-functions.mbt.md).
 
 ## Basic use
 
@@ -125,10 +127,11 @@ data-model cases from `0.5.0`, all 67 pinned fallback, pattern-selection, bidi,
 and Unicode-option cases pass on Native, JavaScript, Wasm, and Wasm-GC using
 the test suite's specified conformance functions.
 
-This proves the named resolution-core profile, not full Unicode MF2. Default
-`:string`, `:number`, `:integer`, `:date`, `:time`, and `:datetime` behavior,
-host CLDR output, and a public function registry remain outside the `0.6.0`
-claim.
+These cases continue to prove the named resolution-core profile. Version
+`0.7.0` separately adds all 124 pinned default-function cases on Node 26,
+stable required functions, structured host fields, and the public registry.
+Catalog profile selection, a normative matrix, and independent differential
+testing remain outside the claim.
 
 Contexts accept at most 64 inputs. Source and formatted output are each
 limited to 64 KiB, and the existing declaration, selector, variant, option,

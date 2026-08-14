@@ -257,7 +257,7 @@ try {
   mkdirSync(join(app, "cmd", "mf2"), { recursive: true });
   write(
     "app/cmd/mf2/moon.pkg",
-    'import {\n  "lampclaw/i18n/runtime" @runtime,\n}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n',
+    'import {\n  "lampclaw/i18n/runtime" @runtime,\n  "lampclaw/i18n/runtime/js" @runtime_js,\n}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n',
   );
   write(
     "app/cmd/mf2/main.mbt",
@@ -283,7 +283,14 @@ fn main {
   if result.value != "Standalone MoonBit" || !result.errors.is_empty() {
     abort("standalone MF2 resolution failed")
   }
-  println(result.value)
+  let currency = @runtime_js.format_mf2(
+    "{42 :currency currency=EUR}",
+    context,
+  )
+  if currency.value != "€42.00" || !currency.errors.is_empty() {
+    abort("packaged default-function registry failed")
+  }
+  println(result.value + " / " + currency.value)
 }
 `,
   );
@@ -302,7 +309,7 @@ fn main {
     ["run", "--release", "--target", "js", "cmd/mf2"],
     { cwd: app, capture: true },
   );
-  assert.match(mf2Output, /Standalone MoonBit/u);
+  assert.match(mf2Output, /Standalone MoonBit \/ €42\.00/u);
 
   const docs = join(root, "docs");
   run("moon", ["doc", "--target-dir", docs], {

@@ -2,9 +2,10 @@
 
 [English](mf2-resolution-formatting.mbt.md)
 
-`0.6.0` 新增独立 profile `unicode-mf2-ldml48.2-resolution-v1`。它构建在固定版本的
-syntax 与 interchange model 上，但不改变已有 catalog profile 和 canonical JSON
-authoring 工作流。
+`unicode-mf2-ldml48.2-resolution-v1` 在 `0.6.0` 引入，并在 `0.7.0` 继续作为与目标
+无关的 resolution core。它构建在固定 syntax/interchange model 上，现在连接到单独
+version 的 `unicode-mf2-ldml48.2-default-functions-v1` registry，但不改变已有 catalog
+profile 和 canonical JSON authoring 工作流。
 
 本阶段实现 parser 与默认 function registry 之间、与目标平台无关的语义：
 
@@ -18,10 +19,11 @@ authoring 工作流。
 - structured output 将 markup、attribute、已解析 option、ID、方向和 isolation control
   保留为惰性数据。
 
-稳定默认 function registry 与公开 custom-function registry 属于 `0.7.x`。因此
-`0.6.0` 的 `format_mf2_standalone` 会把带 annotation 的 function 报告为
-`unknown-function`；这是明确边界，不是近似实现。内部 conformance provider 只供测试，
-不是用户扩展点。
+`format_mf2_standalone` 现在使用 portable 默认 registry：支持 locale-neutral string
+与基本 number；CLDR-dependent 行为明确返回 unsupported-operation error。JavaScript
+应用应使用 `@runtime_js.format_mf2`，或把 `@runtime_js.mf2_registry()` 传给
+`@runtime.format_mf2`，以取得完整 Node 26 `Intl` 行为和公开 custom function。参见
+[默认函数指南](mf2-default-functions.zh-CN.mbt.md)。
 
 ## 基本用法
 
@@ -106,9 +108,9 @@ registry 日期和 SHA-256 通过 `BCP47_REGISTRY_DATE` 与
 测试套件指定的 conformance function，在 Native、JavaScript、Wasm 与 Wasm-GC 全部
 通过。
 
-这证明的是具名 resolution-core profile，而不是完整 Unicode MF2。默认 `:string`、
-`:number`、`:integer`、`:date`、`:time`、`:datetime` 行为、宿主 CLDR 输出和公开
-function registry 仍不属于 `0.6.0` 声明。
+这些用例继续证明具名 resolution-core profile。`0.7.0` 另行增加 Node 26 上全部 124
+个固定 default-function case、stable required function、structured host field 与公开
+registry。Catalog profile 选择、规范 matrix 与独立 differential test 仍不在声明中。
 
 context 最多接受 64 个 input；source 与格式化输出分别限制为 64 KiB；原有 declaration、
 selector、variant、option 与 pattern-part 限制继续生效。超过限制时会报告错误，并返回

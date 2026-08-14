@@ -18,6 +18,8 @@ pub const CATALOG_PROFILE : String = "lampclaw-mf2-strict-v1+lampclaw-datetime-v
 
 pub const CATALOG_VERSION : Int = 2
 
+pub const MF2_DEFAULT_REGISTRY_PROFILE : String = "unicode-mf2-ldml48.2-default-functions-v1"
+
 pub const MF2_MAX_ARGUMENTS : Int = 64
 
 pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
@@ -46,7 +48,11 @@ pub fn canonicalize_locale_tag(String) -> Result[String, LocaleError]
 
 pub fn compile_mf2_message(String, MessageContract) -> Result[CompiledMessage, Array[Mf2Error]]
 
+pub fn format_mf2(String, Mf2FormattingContext, Mf2FunctionRegistry) -> Mf2FormatResult
+
 pub fn format_mf2_message(String, String, Array[MessageArg], Formatter) -> Result[String, String]
+
+pub fn format_mf2_model(Mf2MessageModel, Mf2FormattingContext, Mf2FunctionRegistry) -> Mf2FormatResult
 
 pub fn format_mf2_model_standalone(Mf2MessageModel, Mf2FormattingContext) -> Mf2FormatResult
 
@@ -168,6 +174,9 @@ pub(all) struct Formatter {
   format_number : (String, Double, Array[FormatOption]) -> Result[String, FormatterIssue]
   format_datetime : (String, Int64, Array[FormatOption]) -> Result[String, FormatterIssue]
   plural_category : (String, Double, Bool) -> Result[String, FormatterIssue]
+  format_number_to_parts : (String, Double, Array[FormatOption]) -> Result[FormatterOutput, FormatterIssue]
+  format_datetime_value : (String, MessageValue, Array[FormatOption]) -> Result[FormatterOutput, FormatterIssue]
+  plural_category_with_options : (String, Double, Bool, Array[FormatOption]) -> Result[String, FormatterIssue]
 }
 pub fn Formatter::basic() -> Self
 
@@ -177,6 +186,16 @@ pub(all) enum FormatterIssue {
   PlatformFormatterFailure(String)
 } derive(Eq, @debug.Debug)
 pub fn FormatterIssue::message(Self) -> String
+
+pub(all) struct FormatterOutput {
+  value : String
+  parts : Array[FormatterPart]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct FormatterPart {
+  kind : String
+  value : String
+} derive(Eq, @debug.Debug)
 
 pub struct I18n {
   fallback_locale_code : String
@@ -318,6 +337,7 @@ pub(all) struct Mf2FormattedExpression {
   direction : Mf2Direction
   id : String?
   options : Array[FormatOption]
+  fields : Array[FormatterPart]
   attributes : Array[Mf2ModelAttribute]
   fallback : Bool
 } derive(Eq, @debug.Debug)
@@ -341,12 +361,78 @@ pub struct Mf2FormattingContext {
   locales : Array[String]
   inputs : Array[Mf2Input]
   direction : Mf2Direction
+  time_zone : String
   fallback : String
   bidi_isolation : Mf2BidiIsolation
 }
 pub fn Mf2FormattingContext::locale(Self) -> String
 pub fn Mf2FormattingContext::locales(Self) -> Array[String]
-pub fn Mf2FormattingContext::new(locale~ : String, fallback_locales? : Array[String], inputs? : Array[Mf2Input], direction? : Mf2Direction, fallback? : String, bidi_isolation? : Mf2BidiIsolation) -> Result[Self, LocaleError]
+pub fn Mf2FormattingContext::new(locale~ : String, fallback_locales? : Array[String], inputs? : Array[Mf2Input], direction? : Mf2Direction, time_zone? : String, fallback? : String, bidi_isolation? : Mf2BidiIsolation) -> Result[Self, LocaleError]
+pub fn Mf2FormattingContext::time_zone(Self) -> String
+
+pub(all) struct Mf2FunctionCallContext {
+  locales : Array[String]
+  direction : Mf2Direction
+  time_zone : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2FunctionFailure {
+  Mf2FunctionBadOperand(String)
+  Mf2FunctionBadOption(String)
+  Mf2FunctionBadSelector(String)
+  Mf2FunctionBadVariantKey(String)
+  Mf2FunctionUnsupported(String)
+  Mf2FunctionFormatting(String)
+} derive(Eq, @debug.Debug)
+
+pub struct Mf2FunctionHandler {
+  name : String
+  resolve : (Mf2FunctionCallContext, Mf2FunctionOperand?, Array[Mf2FunctionOption]) -> Result[Mf2FunctionValue, Mf2FunctionFailure]
+}
+pub fn Mf2FunctionHandler::new(name~ : String, resolve~ : (Mf2FunctionCallContext, Mf2FunctionOperand?, Array[Mf2FunctionOption]) -> Result[Mf2FunctionValue, Mf2FunctionFailure]) -> Self
+
+pub struct Mf2FunctionOperand {
+  raw : MessageValue?
+  format : () -> Result[FormatterOutput, Mf2FunctionFailure]
+  direction : Mf2Direction
+  function_name : String?
+  inherited_options : Array[FormatOption]
+}
+pub fn Mf2FunctionOperand::direction(Self) -> Mf2Direction
+pub fn Mf2FunctionOperand::format(Self) -> Result[FormatterOutput, Mf2FunctionFailure]
+pub fn Mf2FunctionOperand::function_name(Self) -> String?
+pub fn Mf2FunctionOperand::inherited_options(Self) -> Array[FormatOption]
+pub fn Mf2FunctionOperand::raw(Self) -> MessageValue?
+
+pub(all) struct Mf2FunctionOption {
+  name : String
+  value : String
+  raw : MessageValue?
+  literal : Bool
+} derive(Eq, @debug.Debug)
+
+pub struct Mf2FunctionRegistry {
+  formatter : Formatter
+  custom_handlers : Array[Mf2FunctionHandler]
+}
+pub fn Mf2FunctionRegistry::custom_names(Self) -> Array[String]
+pub fn Mf2FunctionRegistry::new(Formatter) -> Self
+pub fn Mf2FunctionRegistry::portable() -> Self
+pub fn Mf2FunctionRegistry::register_custom(Self, Mf2FunctionHandler) -> Result[Unit, String]
+
+pub struct Mf2FunctionValue {
+  raw : MessageValue?
+  format : () -> Result[FormatterOutput, Mf2FunctionFailure]
+  match_key : ((String) -> Result[Bool, Mf2FunctionFailure])?
+  better_than : ((String, String) -> Result[Bool, Mf2FunctionFailure])?
+  direction : Mf2Direction
+  isolate : Bool
+  id : String?
+  inherited_options : Array[FormatOption]
+  issues : Array[Mf2FunctionFailure]
+}
+pub fn Mf2FunctionValue::new(format~ : () -> Result[FormatterOutput, Mf2FunctionFailure], raw? : MessageValue?, match_key? : ((String) -> Result[Bool, Mf2FunctionFailure])?, better_than? : ((String, String) -> Result[Bool, Mf2FunctionFailure])?, direction? : Mf2Direction, isolate? : Bool, id? : String?, inherited_options? : Array[FormatOption], issues? : Array[Mf2FunctionFailure]) -> Self
+pub fn Mf2FunctionValue::text(String, direction? : Mf2Direction) -> Self
 
 pub(all) struct Mf2Input {
   name : String

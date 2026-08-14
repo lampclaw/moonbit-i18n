@@ -2,64 +2,70 @@
 
 [中文](mf2-profile.zh-CN.mbt.md)
 
-Version `0.6.0` exposes three deliberately separate profiles:
+Version `0.7.0` exposes four deliberately separate profiles:
 
-- `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` is the catalog, generator,
-  generated-facade, and formatting profile used by existing applications.
-- `unicode-mf2-ldml48.2-syntax-v1` parses and validates the complete pinned
-  grammar and normative interchange data model.
-- `unicode-mf2-ldml48.2-resolution-v1` adds declaration and option resolution,
-  matcher selection, best-effort fallback, structured output, Unicode bidi
-  isolation, and strict BCP 47 boundaries to that model.
+- `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` is the unchanged catalog,
+  generator, generated-facade, and formatting profile used by existing apps.
+- `unicode-mf2-ldml48.2-syntax-v1` covers the complete pinned grammar and
+  normative interchange data model.
+- `unicode-mf2-ldml48.2-resolution-v1` adds declaration/option resolution,
+  selection, fallback, structured output, bidi isolation, and strict BCP 47.
+- `unicode-mf2-ldml48.2-default-functions-v1` adds the stable required
+  default registry and the public custom-function boundary.
 
-This separation prevents standards work from silently changing existing
-catalog meaning. Canonical JSON authoring and generated applications continue
-to use strict-v1; explicit catalog `messageProfile` selection arrives in
-`0.8.x`. The standalone APIs are documented in the
-[syntax/data-model guide](mf2-syntax-data-model.mbt.md) and
-[resolution/formatting guide](mf2-resolution-formatting.mbt.md).
+Keeping these contracts separate prevents standards work from silently
+changing existing catalog meaning. Canonical JSON authoring and generated
+applications still use strict-v1. Explicit catalog `messageProfile` selection
+arrives in `0.8.x`.
 
-The upstream comparison point is Unicode MessageFormat WG commit
+The upstream point is Unicode MessageFormat WG commit
 [`d115a614079678850aac8b52742360e888b8f027`](https://github.com/unicode-org/message-format-wg/commit/d115a614079678850aac8b52742360e888b8f027),
-dated 2026-06-11 and from the LDML 48.2 era. The immutable pin, vendored
-fixtures, Unicode license, and machine-readable matrix live under
-`tests/unicode-mf2/`. Locale canonicalization uses the separately pinned IANA
-Language Subtag Registry snapshot dated 2026-08-08.
+dated 2026-06-11 in the LDML 48.2 era. Immutable sources, hashes, fixtures,
+the Unicode license, and the machine-readable profile live under
+`tests/unicode-mf2/`. Locale canonicalization separately pins the IANA
+Language Subtag Registry dated 2026-08-08.
 
 ## Compatibility matrix
 
-| Area | Existing catalog profile | Syntax profile | Resolution profile |
-|---|---|---|---|
-| Grammar | Strict line-oriented project subset | Complete pinned message ABNF | Same complete pinned model |
-| Validity | Catalog compile/install failure | Separate parse and validity stages | Invalid models produce whole-message fallback plus errors |
-| Declarations | Eager strict-v1 bindings | Retained in interchange data | Source-ordered, at-most-once resolution |
-| Selection | Project ranking rules | Retained, not executed | Normative Match/BetterThan multi-selector algorithm |
-| Runtime errors | Operation fails | Not applicable | Typed errors plus best-effort output and fallback values |
-| Markup | Balanced legacy rich parts | Normative open/close/standalone model | Inert structured events preserving options and attributes |
-| NFC | No full identifier/key normalization | Required names and duplicate detection | Required selector-key normalization |
-| Locale | Legacy underscore-compatible normalization | Not applicable | Strict RFC 5646 canonicalization and RFC 4647 lookup |
-| Bidi | Catalog direction metadata | Syntax controls accepted | Default LRI/RLI/FSI/PDI strategy and structured controls |
-| Functions | Project subset and private datetime | References retained only | Unknown until the stable default/public registry in `0.7.x` |
+| Area | Existing catalog | Syntax | Resolution | Default functions |
+|---|---|---|---|---|
+| Grammar | Strict project subset | Complete pinned message ABNF | Same model | Same model |
+| Validity | Compile/install failure | Parse and validity stages | Whole-message fallback plus errors | Function errors plus usable best-effort values where normative |
+| Declarations | Eager strict-v1 | Retained | Source-ordered, at most once | Typed values and option inheritance |
+| Selection | Project ranking | Retained | Normative Match/BetterThan | String and numeric exact/plural/ordinal selectors |
+| Parts | Legacy rich parts | Interchange data | Inert markup/options/attributes | Host number/date fields in expression parts |
+| Unicode | Legacy locale compatibility | NFC names/duplicates | NFC keys, bidi, strict RFC 5646/4647 | Node 26 Intl/CLDR behavior on JavaScript |
+| Functions | Project subset plus private datetime | References only | Provider boundary | Stable required defaults plus separately marked draft date/time |
+| Extensions | Private catalog functions | Not executed | None public | Namespaced NFC-safe custom registry, excluded from conformance |
+
+See the [syntax/data-model guide](mf2-syntax-data-model.mbt.md),
+[resolution guide](mf2-resolution-formatting.mbt.md), and
+[default-function guide](mf2-default-functions.mbt.md).
 
 ## Conformance statement
 
-The current release claims the pinned syntax, validity/data-model, and
-resolution-core surfaces only. The vendored suite proves 114 well-formed
-syntax cases, 133 syntax-error cases, 23 data-model cases, and 67 fallback,
-pattern-selection, bidi, and Unicode-option cases on all four MoonBit
-backends.
+The JavaScript backend claims the pinned syntax, validity/data-model,
+resolution core, and stable required default-function surfaces. Evidence is:
 
-It does not claim full Unicode MessageFormat conformance. The stable default
-function registry, JavaScript `Intl`/CLDR provider, public custom registry, and
-complete function fixtures remain the `0.7.x` gate. Catalog authoring profile
+- 114 well-formed syntax, 133 syntax-error, and 23 data-model cases;
+- 67 fallback, pattern-selection, bidi, and Unicode-option cases on Native,
+  JavaScript, Wasm, and Wasm-GC; and
+- all 124 pinned default-function cases on Node 26 JavaScript.
+
+The stable repertoire is `:string`, `:number`, `:integer`, `:offset`,
+`:currency`, and `:percent`. `:date`, `:time`, and `:datetime` are implemented
+to satisfy the roadmap but are Draft in the pin and excluded from the stable
+claim. Draft `:unit` is deferred. Native/Wasm CLDR output, catalog profile
 selection, private-datetime migration, a normative requirement matrix, and
-differential testing remain the `0.8.x` gate.
+independent differential testing remain outside `0.7.0`.
+
+Therefore `0.7.0` is a materially larger conformance surface, but it still
+does not claim complete Unicode MessageFormat conformance.
 
 ## Change discipline
 
-All three identifiers are public compatibility contracts. The legacy catalog
-identifier participates in every catalog contract hash. Any semantic expansion
-or incompatible tightening changes the relevant identifier and updates the
-matrix, pinned fixtures, tests, and both language versions of these documents
-in one change. CI verifies generated fixture tests, the pinned MF2 sources,
-the pinned IANA registry, profile claims, and archive contents.
+All four identifiers are compatibility contracts; the legacy catalog
+identifier also participates in catalog contract hashes. A semantic expansion
+or incompatible tightening must update its identifier, matrix, pinned
+sources, generated tests, and both language versions of the documentation in
+one change. CI verifies those relationships and the published archive.
