@@ -10,10 +10,13 @@ an RC unless the release policy is changed explicitly. All commands below use
 Before publishing, the reviewed release commit must be clean, pushed to
 `origin/main`, and green in every required Test job. Run the full quality and
 package gates below with Node.js `26.7.0`, verify `moon whoami` is `lampclaw`,
-then run `node scripts/publish-dry-run.mjs`. The helper accepts a non-zero 255
-status only for the exact historical Moon `0.1.20260803` / mooncake-bin
-`0.1.20260731` pair and only with both archive checks plus the exact registry
-success response. Every newer client must exit zero.
+then run `node scripts/publish-dry-run.mjs`. Moon `0.1.20260803` with
+mooncake-bin `0.1.20260731` and Moon `0.1.20260807` with mooncake-bin
+`0.1.20260805` have both been observed returning 255 after a successful dry
+run. The helper accepts 255 only after both archive checks, exact `202
+Accepted`, and the version-specific registry success detail all match. It
+rejects every other non-zero status or incomplete response; never treat 255 as
+a general success code.
 
 Create and locally verify one signed `v$version` tag at the reviewed commit.
 Invoke `moon publish` exactly once. A non-zero or ambiguous result is never an
