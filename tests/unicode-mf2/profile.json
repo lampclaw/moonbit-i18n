@@ -4,7 +4,8 @@
   "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
   "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
-  "conformanceClaim": "unicode-mf2-syntax-data-model-and-resolution-core",
+  "defaultFunctionProfile": "unicode-mf2-ldml48.2-default-functions-v1",
+  "conformanceClaim": "unicode-mf2-syntax-data-model-resolution-and-stable-default-functions-js",
   "syntaxFixtureCounts": {
     "wellFormed": 114,
     "syntaxErrors": 133,
@@ -17,6 +18,34 @@
     "unicodeOptions": 10,
     "total": 67
   },
+  "defaultFunctionFixtureCounts": {
+    "currency": 12,
+    "dateDraft": 7,
+    "datetimeDraft": 7,
+    "integer": 13,
+    "number": 41,
+    "offset": 16,
+    "percent": 13,
+    "string": 9,
+    "timeDraft": 6,
+    "total": 124
+  },
+  "stableDefaultFunctions": [
+    "string",
+    "number",
+    "integer",
+    "offset",
+    "currency",
+    "percent"
+  ],
+  "implementedDraftFunctions": [
+    "date",
+    "time",
+    "datetime"
+  ],
+  "deferredDraftFunctions": [
+    "unit"
+  ],
   "syntaxProfileAcceptedFeatures": [
     "complete-pinned-message-abnf",
     "well-formed-versus-valid",
@@ -29,9 +58,8 @@
     "deterministic-functional-syntax-roundtrip"
   ],
   "syntaxProfileDeferredFeatures": [
-    "default-function-registry",
     "catalog-authoring-message-profile-selection",
-    "full-formatting-fixture-conformance"
+    "normative-requirement-matrix"
   ],
   "resolutionProfileAcceptedFeatures": [
     "ordered-at-most-once-declaration-resolution",
@@ -47,11 +75,23 @@
     "bounded-input-output-and-structured-results"
   ],
   "resolutionProfileDeferredFeatures": [
-    "stable-default-function-registry",
-    "public-custom-function-registry",
-    "intl-cldr-javascript-provider",
     "catalog-authoring-message-profile-selection",
-    "complete-default-function-fixtures"
+    "independent-differential-conformance"
+  ],
+  "defaultFunctionProfileAcceptedFeatures": [
+    "stable-string-number-integer-offset-currency-percent-functions",
+    "stable-required-option-validation-and-inheritance",
+    "exact-plural-and-ordinal-number-selection",
+    "structured-number-and-datetime-parts",
+    "node-26-intl-number-date-and-plural-provider",
+    "portable-namespaced-custom-function-registry",
+    "draft-date-time-datetime-extension"
+  ],
+  "defaultFunctionProfileDeferredFeatures": [
+    "draft-unit-function",
+    "native-cldr-provider",
+    "wasm-cldr-provider",
+    "independent-differential-conformance"
   ],
   "acceptedFeatures": [
     "simple-patterns",

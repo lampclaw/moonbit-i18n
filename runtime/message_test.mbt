@@ -27,6 +27,25 @@ fn test_formatter() -> Formatter {
         Ok(if value == 1.0 { "one" } else { "other" })
       }
     },
+    format_number_to_parts: (locale, value, options) => {
+      match (test_formatter().format_number)(locale, value, options) {
+        Ok(formatted) => Ok({ value: formatted, parts: [] })
+        Err(issue) => Err(issue)
+      }
+    },
+    format_datetime_value: (locale, value, options) => {
+      match value {
+        InstantMillis(value) =>
+          match (test_formatter().format_datetime)(locale, value, options) {
+            Ok(formatted) => Ok({ value: formatted, parts: [] })
+            Err(issue) => Err(issue)
+          }
+        _ => Err(UnsupportedOperation("test date literal unsupported"))
+      }
+    },
+    plural_category_with_options: (locale, value, ordinal, _options) => {
+      (test_formatter().plural_category)(locale, value, ordinal)
+    },
   }
 }
 
@@ -116,6 +135,11 @@ test "input annotations are inherited by later expressions" {
     format_number: (_locale, value, _options) => Ok("grouped:\{value}"),
     format_datetime: (_, _, _) => Err(UnsupportedOperation("unused")),
     plural_category: (_, _, _) => Ok("other"),
+    format_number_to_parts: (_locale, value, _options) => {
+      Ok({ value: "grouped:\{value}", parts: [] })
+    },
+    format_datetime_value: (_, _, _) => Err(UnsupportedOperation("unused")),
+    plural_category_with_options: (_, _, _, _) => Ok("other"),
   }
   let source = ".input {$count :number}\n{{Value: {$count}}}"
   assert_eq(
@@ -516,6 +540,15 @@ test "resolution and formatter failures remain structured" {
     format_number: (_, _, _) => Err(PlatformFormatterFailure("number failed")),
     format_datetime: (_, _, _) => Err(PlatformFormatterFailure("date failed")),
     plural_category: (_, _, _) => Err(PlatformFormatterFailure("plural failed")),
+    format_number_to_parts: (_, _, _) => {
+      Err(PlatformFormatterFailure("number failed"))
+    },
+    format_datetime_value: (_, _, _) => {
+      Err(PlatformFormatterFailure("date failed"))
+    },
+    plural_category_with_options: (_, _, _, _) => {
+      Err(PlatformFormatterFailure("plural failed"))
+    },
   }
   assert_true(
     format_mf2_message(

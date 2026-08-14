@@ -6,6 +6,41 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-14
+
+### Added
+
+- Pinned `unicode-mf2-ldml48.2-default-functions-v1` registry implementing the
+  stable required `:string`, `:number`, `:integer`, `:offset`, `:currency`, and
+  `:percent` functions, including option inheritance, exact/cardinal/ordinal
+  selection, and typed function errors.
+- Roadmap-required draft `:date`, `:time`, and `:datetime` functions with
+  strict ISO operands, semantic fields, explicit context time zones, and a
+  separately documented non-stable status.
+- Public portable `Mf2FunctionRegistry`, namespaced NFC-safe custom handlers,
+  lazy operands/results, structured formatter fields, and non-fatal handler
+  issues. Custom behavior is excluded from Unicode conformance claims.
+- Complete Node 26 `Intl.NumberFormat`, `Intl.PluralRules`, and
+  `Intl.DateTimeFormat` provider with bounded caches and host exceptions kept
+  inside typed result boundaries.
+- SHA-256-pinned default-function specifications and generated tests for all
+  124 upstream currency, date/time, integer, number, offset, percent, and
+  string cases.
+
+### Changed
+
+- `format_mf2_standalone` now uses the portable default registry. JavaScript
+  consumers use `runtime/js.format_mf2` for the complete `Intl` provider.
+- Structured expressions now retain renderer-independent number/date fields,
+  while the existing generated strict-v1 catalog authoring path remains
+  unchanged until the explicit `0.8.x` profile migration.
+
+### Security
+
+- Custom identifiers reject missing/reserved namespaces and NFC-equivalent
+  collisions; platform formatting never executes renderer content, and
+  malformed date/time or numeric operands fail through bounded typed errors.
+
 ## [0.6.0] - 2026-08-14
 
 ### Added
@@ -270,7 +305,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.3.0...v0.4.0

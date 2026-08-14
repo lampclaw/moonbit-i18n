@@ -37,9 +37,15 @@ value/message 方向 metadata。在 `0.8.x` 切换 authoring profile 前，catal
 该路径；详见
 [`mf2-resolution-formatting.zh-CN.mbt.md`](mf2-resolution-formatting.zh-CN.mbt.md)。
 
+Node 26 JavaScript 上，`@runtime_js.format_mf2` 提供固定 stable 默认 registry 与
+structured `Intl` field。Framework 可以取得 `@runtime_js.mf2_registry()`，注册
+`Mf2FunctionHandler`，再调用 `@runtime.format_mf2`。Custom function 必须带 namespace，
+且不计入 Unicode conformance；见
+[`mf2-default-functions.zh-CN.mbt.md`](mf2-default-functions.zh-CN.mbt.md)。
+
 ## Catalog 兼容契约
 
-`0.6.0` 只接受精确的 catalog format version `2` 和 profile
+`0.7.0` 只接受精确的 catalog format version `2` 和 profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。`contractHash` 是规范 UTF-8 契约的
 SHA-256；该契约覆盖 profile、消息 ID、参数类型与允许的 markup。只有版本、profile、
 contract hash 和归一化 locale 全部匹配时才会接受 catalog。
@@ -80,7 +86,8 @@ runtime 在有界、去重的 buffer 中记录消息缺失、逐消息 fallback 
 `:number`、`:integer` 与 `:offset`，并用项目扩展 `:lampclaw:datetime` 处理
 `InstantMillis`。完整 CLDR plural/date 行为由 JS formatter 提供。可选 registry
 function、bidi isolation、完整 BCP 47 canonicalization 和任意用户自定义 function
-不属于该 catalog profile，会被明确拒绝。另行命名的 0.6 resolution-core profile 在不
-改变 catalog 语义的前提下提供 bidi 与严格 BCP 47 API。
+不属于该 catalog profile，会被明确拒绝。另行命名的 standards profile 在不改变
+catalog 语义的前提下提供 resolution、bidi、严格 BCP 47、stable 默认函数与公开 custom
+registry。
 该名称刻意不宣称完整 Unicode MF2 合规；固定参考快照与兼容矩阵见
 [`mf2-profile.zh-CN.mbt.md`](mf2-profile.zh-CN.mbt.md)。

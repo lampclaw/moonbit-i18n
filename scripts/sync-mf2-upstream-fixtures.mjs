@@ -20,6 +20,19 @@ const files = new Map([
   ["spec/formatting.md", "2e33a4306540ea0c153361317a8f39342fb76276beb2e7446f73c08c8579e90e"],
   ["spec/errors.md", "8d6841d956a9e2cc86c1de3d464398dfd91c46f8dfbbd8a1014e9a2e21b29587"],
   ["spec/u-namespace.md", "733e8b8d23ea5f54ea66f4580543795ea9e41e6742906d27b932f7ee8ffb7e81"],
+  ["spec/functions/README.md", "54826d6f1ccecb62bede6b393f4f298e965cfb10363a06af459ae07b098cc44b"],
+  ["spec/functions/string.md", "8b74c29eeb07b56c172aee9263bcee4c18fdf9fe240383eef691249e60f965dc"],
+  ["spec/functions/number.md", "c48d4ec28c9bb7a104266ebf3d28aa171b9260a92f8cfa9d65730b5595da4b5a"],
+  ["spec/functions/datetime.md", "d6e4058e3a444416fdc5eb07758939c04497513c5f4fa32d07b53e39e09dc65a"],
+  ["test/tests/functions/currency.json", "12c38d70bfea75c016427ad9623122dd19efdd1cb848b72fcf54dd72292abdea"],
+  ["test/tests/functions/date.json", "8b8c76dd1e44b625e97185a04b73f6b416b98931bc1d532325b50f1ff9bfe219"],
+  ["test/tests/functions/datetime.json", "f7f15c40eba40e972a2d84bf9f7e54a12f4d5b7a65ae9b316e8fe7cc2aae20cd"],
+  ["test/tests/functions/integer.json", "bc6f05c8df8252e656cff58f70bdc976fd813f306ab063aac87c474c6f8b58c1"],
+  ["test/tests/functions/number.json", "13fe17281e72a65d0cee73f923077db3d9d2c513cf7b0f2258f657d09b57cc9e"],
+  ["test/tests/functions/offset.json", "e9e3057e12d11028d41c387858e6262c3a1a698018b9f69401d9d37e296e81d5"],
+  ["test/tests/functions/percent.json", "6167bccb70e03c209cc86ea0244197c8138a18271696868ca996c04382756654"],
+  ["test/tests/functions/string.json", "a5d9bedd56a0a5b5de1a90487a21c82f0b8dfe11f18455f9e745b24b0fed800f"],
+  ["test/tests/functions/time.json", "8215b8f822de2750256baf125229c3b80d1f2206e2a5cb8551b6996181e96a50"],
 ]);
 
 const sourceArgument = process.argv.indexOf("--source-dir");

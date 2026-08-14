@@ -1180,7 +1180,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.6.0"
+const CLI_VERSION : String = "0.7.0"
 
 ///|
 fn usage() -> String {
@@ -1188,15 +1188,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.6.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1254,7 +1254,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.6.0\"\n\n" +
+  "version = \"0.7.0\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }

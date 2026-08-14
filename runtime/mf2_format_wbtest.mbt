@@ -35,19 +35,22 @@ fn mf2_resolve_test_string(operand : Mf2ResolvedValue?) -> Mf2ProviderResult {
     )
   }
   let rendered = message_value_to_string(raw)
-  Mf2ProviderValue({
-    raw: Some(TextValue(rendered)),
-    render: () => Ok(rendered),
-    match_key: Some(key => Ok(@normalization.nfc(rendered) == key)),
-    better_than: Some((_left, _right) => Ok(false)),
-    direction: Mf2DirectionUnknown,
-    isolate: false,
-    id: None,
-    options: [],
-    metadata: [],
-    fallback_source: None,
-    function_name: Some("string"),
-  })
+  Mf2ProviderValue(
+    {
+      raw: Some(TextValue(rendered)),
+      render: () => Ok({ value: rendered, parts: [] }),
+      match_key: Some(key => Ok(@normalization.nfc(rendered) == key)),
+      better_than: Some((_left, _right) => Ok(false)),
+      direction: Mf2DirectionUnknown,
+      isolate: false,
+      id: None,
+      options: [],
+      metadata: [],
+      fallback_source: None,
+      function_name: Some("string"),
+    },
+    [],
+  )
 }
 
 ///|
@@ -88,26 +91,29 @@ fn mf2_resolve_test_number(
     }
   }
   let rendered = mf2_test_number_string(number, minimum_fraction_digits)
-  Mf2ProviderValue({
-    raw: Some(DoubleValue(number)),
-    render: () => Ok(rendered),
-    match_key: Some(key => {
-      Ok(
-        match parse_numeric_literal(key) {
-          Some(candidate) => candidate == number
-          None => false
-        },
-      )
-    }),
-    better_than: Some((_left, _right) => Ok(false)),
-    direction,
-    isolate: false,
-    id: None,
-    options: [],
-    metadata: [],
-    fallback_source: None,
-    function_name: Some("number"),
-  })
+  Mf2ProviderValue(
+    {
+      raw: Some(DoubleValue(number)),
+      render: () => Ok({ value: rendered, parts: [] }),
+      match_key: Some(key => {
+        Ok(
+          match parse_numeric_literal(key) {
+            Some(candidate) => candidate == number
+            None => false
+          },
+        )
+      }),
+      better_than: Some((_left, _right) => Ok(false)),
+      direction,
+      isolate: false,
+      id: None,
+      options: [],
+      metadata: [],
+      fallback_source: None,
+      function_name: Some("number"),
+    },
+    [],
+  )
 }
 
 ///|
@@ -156,13 +162,13 @@ fn mf2_resolve_test_function(
     }
   }
   let formatted = mf2_test_number_string(state.input, state.decimal_places)
-  let render : () -> Result[String, Mf2HandlerFailure] = if name ==
+  let render : () -> Result[FormatterOutput, Mf2HandlerFailure] = if name ==
     "test:select" {
     () => Err(Mf2HandlerUnsupported(":test:select is not formattable"))
   } else if state.fails_format {
     () => Err(Mf2HandlerBadOption("test function formatting failed"))
   } else {
-    () => Ok(formatted)
+    () => Ok({ value: formatted, parts: [] })
   }
   let match_key : ((String) -> Result[Bool, Mf2HandlerFailure])? = if name ==
     "test:format" {
@@ -185,24 +191,27 @@ fn mf2_resolve_test_function(
   } else {
     Some((left, _right) => Ok(left == "1.0"))
   }
-  Mf2ProviderValue({
-    raw: Some(DoubleValue(state.input)),
-    render,
-    match_key,
-    better_than,
-    direction: Mf2DirectionUnknown,
-    isolate: false,
-    id: None,
-    options: [],
-    metadata: [
-      { name: "test:input", value: state.input.to_string() },
-      { name: "test:decimalPlaces", value: state.decimal_places.to_string() },
-      { name: "test:failsFormat", value: state.fails_format.to_string() },
-      { name: "test:failsSelect", value: state.fails_select.to_string() },
-    ],
-    fallback_source: None,
-    function_name: Some(name),
-  })
+  Mf2ProviderValue(
+    {
+      raw: Some(DoubleValue(state.input)),
+      render,
+      match_key,
+      better_than,
+      direction: Mf2DirectionUnknown,
+      isolate: false,
+      id: None,
+      options: [],
+      metadata: [
+        { name: "test:input", value: state.input.to_string() },
+        { name: "test:decimalPlaces", value: state.decimal_places.to_string() },
+        { name: "test:failsFormat", value: state.fails_format.to_string() },
+        { name: "test:failsSelect", value: state.fails_select.to_string() },
+      ],
+      fallback_source: None,
+      function_name: Some(name),
+    },
+    [],
+  )
 }
 
 ///|
@@ -465,7 +474,7 @@ test "declaration expressions are evaluated at most once" {
       guard operand is Some(value) else {
         return Mf2ProviderFailure(Mf2HandlerBadOperand("missing operand"))
       }
-      Mf2ProviderValue(value)
+      Mf2ProviderValue(value, [])
     },
   }
   let result = format_mf2_with_provider(

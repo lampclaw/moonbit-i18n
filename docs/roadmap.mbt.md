@@ -278,8 +278,8 @@ and renderer-independent markup/attribute parts. Strict locale APIs use a
 pinned IANA registry for RFC 5646 canonicalization and RFC 4647 lookup while
 the pre-0.6 locale API retains its documented compatibility surface. All 67
 pinned fallback, pattern-selection, bidi, and Unicode-option fixtures pass on
-all four MoonBit backends. The stable default and public function registries
-remain explicitly gated to `0.7.x`.
+all four MoonBit backends. That release deliberately handed the stable default
+and public registry work to the next phase.
 
 - Implement normative declaration resolution, matcher selection, fallback
   values, error categories, and best-effort formatting behavior.
@@ -291,10 +291,16 @@ remain explicitly gated to `0.7.x`.
 
 ### `0.7.x` — default functions and registry
 
+**Status: stable in `0.7.0`.** The profile
+`unicode-mf2-ldml48.2-default-functions-v1` implements all pinned stable
+required functions (`:string`, `:number`, `:integer`, `:offset`, `:currency`,
+and `:percent`) and every required option, operand, selection rule, and output
+boundary. The roadmap-required `:date`, `:time`, and `:datetime` functions are
+implemented but remain explicitly Draft in the pin; Draft `:unit` is deferred.
+All 124 pinned function cases pass with the Node 26 JavaScript provider.
+
 - Implement every function, option, operand, selection rule, and output
-  required by the pinned stable default registry, including `:string`,
-  `:number`, `:integer`, `:date`, `:time`, and `:datetime` when they are in
-  that registry.
+  required by the pinned stable default registry.
 - Define a portable formatter/selector registry interface and a complete
   JavaScript provider backed by `Intl` plus narrowly scoped compatibility
   code where the host lacks required semantics.

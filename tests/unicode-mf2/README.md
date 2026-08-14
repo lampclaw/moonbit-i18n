@@ -7,12 +7,13 @@ The pin is a review reference, not a conformance claim and not a moving branch.
 The project exposes the legacy catalog profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` and the standalone syntax/data
 model profile `unicode-mf2-ldml48.2-syntax-v1`. Their accepted and deferred
-feature groups are machine-readable in `profile.json`. Version 0.6 also exposes
-the standalone resolution-core profile
-`unicode-mf2-ldml48.2-resolution-v1`. Generated fixture tests prove the pinned
-grammar, validity, resolution, fallback, selection, bidi, and Unicode-option
-surfaces. Full formatting conformance is not claimed because the stable default
-registry and its locale-sensitive function fixtures remain the 0.7 phase.
+feature groups are machine-readable in `profile.json`. The standalone profiles
+`unicode-mf2-ldml48.2-resolution-v1` and
+`unicode-mf2-ldml48.2-default-functions-v1` add resolution and the stable
+required registry. Generated fixture tests prove grammar, validity,
+resolution, fallback, selection, bidi, Unicode options, and all 124 pinned
+function cases on the declared backends. Draft date/time support is tracked
+separately and does not expand the stable conformance claim.
 
 When intentionally changing the profile:
 
@@ -26,6 +27,6 @@ references used by automated tests are vendored in `upstream/` under the
 included Unicode License. Run
 `node scripts/sync-mf2-upstream-fixtures.mjs` to reproduce them from the pinned
 commit, then `node scripts/generate-mf2-syntax-tests.mjs` to regenerate the
-syntax tests and `node scripts/generate-mf2-format-tests.mjs` to regenerate the
-resolution tests. The sync script verifies every file's immutable SHA-256
-digest.
+syntax tests, `node scripts/generate-mf2-format-tests.mjs` for resolution, and
+`node scripts/generate-mf2-function-tests.mjs` for the Node 26 function suite.
+The sync script verifies every file's immutable SHA-256 digest.

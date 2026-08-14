@@ -68,6 +68,28 @@ pub(all) struct FormatOption {
 } derive(Eq, Debug)
 
 ///|
+/// One implementation-defined field emitted by a platform formatter.
+///
+/// `kind` follows the host formatter's stable part vocabulary, such as
+/// `integer`, `fraction`, `currency`, `year`, or `literal`. The value remains
+/// inert text and is never interpreted as renderer source.
+pub(all) struct FormatterPart {
+  /// Host formatter part category.
+  kind : String
+  /// Text contributed by this part.
+  value : String
+} derive(Eq, Debug)
+
+///|
+/// One formatted string together with its renderer-independent field parts.
+pub(all) struct FormatterOutput {
+  /// Concatenated formatted text.
+  value : String
+  /// Ordered platform fields whose values concatenate to `value`.
+  parts : Array[FormatterPart]
+} derive(Eq, Debug)
+
+///|
 /// Failure reported by a platform formatter implementation.
 pub(all) enum FormatterIssue {
   /// The selected backend does not implement the requested operation.
@@ -103,6 +125,21 @@ pub(all) struct Formatter {
   ]
   /// Selects a CLDR plural category for a locale and numeric value.
   plural_category : (String, Double, Bool) -> Result[String, FormatterIssue]
+  /// Formats a numeric value and preserves the platform's structured fields.
+  format_number_to_parts : (String, Double, Array[FormatOption]) -> Result[
+    FormatterOutput,
+    FormatterIssue,
+  ]
+  /// Formats an instant or a standards-mode date/time literal with fields.
+  format_datetime_value : (String, MessageValue, Array[FormatOption]) -> Result[
+    FormatterOutput,
+    FormatterIssue,
+  ]
+  /// Selects a plural category after applying resolved numeric options.
+  plural_category_with_options : (String, Double, Bool, Array[FormatOption]) -> Result[
+    String,
+    FormatterIssue,
+  ]
 }
 
 ///|
@@ -125,6 +162,48 @@ pub fn Formatter::basic() -> Formatter {
       )
     },
     plural_category: (_locale, _value, _ordinal) => {
+      Err(
+        UnsupportedOperation(
+          "plural selection requires a CLDR-capable platform formatter",
+        ),
+      )
+    },
+    format_number_to_parts: (_locale, value, options) => {
+      if options.any(option => option.name != "integer") {
+        return Err(
+          UnsupportedOperation(
+            "localized number options require a platform formatter",
+          ),
+        )
+      }
+      let integer = option_value(options, "integer") == Some("true")
+      let formatted = if integer {
+        value.trunc().to_string()
+      } else {
+        value.to_string()
+      }
+      Ok({
+        value: formatted,
+        parts: [
+          {
+            kind: if integer {
+              "integer"
+            } else {
+              "decimal"
+            },
+            value: formatted,
+          },
+        ],
+      })
+    },
+    format_datetime_value: (_locale, _value, _options) => {
+      Err(
+        UnsupportedOperation(
+          "date/time formatting requires a platform formatter",
+        ),
+      )
+    },
+    plural_category_with_options: (_locale, _value, _ordinal, _options) => {
       Err(
         UnsupportedOperation(
           "plural selection requires a CLDR-capable platform formatter",

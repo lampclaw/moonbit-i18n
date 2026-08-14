@@ -6,7 +6,13 @@ import {
 }
 
 // Values
+pub fn format_mf2(String, @runtime.Mf2FormattingContext) -> @runtime.Mf2FormatResult
+
+pub fn format_mf2_model(@runtime.Mf2MessageModel, @runtime.Mf2FormattingContext) -> @runtime.Mf2FormatResult
+
 pub fn formatter() -> @runtime.Formatter
+
+pub fn mf2_registry() -> @runtime.Mf2FunctionRegistry
 
 // Errors
 

@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "generator": "lampclaw/i18n",
-  "generatorVersion": "0.6.0",
+  "generatorVersion": "0.7.0",
   "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
   "inputs": [

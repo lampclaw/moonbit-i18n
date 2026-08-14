@@ -220,8 +220,8 @@ declaration resolution、规范多 selector ranking、best-effort fallback 与 t
 默认 bidi isolation、`u:id`/`u:dir`，以及不绑定 renderer 的 markup/attribute part。
 严格 locale API 使用固定 IANA registry 完成 RFC 5646 canonicalization 与 RFC 4647
 lookup；0.6 之前的 locale API 保留已记录的兼容面。固定上游的 67 个 fallback、
-pattern-selection、bidi 与 Unicode-option fixture 在四个 MoonBit backend 全部通过。稳定
-默认及公开 function registry 仍明确留在 `0.7.x`。
+pattern-selection、bidi 与 Unicode-option fixture 在四个 MoonBit backend 全部通过。
+该版本刻意把 stable 默认与公开 registry 留给下一阶段。
 
 - 实现规范性的 declaration resolution、matcher selection、fallback value、
   error category 和 best-effort formatting 行为。
@@ -232,9 +232,15 @@ pattern-selection、bidi 与 Unicode-option fixture 在四个 MoonBit backend �
 
 ### `0.7.x`——默认函数与 registry
 
+**状态：已在 `0.7.0` 稳定。**
+`unicode-mf2-ldml48.2-default-functions-v1` 实现全部固定 stable required function
+（`:string`、`:number`、`:integer`、`:offset`、`:currency`、`:percent`）及所有 required
+option、operand、selection rule 与 output 边界。路线图要求的 `:date`、`:time`、
+`:datetime` 已实现，但在固定规范中仍明确为 Draft；Draft `:unit` 暂缓。Node 26
+JavaScript provider 通过全部 124 个固定 function case。
+
 - 实现所固定稳定默认 registry 要求的全部 function、option、operand、selection rule
-  和 output behavior，包括该 registry 中的 `:string`、`:number`、`:integer`、
-  `:date`、`:time` 和 `:datetime`。
+  和 output behavior。
 - 定义可移植 formatter/selector registry 接口，以及基于 `Intl` 的完整 JavaScript
   provider；宿主缺少所需语义时，只添加边界清晰的兼容代码。
 - 支持带 namespace 的 custom function，但不能把任何 custom repertoire 纳入 Unicode

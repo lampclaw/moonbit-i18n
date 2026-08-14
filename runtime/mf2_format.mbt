@@ -53,6 +53,7 @@ pub struct Mf2FormattingContext {
   locales : Array[String]
   inputs : Array[Mf2Input]
   direction : Mf2Direction
+  time_zone : String
   fallback : String
   bidi_isolation : Mf2BidiIsolation
 }
@@ -66,6 +67,7 @@ pub fn Mf2FormattingContext::new(
   fallback_locales? : Array[String] = [],
   inputs? : Array[Mf2Input] = [],
   direction? : Mf2Direction = Mf2DirectionUnknown,
+  time_zone? : String = "UTC",
   fallback? : String = "",
   bidi_isolation? : Mf2BidiIsolation = Mf2DefaultBidiIsolation,
 ) -> Result[Mf2FormattingContext, LocaleError] {
@@ -84,7 +86,14 @@ pub fn Mf2FormattingContext::new(
       locales.push(canonical)
     }
   }
-  Ok({ locales, inputs: inputs.copy(), direction, fallback, bidi_isolation })
+  Ok({
+    locales,
+    inputs: inputs.copy(),
+    direction,
+    time_zone,
+    fallback,
+    bidi_isolation,
+  })
 }
 
 ///|
@@ -102,6 +111,12 @@ pub fn Mf2FormattingContext::locales(
 }
 
 ///|
+/// Returns the application-provided default time-zone identifier.
+pub fn Mf2FormattingContext::time_zone(self : Mf2FormattingContext) -> String {
+  self.time_zone
+}
+
+///|
 /// One resolved expression in structured MF2 output.
 pub(all) struct Mf2FormattedExpression {
   /// Formatted or fallback string representation.
@@ -114,6 +129,8 @@ pub(all) struct Mf2FormattedExpression {
   id : String?
   /// Resolved non-`u:` options retained as inert structured data.
   options : Array[FormatOption]
+  /// Ordered platform formatter fields, such as number or date parts.
+  fields : Array[FormatterPart]
   /// Source attributes retained as inert structured data.
   attributes : Array[Mf2ModelAttribute]
   /// Whether `value` is the braces-included normative fallback rendering.
@@ -180,7 +197,7 @@ priv struct Mf2ResolvedOption {
 ///|
 priv struct Mf2ResolvedValue {
   raw : MessageValue?
-  render : () -> Result[String, Mf2HandlerFailure]
+  render : () -> Result[FormatterOutput, Mf2HandlerFailure]
   match_key : ((String) -> Result[Bool, Mf2HandlerFailure])?
   better_than : ((String, String) -> Result[Bool, Mf2HandlerFailure])?
   direction : Mf2Direction
@@ -196,13 +213,14 @@ priv struct Mf2ResolvedValue {
 priv struct Mf2FunctionContext {
   locales : Array[String]
   direction : Mf2Direction
+  time_zone : String
 }
 
 ///|
 priv enum Mf2ProviderResult {
   Mf2ProviderUnknown
   Mf2ProviderFailure(Mf2HandlerFailure)
-  Mf2ProviderValue(Mf2ResolvedValue)
+  Mf2ProviderValue(Mf2ResolvedValue, Array[Mf2HandlerFailure])
 }
 
 ///|
@@ -216,56 +234,15 @@ priv struct Mf2FunctionProvider {
 }
 
 ///|
-fn mf2_empty_provider() -> Mf2FunctionProvider {
-  {
-    resolve: (context, _name, operand, options) => {
-      mf2_provider_contract_probe(context, operand, options)
-      Mf2ProviderUnknown
-    },
-  }
-}
-
-///|
-fn mf2_provider_contract_probe(
-  context : Mf2FunctionContext,
-  operand : Mf2ResolvedValue?,
-  options : Array[Mf2ResolvedOption],
-) -> Unit {
-  // These fields and error variants form the package-private 0.6 seam used by
-  // conformance providers. The public registry contract is deliberately held
-  // for 0.7, but deny-warn builds still need the full seam type-checked.
-  ignore(context.locales.length())
-  ignore(context.direction)
-  match operand {
-    Some(value) => ignore(value.metadata.length())
-    None => ()
-  }
-  for option in options {
-    ignore(option.literal)
-  }
-  if false {
-    ignore(Mf2ProviderFailure(Mf2HandlerBadOperand("")))
-    ignore(Mf2ProviderFailure(Mf2HandlerBadOption("")))
-    ignore(Mf2ProviderFailure(Mf2HandlerBadSelector("")))
-    ignore(Mf2ProviderFailure(Mf2HandlerBadVariantKey("")))
-    ignore(Mf2ProviderFailure(Mf2HandlerUnsupported("")))
-    ignore(Mf2ProviderFailure(Mf2HandlerFormatting("")))
-    ignore(
-      Mf2ProviderValue(mf2_plain_resolved(TextValue(""), Mf2DirectionUnknown)),
-    )
-  }
-}
-
-///|
-/// Parses, validates, and best-effort formats source using the standalone
-/// resolution profile. Until the default registry lands in 0.7, annotated
-/// functions resolve as `unknown-function`; literal/variable resolution,
-/// fallback, markup, attributes, and bidi behavior are fully available.
+/// Parses, validates, and best-effort formats source using the portable
+/// pinned default registry. Locale-neutral string and basic numeric behavior
+/// is available on every target; CLDR-dependent operations report an explicit
+/// unsupported-operation error unless a platform registry is supplied.
 pub fn format_mf2_standalone(
   source : String,
   context : Mf2FormattingContext,
 ) -> Mf2FormatResult {
-  format_mf2_with_provider(source, context, mf2_empty_provider())
+  format_mf2(source, context, Mf2FunctionRegistry::portable())
 }
 
 ///|
@@ -275,7 +252,7 @@ pub fn format_mf2_model_standalone(
   model : Mf2MessageModel,
   context : Mf2FormattingContext,
 ) -> Mf2FormatResult {
-  format_mf2_model_with_provider(model, context, mf2_empty_provider())
+  format_mf2_model(model, context, Mf2FunctionRegistry::portable())
 }
 
 ///|
@@ -404,7 +381,7 @@ fn mf2_plain_resolved(
   let rendered = message_value_to_string(value)
   {
     raw: Some(value),
-    render: () => Ok(rendered),
+    render: () => Ok({ value: rendered, parts: [] }),
     match_key: None,
     better_than: None,
     direction,
@@ -422,7 +399,7 @@ fn mf2_fallback_resolved(source : String) -> Mf2ResolvedValue {
   let rendered = "{" + source + "}"
   {
     raw: None,
-    render: () => Ok(rendered),
+    render: () => Ok({ value: rendered, parts: [] }),
     match_key: None,
     better_than: None,
     direction: Mf2DirectionUnknown,
@@ -450,7 +427,8 @@ fn mf2_resolve_variable(
   match resolved {
     Some(value) =>
       if value.fallback_source is Some(_) {
-        mf2_fallback_resolved("$" + name)
+        let fallback = mf2_fallback_resolved("$" + name)
+        { ..fallback, function_name: value.function_name }
       } else {
         value
       }
@@ -493,13 +471,20 @@ fn mf2_resolve_expression(
     Some(function_ref) => {
       match operand {
         Some(value) if value.fallback_source is Some(_) => {
-          errors.push({
-            kind: Mf2FormattingError,
-            code: Mf2BadOperandCode,
-            message: "MF2 function operand did not resolve: :\{function_ref.name}",
-            offset: expression.offset,
-          })
-          return mf2_expression_fallback(expression)
+          if function_ref.name != "string" {
+            errors.push({
+              kind: Mf2FormattingError,
+              code: Mf2BadOperandCode,
+              message: "MF2 function operand did not resolve: :\{function_ref.name}",
+              offset: expression.offset,
+            })
+          }
+          let fallback = mf2_expression_fallback(expression)
+          return if function_ref.name == "string" {
+            { ..fallback, function_name: Some("string") }
+          } else {
+            fallback
+          }
         }
         _ => ()
       }
@@ -528,6 +513,7 @@ fn mf2_resolve_expression(
       let function_context = Mf2FunctionContext::{
         locales: context.locales.copy(),
         direction: base_direction,
+        time_zone: context.time_zone,
       }
       let provided = (provider.resolve)(
         function_context,
@@ -549,7 +535,12 @@ fn mf2_resolve_expression(
           mf2_push_handler_failure(errors, failure, expression.offset)
           return mf2_expression_fallback(expression)
         }
-        Mf2ProviderValue(value) => value
+        Mf2ProviderValue(value, issues) => {
+          for issue in issues {
+            mf2_push_handler_failure(errors, issue, expression.offset)
+          }
+          value
+        }
       }
       {
         ..value,
@@ -622,7 +613,7 @@ fn mf2_resolve_options(
           Some(raw) => message_value_to_string(raw)
           None =>
             match (resolved.render)() {
-              Ok(value) => value
+              Ok(output) => output.value
               Err(failure) => {
                 mf2_push_handler_failure(errors, failure, offset)
                 errors.push({
@@ -736,6 +727,11 @@ fn mf2_push_handler_failure(
     Mf2HandlerFormatting(message) =>
       (Mf2FormattingError, Mf2FormattingCode, message)
   }
+  if errors.any(error => {
+      error.code == code && error.message == message && error.offset == offset
+    }) {
+    return
+  }
   errors.push({ kind, code, message, offset })
 }
 
@@ -760,6 +756,7 @@ fn mf2_message_fallback(
         direction: Mf2DirectionUnknown,
         id: None,
         options: [],
+        fields: [],
         attributes: [],
         fallback: true,
       }),
@@ -780,10 +777,13 @@ fn mf2_select_pattern(
   for name in selector_names {
     let value = mf2_resolve_variable(name, bindings, inputs, 0, errors)
     if value.fallback_source is Some(_) || value.match_key is None {
-      mf2_push_bad_selector_once(
-        errors,
-        "MF2 selector does not support selection: $\{name}",
-      )
+      if !(value.fallback_source is Some(_) &&
+        value.function_name == Some("string")) {
+        mf2_push_bad_selector_once(
+          errors,
+          "MF2 selector does not support selection: $\{name}",
+        )
+      }
       selectors.push(None)
     } else {
       selectors.push(Some(value))
@@ -826,10 +826,8 @@ fn mf2_variant_matches(
         match match_key(@normalization.nfc(key)) {
           Ok(true) => ()
           Ok(false) => return false
-          Err(_) => {
-            mf2_push_bad_selector_once(
-              errors, "MF2 selector failed while matching variant keys",
-            )
+          Err(failure) => {
+            mf2_push_handler_failure(errors, failure, 0)
             return false
           }
         }
@@ -863,10 +861,8 @@ fn mf2_variant_better(
         guard selector.better_than is Some(better_than) else { return false }
         match better_than(left_normalized, right_normalized) {
           Ok(value) => return value
-          Err(_) => {
-            mf2_push_bad_selector_once(
-              errors, "MF2 selector failed while ranking variant keys",
-            )
+          Err(failure) => {
+            mf2_push_handler_failure(errors, failure, 0)
             return false
           }
         }
@@ -915,16 +911,16 @@ fn mf2_format_pattern(
         let resolved = mf2_resolve_expression(
           expression, bindings, inputs, context, provider, errors,
         )
-        let (formatted_value, final_value) = match (resolved.render)() {
-          Ok(value) => (value, resolved)
+        let (formatted, final_value) = match (resolved.render)() {
+          Ok(output) => (output, resolved)
           Err(failure) => {
             mf2_push_handler_failure(errors, failure, expression.offset)
             let fallback = mf2_expression_fallback(expression)
-            let value = match (fallback.render)() {
+            let output = match (fallback.render)() {
               Ok(value) => value
-              Err(_) => "{�}"
+              Err(_) => FormatterOutput::{ value: "{�}", parts: [] }
             }
-            (value, fallback)
+            (output, fallback)
           }
         }
         let isolation = mf2_bidi_start(final_value, context)
@@ -935,10 +931,10 @@ fn mf2_format_pattern(
           }
           None => ()
         }
-        out.write_string(formatted_value)
+        out.write_string(formatted.value)
         parts.push(
           Mf2FormattedExpressionPart({
-            value: formatted_value,
+            value: formatted.value,
             function_name: match final_value.function_name {
               Some(name) => Some(name)
               None =>
@@ -950,6 +946,7 @@ fn mf2_format_pattern(
             direction: final_value.direction,
             id: final_value.id,
             options: final_value.options.copy(),
+            fields: formatted.parts.copy(),
             attributes: expression.attributes.copy(),
             fallback: final_value.fallback_source is Some(_),
           }),

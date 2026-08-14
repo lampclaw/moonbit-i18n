@@ -9,6 +9,7 @@ import {
 options(
   targets: {
     "formatter.mbt": [ "js" ],
+    "mf2_upstream_functions_test.mbt": [ "js" ],
     "formatter_portable.mbt": [ "native", "wasm", "wasm-gc", "llvm" ],
   },
 )
