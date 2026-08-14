@@ -1,6 +1,6 @@
 name = "lampclaw/i18n"
 
-version = "0.1.0"
+version = "0.2.0"
 
 preferred_target = "native"
 

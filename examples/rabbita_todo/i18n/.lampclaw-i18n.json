@@ -1,6 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
   "generator": "lampclaw/i18n",
   "kind": "package",
-  "files": ["generated.mbt", "moon.pkg"]
+  "files": ["generated.mbt", "moon.pkg", "generation-manifest.json"]
 }

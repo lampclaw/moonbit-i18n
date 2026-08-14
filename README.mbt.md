@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.1.0` ships one module containing the runtime, generator, and a
+MoonBit. `0.2.0` ships one module containing the runtime, generator, and a
 portable `moonx` CLI. Generated application facades currently target
 JavaScript and use the host's `Intl` implementation behind a `Result` boundary.
 
@@ -14,8 +14,9 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.1.0` is the stable Web/JavaScript strict-v1 baseline, not a prototype and
-not a claim of complete Unicode MessageFormat 2 conformance. The public
+`0.2.0` is the stable authoring-and-diagnostics release on top of the
+Web/JavaScript strict-v1 runtime baseline. It is not a prototype and not a
+claim of complete Unicode MessageFormat 2 conformance. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
 current Web profile through authoring and delivery improvements to full MF2 on
 the JavaScript backend. The
@@ -30,18 +31,32 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.1.0
+moon add lampclaw/i18n@0.2.0
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.2.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.1.0` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.2.0` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.1.0`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.2.0`; it is named `moon-i18n`.
+
+Create a complete bilingual JavaScript module in a path that does not yet
+exist:
+
+~~~bash
+moonx lampclaw/i18n/cmd/i18n@0.2.0 scaffold acme/hello ./hello
+cd hello
+moon update
+moon run --target js main
+~~~
+
+The scaffold refuses every existing destination, including a non-empty or
+unowned directory. It stages all source and generated files beside the final
+path and publishes them with one rename.
 
 This is intentionally a single published module. Consequently `moon add`
 resolves the exact parser and async dependencies used by the CLI even when an
@@ -60,6 +75,7 @@ app/
 │       └── zh-CN.json
 ├── i18n/                 # fully generated MoonBit package
 │   ├── generated.mbt
+│   ├── generation-manifest.json
 │   └── moon.pkg
 └── main/
     ├── main.mbt
@@ -121,14 +137,14 @@ downloaded later and installed dynamically.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.2.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.2.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -141,9 +157,13 @@ Generation validates ownership, locks both absolute destination paths, stages
 both destinations, and swaps them as one recoverable transaction. It refuses
 symlinks or unowned content and removes stale generated catalogs. `check` is
 read-only and detects source, manifest, catalog, ownership, and file-set drift.
+When every byte and expected file already matches, `generate` returns without
+creating a stage, journal, or replacement directory.
 
 Commit the generated package, catalogs, and `.lampclaw-i18n.json` ownership
-manifests. Persistent SHA-256-named `*.lampclaw.lock` files coordinate each
+manifests. Commit `generation-manifest.json` too: its versioned contract records
+relative input/output paths, byte counts, SHA-256 hashes, the message profile,
+and the typed contract hash. Persistent SHA-256-named `*.lampclaw.lock` files coordinate each
 absolute destination from the user cache rather than either output tree. Set
 `LAMPCLAW_I18N_STATE_DIR` to override that state location. The generated package
 also tells `moon fmt` to skip `generated.mbt`, because its output is normalized
@@ -152,6 +172,12 @@ by the pinned CLI formatter.
 Use `--allow-partial` while translating non-source locales below the configured
 coverage threshold. Source and fallback locales always remain complete; empty
 or whitespace-only messages count as untranslated.
+
+Append `--diagnostic-format=json` to any command for the versioned CI/editor
+form. Generation failures otherwise use the human form
+`path:line:column: error[CODE]: message`. Both forms carry stable codes,
+source paths, and half-open spans. See the
+[diagnostic contract](docs/diagnostics.mbt.md).
 
 ## Application use
 
@@ -218,7 +244,7 @@ message, and 64 parameters or declared rich tags per generated message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.2.0/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

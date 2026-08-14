@@ -1,0 +1,59 @@
+{
+  "manifestVersion": 1,
+  "generator": "lampclaw/i18n",
+  "generatorVersion": "0.2.0",
+  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
+  "inputs": [
+    {
+      "kind": "config",
+      "path": "config.json",
+      "sha256": "e3560b3cfd8905c54673bf3363d703590aac5df3feb9f040918cf70eb9fee6b3",
+      "bytes": 279
+    },
+    {
+      "kind": "schema",
+      "path": "schema.json",
+      "sha256": "aa7b4279584293a5fcce09eb51b130db9000b60e3dba193db40c0fd0e8d98ce4",
+      "bytes": 1538
+    },
+    {
+      "kind": "locale",
+      "path": "locales/en-US.json",
+      "sha256": "3bda5e7282e09d96adaba284021e11dd82aec285973a5027cff40735427b2f4b",
+      "bytes": 1115
+    },
+    {
+      "kind": "locale",
+      "path": "locales/zh-CN.json",
+      "sha256": "66e7646962613b891c5bb903b696bd5faa7dd48a100fd2696565f4d620032654",
+      "bytes": 1155
+    }
+  ],
+  "outputs": [
+    {
+      "kind": "moonbit",
+      "path": "../i18n/generated.mbt",
+      "sha256": "8d3f3339f3fbb6b32bfb484dd0d4a61e582f59feffa873dff03237877a2cd203",
+      "bytes": 12527
+    },
+    {
+      "kind": "moon-package",
+      "path": "../i18n/moon.pkg",
+      "sha256": "9be1022245693d327e05a341d8b9d5ab58217e6ed2584b65c97bbc0c16b5075e",
+      "bytes": 199
+    },
+    {
+      "kind": "catalog",
+      "path": "../public/i18n/en-US.json",
+      "sha256": "4afba415ce970630aa4d49cb037fbcaacb3d9d70cb29866a604797686fc8cdf8",
+      "bytes": 1512
+    },
+    {
+      "kind": "catalog",
+      "path": "../public/i18n/zh-CN.json",
+      "sha256": "9e5b255f009137ef8e3e8ce2e62fefa9a2166c50aae65549978f5acdb6790ccf",
+      "bytes": 1552
+    }
+  ]
+}

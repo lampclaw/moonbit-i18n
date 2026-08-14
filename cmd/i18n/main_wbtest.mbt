@@ -61,6 +61,7 @@ fn test_transaction_state(
     catalog_dir,
     code: "",
     package_manifest: "",
+    generation_manifest: "",
     catalog_names: [],
     catalog_contents: [],
   }
@@ -90,8 +91,48 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.1.0"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.2.0"))
+  assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
+}
+
+///|
+test "CLI diagnostic rendering is stable and machine readable" {
+  let diagnostic = cli_diagnostic("bad command", ["generate", "config.json"])
+  assert_eq(diagnostic.code, "I18N0001")
+  assert_eq(diagnostic.path, "config.json")
+  let envelope = diagnostic_envelope(diagnostic)
+  assert_true(
+    render_cli_error(envelope, ["generate", "--diagnostic-format=json"]).contains(
+      "\"diagnosticVersion\": 1",
+    ),
+  )
+  assert_true(
+    render_cli_error(envelope, ["generate"]).contains("error[I18N0001]"),
+  )
+}
+
+///|
+async test "scaffold creates one safe canonical bilingual module" {
+  assert_true(valid_module_name("example/hello"))
+  assert_false(valid_module_name("example"))
+  assert_false(valid_module_name("../hello"))
+  assert_false(valid_module_name("example/bad.name"))
+  let root = transaction_test_root()
+  let destination = path_join(root, "app")
+  run_scaffold(["scaffold", "example/hello", destination])
+  assert_true(file_exists(path_join(destination, "moon.mod")))
+  assert_true(file_exists(path_join(destination, "i18n/generated.mbt")))
+  assert_true(
+    read_file(path_join(destination, "i18n/generation-manifest.json")).contains(
+      "\"manifestVersion\": 1",
+    ),
+  )
+  expect_cli_error(
+    () => run_scaffold(["scaffold", "example/hello", destination]),
+    "refusing to overwrite existing scaffold destination",
+  )
+  transaction_test_remove(root)
 }
 
 ///|
@@ -213,6 +254,7 @@ test "transaction path and artifact validation rejects unsafe inputs" {
       catalog_dir: path_join(package_dir, "catalogs"),
       code: "",
       package_manifest: "",
+      generation_manifest: "",
       catalog_names: [],
       catalog_contents: [],
     },
@@ -224,6 +266,7 @@ test "transaction path and artifact validation rejects unsafe inputs" {
       catalog_dir,
       code: "",
       package_manifest: "",
+      generation_manifest: "",
       catalog_names: ["en-US.json"],
       catalog_contents: [],
     },
@@ -235,6 +278,7 @@ test "transaction path and artifact validation rejects unsafe inputs" {
       catalog_dir,
       code: "",
       package_manifest: "",
+      generation_manifest: "",
       catalog_names: ["../escape.json"],
       catalog_contents: ["{}"],
     },
@@ -246,6 +290,7 @@ test "transaction path and artifact validation rejects unsafe inputs" {
       catalog_dir,
       code: "",
       package_manifest: "",
+      generation_manifest: "",
       catalog_names: ["en.json", "en.json"],
       catalog_contents: ["{}", "{}"],
     },
@@ -302,6 +347,43 @@ async test "generation transaction owns outputs and removes stale catalogs" {
 }
 
 ///|
+async test "unchanged generation is a true no-op" {
+  let root = transaction_test_root()
+  let package_dir = path_join(root, "package")
+  let catalog_dir = path_join(root, "catalogs")
+  let marker = test_generated_marker()
+  let code = marker + "///|\npub fn value() -> Int { 1 }\n"
+  let package_manifest = marker + "import {}\n"
+  let generation_manifest = "{\"manifestVersion\":1}\n"
+  write_generated_transaction(
+    package_dir,
+    catalog_dir,
+    code,
+    package_manifest,
+    ["en-US.json"],
+    ["en"],
+    generation_manifest~,
+  )
+  let interface_path = path_join(package_dir, "pkg.generated.mbti")
+  write_file(interface_path, "interface-marker")
+  write_generated_transaction(
+    package_dir,
+    catalog_dir,
+    code,
+    package_manifest,
+    ["en-US.json"],
+    ["en"],
+    generation_manifest~,
+  )
+  assert_eq(read_file(interface_path), "interface-marker")
+  assert_eq(
+    read_file(path_join(package_dir, "generation-manifest.json")),
+    generation_manifest,
+  )
+  transaction_test_remove(root)
+}
+
+///|
 async test "generation safely adopts recognized legacy outputs" {
   let root = transaction_test_root()
   let package_dir = path_join(root, "package")
@@ -344,6 +426,18 @@ async test "generation rejects malformed ownership and unrecognized legacy data"
   expect_cli_error(
     () => verify_generated_directory(package_dir, "package"),
     "invalid generated-directory ownership manifest",
+  )
+  transaction_test_remove(package_dir)
+  @fs.mkdir(package_dir)
+  write_file(path_join(package_dir, "generated.mbt"), test_generated_marker())
+  write_file(path_join(package_dir, "moon.pkg"), test_generated_marker())
+  write_file(
+    path_join(package_dir, "generation-manifest.json"),
+    "{\"manifestVersion\":1,\"generator\":\"someone/else\"}",
+  )
+  expect_cli_error(
+    () => verify_generated_directory(package_dir, "package"),
+    "refusing to overwrite unowned i18n file",
   )
   transaction_test_remove(package_dir)
   @fs.mkdir(package_dir)

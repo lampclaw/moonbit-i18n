@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.1.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
+`0.2.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
 facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
@@ -12,8 +12,8 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.1.0` 是稳定的 Web/JavaScript strict-v1 基线，不是原型，也不表示完整通过
-Unicode MessageFormat 2。公开的
+`0.2.0` 是建立在 Web/JavaScript strict-v1 runtime 基线之上的稳定 authoring 与
+diagnostics 版本。它不是原型，也不表示完整通过 Unicode MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
@@ -26,19 +26,31 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.1.0
+moon add lampclaw/i18n@0.2.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.2.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.1.0` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.2.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.1.0` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.2.0` 全局安装，命令名为
 `moon-i18n`。
+
+在尚不存在的路径中创建完整双语言 JavaScript 模块：
+
+~~~bash
+moonx lampclaw/i18n/cmd/i18n@0.2.0 scaffold acme/hello ./hello
+cd hello
+moon update
+moon run --target js main
+~~~
+
+scaffold 会拒绝任何已经存在的目标，包括非空或不归工具所有的目录。它先在目标旁边
+暂存全部源文件和生成文件，再通过一次 rename 发布。
 
 本项目刻意只发布一个模块。因此，即使应用只导入 runtime，`moon add` 也会解析 CLI
 使用的精确 parser/async 依赖；只要可达的应用 package 没有导入它们，它们不会链接
@@ -56,6 +68,7 @@ app/
 │       └── zh-CN.json
 ├── i18n/                 # 完全生成的 MoonBit package
 │   ├── generated.mbt
+│   ├── generation-manifest.json
 │   └── moon.pkg
 └── main/
     ├── main.mbt
@@ -113,14 +126,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.1.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.2.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.1.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.2.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -132,15 +145,23 @@ moonx lampclaw/i18n/cmd/i18n@0.1.0 check \
 两个绝对目标路径、暂存两个目标，再以可恢复事务一起切换；它拒绝 symlink 或非自身
 内容，并删除过期 catalog。`check` 只读，会检测源码、manifest、catalog、所有权和
 文件集合漂移。
+当每个字节和预期文件都一致时，`generate` 不会创建 stage、journal 或替换目录，
+而是真正的 no-op。
 
 生成的 package、catalog 和 `.lampclaw-i18n.json` 所有权 manifest 应提交到版本
-控制。以 SHA-256 命名的持久 `*.lampclaw.lock` 在用户 cache 中分别协调每个绝对
+控制；`generation-manifest.json` 也应提交，它以版本化契约记录输入/输出相对路径、
+字节数、SHA-256、message profile 和类型契约 hash。以 SHA-256 命名的持久
+`*.lampclaw.lock` 在用户 cache 中分别协调每个绝对
 目标，而不会落入任何输出目录；可用 `LAMPCLAW_I18N_STATE_DIR` 覆盖状态位置。生成
 package 也会让 `moon fmt` 跳过 `generated.mbt`，因为它已经由固定版本的 CLI
 formatter 规范化。
 
 翻译期间，非 source locale 未达到覆盖率时可用 `--allow-partial`。source 与 fallback
 locale 始终必须完整；空字符串或只有空白的消息视为未翻译。
+
+在任意命令后追加 `--diagnostic-format=json` 可获得版本化的 CI/editor 格式；默认的
+人类可读形式是 `path:line:column: error[CODE]: message`。两种形式都携带稳定 code、
+源路径和半开 span。详见[诊断契约](docs/diagnostics.zh-CN.mbt.md)。
 
 ## 应用使用
 
@@ -201,7 +222,7 @@ MessageFormat 2。精确能力矩阵和固定上游快照见
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.2.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

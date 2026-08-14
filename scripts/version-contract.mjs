@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const mode = process.argv[2] ?? "check";
 const requestedVersion = process.argv[3];
-const allowedVersion = /^0\.1\.0(?:-rc\.[1-9][0-9]*)?$/u;
+const allowedVersion = /^0\.[0-9]+\.[0-9]+(?:-rc\.[1-9][0-9]*)?$/u;
 
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 const write = (path, source) => writeFileSync(resolve(root, path), source);
@@ -23,8 +23,6 @@ const activeFiles = [
   "cmd/i18n/main_wbtest.mbt",
   "docs/mf2-profile.mbt.md",
   "docs/mf2-profile.zh-CN.mbt.md",
-  "docs/roadmap.mbt.md",
-  "docs/roadmap.zh-CN.mbt.md",
   "docs/runtime-spi.mbt.md",
   "docs/runtime-spi.zh-CN.mbt.md",
   "examples/rabbita_todo/README.mbt.md",
