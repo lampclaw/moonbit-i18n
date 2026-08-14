@@ -148,11 +148,14 @@ jobs:
           fi
           printf '%s\n' "$package_list" | grep -q '^runtime/message.mbt$'
           printf '%s\n' "$package_list" | grep -q '^generator/generate.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^generator/interchange.mbt$'
           printf '%s\n' "$package_list" | grep -q '^cmd/i18n/main.mbt$'
           printf '%s\n' "$package_list" | grep -q '^docs/roadmap.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/roadmap.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/support-policy.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/support-policy.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.zh-CN.mbt.md$'
 
       - name: Generated and interface drift
         run: |

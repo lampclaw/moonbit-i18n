@@ -18,6 +18,8 @@ pub const I18N_MAX_TOTAL_LOCALE_BYTES : Int = 67108864
 
 pub fn export_xliff(String, String, String, String, String?) -> Result[String, String]
 
+pub fn export_xliff_with_state(String, String, String, String, String?, String?) -> Result[String, String]
+
 pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -> Result[Artifacts, String]
 
 pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
@@ -26,7 +28,13 @@ pub fn generate_with_diagnostics(String, String, Array[LocaleSource], config_pat
 
 pub fn generated_package_manifest() -> String
 
+pub fn import_flutter_arb(String, String, String) -> Result[LocaleMigrationArtifacts, String]
+
+pub fn import_i18next_json(String, String, String) -> Result[LocaleMigrationArtifacts, String]
+
 pub fn import_xliff(String, String, String, String, String) -> Result[String, String]
+
+pub fn import_xliff_with_state(String, String, String, String, String, String?) -> Result[XliffImportArtifacts, String]
 
 pub fn parse_config(String) -> Result[I18nConfig, String]
 
@@ -84,6 +92,11 @@ pub(all) struct LocaleConfig {
   direction : String
 } derive(Eq, @debug.Debug)
 
+pub(all) struct LocaleMigrationArtifacts {
+  locale_source : String
+  report : String
+} derive(Eq, @debug.Debug)
+
 pub(all) struct LocaleResource {
   locale : String
   entries : Array[Entry]
@@ -114,6 +127,12 @@ pub(all) struct SourcePosition {
 pub(all) struct SourceSpan {
   start : SourcePosition
   end : SourcePosition
+} derive(Eq, @debug.Debug)
+
+pub(all) struct XliffImportArtifacts {
+  locale_source : String
+  exchange_state : String
+  report : String
 } derive(Eq, @debug.Debug)
 
 // Type aliases

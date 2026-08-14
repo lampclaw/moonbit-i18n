@@ -27,7 +27,8 @@ test "strict XLIFF 2.1 export and import preserve MF2 messages" {
   assert_true(xliff.contains("version=\"2.1\""))
   assert_true(xliff.contains("srcLang=\"en-US\""))
   assert_true(xliff.contains("trgLang=\"zh-CN\""))
-  assert_true(xliff.contains("<note>Greeting &lt;shown&gt;</note>"))
+  assert_true(xliff.contains("category=\"description\""))
+  assert_true(xliff.contains("Greeting &lt;shown&gt;</note>"))
   guard import_xliff(tooling_schema, "en-US", tooling_source, "zh-CN", xliff)
     is Ok(imported) else {
     fail("XLIFF import should succeed")
