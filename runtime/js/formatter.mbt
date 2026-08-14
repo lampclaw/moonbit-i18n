@@ -4,6 +4,7 @@ extern "js" fn format_number_parts_js(
   value : Double,
   names : Array[String],
   values : Array[String],
+  include_parts : Bool,
 ) -> Array[String] =
   #| (() => {
   #|   const cache = new Map()
@@ -25,7 +26,7 @@ extern "js" fn format_number_parts_js(
   #|     parts.map(part => part.value).join(""),
   #|     ...parts.flatMap(part => [part.type, part.value]),
   #|   ]
-  #|   return (locale, value, names, values) => {
+  #|   return (locale, value, names, values, includeParts) => {
   #|     let canonical
   #|     try {
   #|       canonical = Intl.getCanonicalLocales(locale)[0]
@@ -94,6 +95,9 @@ extern "js" fn format_number_parts_js(
   #|       }
   #|       const key = `${canonical}\u0000${JSON.stringify(options)}`
   #|       const instance = get(key, () => new Intl.NumberFormat(canonical, options))
+  #|       if (!includeParts && !hideCurrency) {
+  #|         return ["ok", instance.format(value)]
+  #|       }
   #|       let parts = instance.formatToParts(value)
   #|       if (hideCurrency) {
   #|         const remove = new Set()
@@ -125,6 +129,7 @@ extern "js" fn format_datetime_parts_js(
   raw_value : String,
   names : Array[String],
   values : Array[String],
+  include_parts : Bool,
 ) -> Array[String] =
   #| (() => {
   #|   const cache = new Map()
@@ -189,7 +194,7 @@ extern "js" fn format_datetime_parts_js(
   #|     }
   #|     return new Date(guess)
   #|   }
-  #|   return (locale, kind, rawValue, names, values) => {
+  #|   return (locale, kind, rawValue, names, values, includeParts) => {
   #|     let canonical
   #|     try {
   #|       canonical = Intl.getCanonicalLocales(locale)[0]
@@ -258,6 +263,7 @@ extern "js" fn format_datetime_parts_js(
   #|       if (options.timeZone === undefined) options.timeZone = "UTC"
   #|       const key = `${canonical}\u0000${JSON.stringify(options)}`
   #|       const instance = get(key, () => new Intl.DateTimeFormat(canonical, options))
+  #|       if (!includeParts) return ["ok", instance.format(date)]
   #|       const parts = instance.formatToParts(date)
   #|       return [
   #|         "ok",
@@ -379,6 +385,24 @@ fn number_parts(
       value,
       options.map(option => option.name),
       options.map(option => option.value),
+      true,
+    ),
+  )
+}
+
+///|
+fn number_text(
+  locale : String,
+  value : Double,
+  options : Array[@runtime.FormatOption],
+) -> Result[String, @runtime.FormatterIssue] {
+  formatter_result(
+    format_number_parts_js(
+      locale,
+      value,
+      options.map(option => option.name),
+      options.map(option => option.value),
+      false,
     ),
   )
 }
@@ -406,6 +430,25 @@ fn datetime_parts(
       raw,
       options.map(option => option.name),
       options.map(option => option.value),
+      true,
+    ),
+  )
+}
+
+///|
+fn datetime_text(
+  locale : String,
+  value : Int64,
+  options : Array[@runtime.FormatOption],
+) -> Result[String, @runtime.FormatterIssue] {
+  formatter_result(
+    format_datetime_parts_js(
+      locale,
+      "instant",
+      value.to_string(),
+      options.map(option => option.name),
+      options.map(option => option.value),
+      false,
     ),
   )
 }
@@ -433,16 +476,10 @@ fn plural_result(
 pub fn formatter() -> @runtime.Formatter {
   {
     format_number: (locale, value, options) => {
-      match number_parts(locale, value, options) {
-        Ok(output) => Ok(output.value)
-        Err(issue) => Err(issue)
-      }
+      number_text(locale, value, options)
     },
     format_datetime: (locale, value, options) => {
-      match datetime_parts(locale, @runtime.InstantMillis(value), options) {
-        Ok(output) => Ok(output.value)
-        Err(issue) => Err(issue)
-      }
+      datetime_text(locale, value, options)
     },
     plural_category: (locale, value, ordinal) => {
       plural_result(locale, value, ordinal, [])
