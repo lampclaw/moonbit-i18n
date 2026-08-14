@@ -2,7 +2,7 @@
 
 [English](mf2-profile.mbt.md)
 
-`0.1.0` 使用 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。这是一个从
+`0.2.0` 使用 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。这是一个从
 MessageFormat 2 概念派生、带版本的项目 profile，不表示完整通过 Unicode
 MessageFormat 2。
 
@@ -12,7 +12,7 @@ MessageFormat 2。
 
 ## 兼容矩阵
 
-| 领域 | `0.1.0` 契约 |
+| 领域 | `0.2.0` 契约 |
 |---|---|
 | Pattern 与 literal | 文本、转义、quoted literal 和 profile 支持的 unquoted literal 语法 |
 | 变量 | 生成的 `String`、`Int`、`Double`、`Bool`、`InstantMillis` 类型契约 |

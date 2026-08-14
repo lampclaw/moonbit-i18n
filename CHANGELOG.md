@@ -6,8 +6,25 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-14
+
+### Added
+
+- Atomic `scaffold` authoring flow for a canonical English/Chinese JavaScript
+  module; existing destinations are never overwritten.
+- Stable structured diagnostics with codes, source paths, half-open spans,
+  terminal output, versioned JSON output, and an in-memory generator API.
+- Versioned deterministic generation manifests containing relative
+  input/output paths, byte counts, SHA-256 hashes, the profile, and contract
+  hash.
+
 ### Changed
 
+- Unchanged generation is now a locked true no-op: it creates no stage or
+  journal, preserves generated interfaces, and performs no directory swap.
+- Stable release tooling, exact-version checks, and Registry smoke tag
+  dispatch now accept every planned `0.x` minor instead of being hardcoded to
+  `0.1.0`.
 - Post-release engineering, browser, Registry smoke, and consumer product
   gates now use Node.js 26.7.0 exclusively; the redundant Node.js 24 matrix is
   no longer maintained.
@@ -92,7 +109,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...v0.1.0
 [0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...v0.1.0-rc.3
 [0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...v0.1.0-rc.2

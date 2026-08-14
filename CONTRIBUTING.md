@@ -58,12 +58,12 @@ Generated files are updated only through `cmd/i18n`; never hand-edit a
 generated facade, catalog, or ownership manifest. Run `moon info` last when a
 public interface changes and commit the resulting `pkg.generated.mbti` files.
 
-After publishing a release candidate, dispatch the `Registry smoke` workflow
-with the exact version. It validates `moon add`, pinned `moonx` execution,
+After publishing a stable release, push its verified signed tag to dispatch
+the `Registry smoke` workflow with the exact version. It validates `moon add`, pinned `moonx` execution,
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
-The pinned Moon `0.1.20260803` / `mooncake-bin 0.1.20260731` pair has a known
+The historical Moon `0.1.20260803` / `mooncake-bin 0.1.20260731` pair has a known
 dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
 rules in the repository's release checklist; do not treat exit 255 as a
 general success code. This release tracks the behavior locally and does not

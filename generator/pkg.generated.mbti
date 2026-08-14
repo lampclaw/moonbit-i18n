@@ -22,6 +22,8 @@ pub fn generate(String, String, Array[LocaleSource], enforce_coverage? : Bool) -
 
 pub fn generate_bindings(I18nConfig, Schema, Array[LocaleResource], String) -> String
 
+pub fn generate_with_diagnostics(String, String, Array[LocaleSource], config_path? : String, schema_path? : String, locale_directory? : String, enforce_coverage? : Bool) -> Result[Artifacts, Array[Diagnostic]]
+
 pub fn generated_package_manifest() -> String
 
 pub fn import_xliff(String, String, String, String, String) -> Result[String, String]
@@ -44,6 +46,22 @@ pub(all) struct Artifacts {
   coverage_report : String
   contract_hash : String
 } derive(Eq, @debug.Debug)
+
+pub(all) struct Diagnostic {
+  code : String
+  severity : DiagnosticSeverity
+  message : String
+  path : String
+  span : SourceSpan
+} derive(Eq, @debug.Debug)
+pub fn Diagnostic::to_human_string(Self) -> String
+pub fn Diagnostic::to_json_string(Self) -> String
+
+pub(all) enum DiagnosticSeverity {
+  Error
+  Warning
+} derive(Eq, @debug.Debug)
+pub fn DiagnosticSeverity::to_string(Self) -> String
 
 pub(all) struct Entry {
   group : String
@@ -85,6 +103,17 @@ pub(all) struct Schema {
   entries : Array[Entry]
   descriptions : Array[(String, String)]
   parts : Array[(String, Array[String])]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SourcePosition {
+  byte_offset : Int
+  line : Int
+  column : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct SourceSpan {
+  start : SourcePosition
+  end : SourcePosition
 } derive(Eq, @debug.Debug)
 
 // Type aliases

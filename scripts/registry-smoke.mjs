@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import {
   existsSync,
   mkdtempSync,
-  mkdirSync,
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -42,6 +42,22 @@ const run = (command, args, options = {}) => {
   return result.stdout ?? "";
 };
 
+const runFailure = (command, args, options = {}) => {
+  const result = spawnSync(command, args, {
+    cwd: options.cwd ?? root,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      LAMPCLAW_I18N_STATE_DIR: state,
+      ...options.env,
+    },
+    stdio: "pipe",
+  });
+  if (result.error) throw result.error;
+  assert.notEqual(result.status, 0, `${command} unexpectedly succeeded`);
+  return `${result.stdout ?? ""}\n${result.stderr ?? ""}`;
+};
+
 try {
   run("moon", [
     "new",
@@ -51,54 +67,50 @@ try {
     "app",
     "smoke/app",
   ]);
-  const app = join(root, "smoke", "app");
-  run("moon", ["add", coordinate], { cwd: app });
+  const consumer = join(root, "smoke", "app");
+  run("moon", ["add", coordinate], { cwd: consumer });
   // The pinned Moon release's `moon new` template is not byte-for-byte in the
   // form accepted by its own formatter (`[]` becomes `[ ]`, and the empty
   // root package gains a newline). Normalize the fresh scaffold before the
   // final `moon fmt --check` validates the generated application.
-  run("moon", ["fmt"], { cwd: app });
+  run("moon", ["fmt"], { cwd: consumer });
   const versionOutput = run("moonx", [cli, "--version"], {
-    cwd: app,
+    cwd: consumer,
     capture: true,
   }).trim();
   assert.equal(versionOutput, `moon-i18n ${version}`);
 
-  mkdirSync(join(app, "localization", "locales"), { recursive: true });
-  writeFileSync(
-    join(app, "localization", "config.json"),
-    JSON.stringify(
-      {
-        sourceLocale: "en-US",
-        defaultLocale: "en-US",
-        fallbackLocale: "en-US",
-        embeddedLocales: ["en-US"],
-        release: { minimumCoverage: 1 },
-        locales: {
-          "en-US": { direction: "ltr" },
-          "zh-CN": { direction: "ltr" },
-        },
-      },
-      null,
-      2,
-    ) + "\n",
+  const app = join(root, "scaffolded");
+  run("moonx", [cli, "scaffold", "smoke/scaffolded", app], {
+    cwd: consumer,
+  });
+  run("moon", ["update"], { cwd: app });
+  assert.ok(existsSync(join(app, "i18n", "generation-manifest.json")));
+  assert.match(
+    readFileSync(join(app, "i18n", "generation-manifest.json"), "utf8"),
+    /"manifestVersion": 1/u,
   );
+
   writeFileSync(
-    join(app, "localization", "schema.json"),
-    JSON.stringify(
-      {
-        messages: { common: ["hello"] },
-        params: { "common.hello": [{ name: "name", type: "String" }] },
-        descriptions: { "common.hello": "Greets a named user." },
-      },
-      null,
-      2,
-    ) + "\n",
+    join(app, "localization", "locales", "zh-CN.json"),
+    '{"common":{"hello":"你好 {$missing}"}}\n',
   );
-  writeFileSync(
-    join(app, "localization", "locales", "en-US.json"),
-    '{"common":{"hello":"Hello {$name}"}}\n',
+  const diagnosticOutput = runFailure(
+    "moonx",
+    [
+      cli,
+      "check",
+      "--diagnostic-format=json",
+      "localization/config.json",
+      "localization/schema.json",
+      "localization/locales",
+      "i18n",
+      "public/i18n",
+    ],
+    { cwd: app },
   );
+  assert.match(diagnosticOutput, /"code": "I18N3001"/u);
+  assert.match(diagnosticOutput, /localization[/\\]locales[/\\]zh-CN\.json/u);
   writeFileSync(
     join(app, "localization", "locales", "zh-CN.json"),
     '{"common":{"hello":"你好 {$name}"}}\n',
@@ -129,6 +141,39 @@ try {
     readFileSync(join(app, "i18n", "moon.pkg"), "utf8"),
     /formatter\(ignore: \[ "generated\.mbt" \]\)/u,
   );
+  const generatedBefore = statSync(join(app, "i18n", "generated.mbt"));
+  const manifestBefore = statSync(
+    join(app, "i18n", "generation-manifest.json"),
+  );
+  run(
+    "moonx",
+    [
+      cli,
+      "generate",
+      "localization/config.json",
+      "localization/schema.json",
+      "localization/locales",
+      "i18n",
+      "public/i18n",
+    ],
+    { cwd: app },
+  );
+  const generatedAfter = statSync(join(app, "i18n", "generated.mbt"));
+  const manifestAfter = statSync(
+    join(app, "i18n", "generation-manifest.json"),
+  );
+  assert.equal(generatedAfter.ino, generatedBefore.ino, "no-op replaced code");
+  assert.equal(
+    generatedAfter.mtimeMs,
+    generatedBefore.mtimeMs,
+    "no-op rewrote code",
+  );
+  assert.equal(manifestAfter.ino, manifestBefore.ino, "no-op replaced manifest");
+  assert.equal(
+    manifestAfter.mtimeMs,
+    manifestBefore.mtimeMs,
+    "no-op rewrote manifest",
+  );
   run(
     "moonx",
     [
@@ -149,17 +194,17 @@ try {
   );
 
   writeFileSync(
-    join(app, "cmd", "main", "moon.pkg"),
-    'import {\n  "smoke/app/i18n" @app_i18n,\n}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n',
+    join(app, "main", "moon.pkg"),
+    'import {\n  "smoke/scaffolded/i18n" @app_i18n,\n}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n',
   );
   writeFileSync(
-    join(app, "cmd", "main", "main.mbt"),
+    join(app, "main", "main.mbt"),
     `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  match i18n.install_catalog_source(@app_i18n.ZhCN, source) {\n    Ok(_) => ()\n    Err(message) => abort("catalog rejected: \\{message}")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
   );
   run("moon", ["check", "--deny-warn", "--target", "js"], { cwd: app });
   run("moon", ["fmt", "--check"], { cwd: app });
   run("moon", ["build", "--release", "--target", "js"], { cwd: app });
-  const output = run("moon", ["run", "--release", "--target", "js", "cmd/main"], {
+  const output = run("moon", ["run", "--release", "--target", "js", "main"], {
     cwd: app,
     capture: true,
   });

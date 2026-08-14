@@ -9,6 +9,7 @@ priv struct GeneratedTransaction {
   catalog_dir : String
   code : String
   package_manifest : String
+  generation_manifest : String
   catalog_names : Array[String]
   catalog_contents : Array[String]
 }
@@ -45,11 +46,25 @@ fn[T] cli_fail(message : String) -> T raise CliError {
 
 ///|
 async fn[T] die(message : String) -> T {
-  @stdio.stderr.write("error: \{message}\n") catch {
+  @stdio.stderr.write("\{message}\n") catch {
     _ => ()
   }
   exit(1)
   panic()
+}
+
+///|
+const DIAGNOSTIC_ENVELOPE : String = "__LAMPCLAW_I18N_DIAGNOSTIC_V1__\n"
+
+///|
+const DIAGNOSTIC_HUMAN_SEPARATOR : String = "\n__LAMPCLAW_I18N_HUMAN_V1__\n"
+
+///|
+fn diagnostic_envelope(diagnostic : @generator.Diagnostic) -> String {
+  DIAGNOSTIC_ENVELOPE +
+  diagnostic.to_json_string() +
+  DIAGNOSTIC_HUMAN_SEPARATOR +
+  diagnostic.to_human_string()
 }
 
 ///|
@@ -382,7 +397,8 @@ fn parse_ownership_manifest(
   guard json is Object(object) else {
     cli_fail("invalid generated-directory ownership manifest")
   }
-  guard json_int_field(object, "version") is Some(1) &&
+  guard json_int_field(object, "version") is Some(version) &&
+    (version == 1 || version == 2) &&
     json_string_field(object, "generator") is Some("lampclaw/i18n") &&
     json_string_field(object, "kind") is Some(kind) &&
     kind == expected_kind &&
@@ -400,9 +416,14 @@ fn parse_ownership_manifest(
     files.push(name)
   }
   if kind == "package" {
-    if files.length() != 2 ||
-      !files.contains("generated.mbt") ||
-      !files.contains("moon.pkg") {
+    let legacy = files.length() == 2 &&
+      files.contains("generated.mbt") &&
+      files.contains("moon.pkg")
+    let current = files.length() == 3 &&
+      files.contains("generated.mbt") &&
+      files.contains("moon.pkg") &&
+      files.contains("generation-manifest.json")
+    if !legacy && !current {
       cli_fail("invalid generated-directory ownership manifest")
     }
   } else {
@@ -453,7 +474,9 @@ async fn verify_unowned_package(
   directory : String,
   entries : Array[String],
 ) -> Unit raise CliError {
-  let allowed = ["generated.mbt", "moon.pkg", "pkg.generated.mbti"]
+  let allowed = [
+    "generated.mbt", "moon.pkg", "generation-manifest.json", "pkg.generated.mbti",
+  ]
   for entry in entries {
     let entry_path = path_join(directory, entry)
     if !allowed.contains(entry) ||
@@ -470,8 +493,26 @@ async fn verify_unowned_package(
       if !is_generated_content(source) {
         cli_fail("refusing to overwrite unowned i18n file: \{entry_path}")
       }
+    } else if entry == "generation-manifest.json" &&
+      !looks_like_generation_manifest(
+        read_file_limited(entry_path, 1024 * 1024),
+      ) {
+      cli_fail("refusing to overwrite unowned i18n file: \{entry_path}")
     }
   }
+}
+
+///|
+#warnings("-deprecated")
+fn looks_like_generation_manifest(source : String) -> Bool {
+  let json = try @json.parse(source, max_nesting_depth=16) catch {
+    _ => return false
+  } noraise {
+    value => value
+  }
+  guard json is Object(object) else { return false }
+  json_int_field(object, "manifestVersion") is Some(1) &&
+  json_string_field(object, "generator") is Some("lampclaw/i18n")
 }
 
 ///|
@@ -681,7 +722,7 @@ async fn recover_transaction(
 ///|
 fn ownership_manifest(kind : String, files : Array[String]) -> String {
   let quoted = files.map(file => "\"\{file}\"").join(", ")
-  "{\n  \"version\": 1,\n  \"generator\": \"lampclaw/i18n\",\n  \"kind\": \"\{kind}\",\n  \"files\": [\{quoted}]\n}\n"
+  "{\n  \"version\": 2,\n  \"generator\": \"lampclaw/i18n\",\n  \"kind\": \"\{kind}\",\n  \"files\": [\{quoted}]\n}\n"
 }
 
 ///|
@@ -814,9 +855,18 @@ async fn stage_transaction(
     transaction.package_manifest,
     0o644,
   )
+  let package_files = ["generated.mbt", "moon.pkg"]
+  if !transaction.generation_manifest.is_empty() {
+    write_new_file(
+      path_join(state.package_stage, "generation-manifest.json"),
+      transaction.generation_manifest,
+      0o644,
+    )
+    package_files.push("generation-manifest.json")
+  }
   write_new_file(
     path_join(state.package_stage, ".lampclaw-i18n.json"),
-    ownership_manifest("package", ["generated.mbt", "moon.pkg"]),
+    ownership_manifest("package", package_files),
     0o644,
   )
   for index = 0; index < transaction.catalog_names.length(); index = index + 1 {
@@ -895,6 +945,94 @@ async fn open_generation_lock(path : String) -> @fs.File raise CliError {
 }
 
 ///|
+async fn generated_file_matches(
+  path : String,
+  expected : String,
+  limit : Int,
+) -> Bool raise CliError {
+  if !file_exists(path) || !(file_kind(path) is Regular) {
+    return false
+  }
+  if regular_file_size(path) != @utf8.encode(expected).length().to_int64() {
+    return false
+  }
+  read_file_limited(path, limit) == expected
+}
+
+///|
+async fn generated_transaction_matches(
+  transaction : GeneratedTransaction,
+) -> Bool raise CliError {
+  if !file_exists(transaction.package_dir) ||
+    !file_exists(transaction.catalog_dir) {
+    return false
+  }
+  let package_files = ["generated.mbt", "moon.pkg"]
+  if !transaction.generation_manifest.is_empty() {
+    package_files.push("generation-manifest.json")
+  }
+  let expected_package_entries = package_files.copy()
+  expected_package_entries.push(".lampclaw-i18n.json")
+  if file_exists(path_join(transaction.package_dir, "pkg.generated.mbti")) {
+    expected_package_entries.push("pkg.generated.mbti")
+  }
+  expected_package_entries.sort_by((left, right) => left.lexical_compare(right))
+  let actual_package_entries = read_dir(transaction.package_dir)
+  actual_package_entries.sort_by((left, right) => left.lexical_compare(right))
+  if actual_package_entries != expected_package_entries {
+    return false
+  }
+  if !generated_file_matches(
+      path_join(transaction.package_dir, "generated.mbt"),
+      transaction.code,
+      @generator.I18N_MAX_GENERATED_CODE_BYTES,
+    ) ||
+    !generated_file_matches(
+      path_join(transaction.package_dir, "moon.pkg"),
+      transaction.package_manifest,
+      64 * 1024,
+    ) ||
+    !generated_file_matches(
+      path_join(transaction.package_dir, ".lampclaw-i18n.json"),
+      ownership_manifest("package", package_files),
+      64 * 1024,
+    ) {
+    return false
+  }
+  if !transaction.generation_manifest.is_empty() &&
+    !generated_file_matches(
+      path_join(transaction.package_dir, "generation-manifest.json"),
+      transaction.generation_manifest,
+      1024 * 1024,
+    ) {
+    return false
+  }
+  let expected_catalog_entries = transaction.catalog_names.copy()
+  expected_catalog_entries.push(".lampclaw-i18n.json")
+  expected_catalog_entries.sort_by((left, right) => left.lexical_compare(right))
+  let actual_catalog_entries = read_dir(transaction.catalog_dir)
+  actual_catalog_entries.sort_by((left, right) => left.lexical_compare(right))
+  if actual_catalog_entries != expected_catalog_entries ||
+    !generated_file_matches(
+      path_join(transaction.catalog_dir, ".lampclaw-i18n.json"),
+      ownership_manifest("catalogs", transaction.catalog_names),
+      64 * 1024,
+    ) {
+    return false
+  }
+  for index = 0; index < transaction.catalog_names.length(); index = index + 1 {
+    if !generated_file_matches(
+        path_join(transaction.catalog_dir, transaction.catalog_names[index]),
+        transaction.catalog_contents[index],
+        @runtime.CATALOG_MAX_SOURCE_BYTES,
+      ) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 async fn run_locked_transaction(
   transaction : GeneratedTransaction,
 ) -> Unit raise CliError {
@@ -902,6 +1040,9 @@ async fn run_locked_transaction(
   recover_transaction(journal, transaction.package_dir, transaction.catalog_dir)
   verify_generated_directory(transaction.package_dir, "package")
   verify_generated_directory(transaction.catalog_dir, "catalogs")
+  if generated_transaction_matches(transaction) {
+    return
+  }
   let state = allocate_transaction_state(transaction)
   stage_transaction(transaction, state) catch {
     CommandFailed(message) => {
@@ -965,6 +1106,9 @@ fn validate_transaction(
   if @utf8.encode(transaction.package_manifest).length() > 64 * 1024 {
     cli_fail("generated package manifest exceeds the configured size limit")
   }
+  if @utf8.encode(transaction.generation_manifest).length() > 1024 * 1024 {
+    cli_fail("generation manifest exceeds the configured size limit")
+  }
   let seen : Map[String, Bool] = Map([])
   for index = 0; index < transaction.catalog_names.length(); index = index + 1 {
     let name = transaction.catalog_names[index]
@@ -987,12 +1131,14 @@ async fn write_generated_transaction(
   package_manifest : String,
   catalog_names : Array[String],
   catalog_contents : Array[String],
+  generation_manifest? : String = "",
 ) -> Unit raise CliError {
   let transaction = GeneratedTransaction::{
     package_dir: resolved_path(package_dir),
     catalog_dir: resolved_path(catalog_dir),
     code,
     package_manifest,
+    generation_manifest,
     catalog_names,
     catalog_contents,
   }
@@ -1029,7 +1175,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.1.0"
+const CLI_VERSION : String = "0.2.0"
 
 ///|
 fn usage() -> String {
@@ -1037,17 +1183,19 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.1.0 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
   )
 }
 
 ///|
 fn is_command(arg : String) -> Bool {
+  arg == "scaffold" ||
   arg == "generate" ||
   arg == "check" ||
   arg == "coverage" ||
@@ -1059,6 +1207,187 @@ fn is_command(arg : String) -> Bool {
   arg == "-h" ||
   arg == "--version" ||
   arg == "-V"
+}
+
+///|
+fn valid_module_segment(segment : String) -> Bool {
+  if segment.is_empty() {
+    return false
+  }
+  let chars = segment.to_array()
+  if !((chars[0] >= 'a' && chars[0] <= 'z') ||
+    (chars[0] >= 'A' && chars[0] <= 'Z')) {
+    return false
+  }
+  for char in chars {
+    if !((char >= 'a' && char <= 'z') ||
+      (char >= 'A' && char <= 'Z') ||
+      (char >= '0' && char <= '9') ||
+      char == '_' ||
+      char == '-') {
+      return false
+    }
+  }
+  true
+}
+
+///|
+fn valid_module_name(name : String) -> Bool {
+  let segments : Array[String] = name
+    .split("/")
+    .map(segment => segment.to_owned())
+    .collect()
+  segments.length() == 2 &&
+  valid_module_segment(segments[0]) &&
+  valid_module_segment(segments[1])
+}
+
+///|
+fn scaffold_moon_mod(module_name : String) -> String {
+  "name = \"\{module_name}\"\n\n" +
+  "version = \"0.2.0\"\n\n" +
+  "preferred_target = \"js\"\n\n" +
+  "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
+}
+
+///|
+fn scaffold_config() -> String {
+  (
+    #|{
+    #|  "sourceLocale": "en-US",
+    #|  "defaultLocale": "en-US",
+    #|  "fallbackLocale": "en-US",
+    #|  "embeddedLocales": ["en-US"],
+    #|  "release": { "minimumCoverage": 1.0 },
+    #|  "locales": {
+    #|    "en-US": { "direction": "ltr" },
+    #|    "zh-CN": { "direction": "ltr" }
+    #|  }
+    #|}
+    #|
+  )
+}
+
+///|
+fn scaffold_schema() -> String {
+  (
+    #|{
+    #|  "messages": { "common": ["hello"] },
+    #|  "params": {
+    #|    "common.hello": [{ "name": "name", "type": "String" }]
+    #|  },
+    #|  "descriptions": {
+    #|    "common.hello": "Greets a named user."
+    #|  }
+    #|}
+    #|
+  )
+}
+
+///|
+fn scaffold_main_package(module_name : String) -> String {
+  "import {\n  \"\{module_name}/i18n\" @app_i18n,\n}\n\n" +
+  "supported_targets = \"js\"\n\n" +
+  "pkgtype(kind: \"executable\")\n"
+}
+
+///|
+fn scaffold_main_source() -> String {
+  (
+    #|///|
+    #|fn main {
+    #|  let i18n = @app_i18n.I18n::new()
+    #|  let translator = i18n.translator(@app_i18n.EnUS)
+    #|  println(translator.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))))
+    #|}
+    #|
+  )
+}
+
+///|
+fn scaffold_readme(module_name : String) -> String {
+  "# \{module_name}\n\n" +
+  "Generated by `moon-i18n scaffold`. English is embedded and `zh-CN` " +
+  "is emitted as a dynamic catalog.\n\n" +
+  "```bash\nmoon update\nmoon check --target js\n" +
+  "moon run --target js main\n```\n"
+}
+
+///|
+async fn write_scaffold_sources(
+  root : String,
+  module_name : String,
+) -> Unit raise CliError {
+  write_file(path_join(root, "moon.mod"), scaffold_moon_mod(module_name))
+  write_file(path_join(root, "README.md"), scaffold_readme(module_name))
+  write_file(path_join(root, "localization/config.json"), scaffold_config())
+  write_file(path_join(root, "localization/schema.json"), scaffold_schema())
+  write_file(
+    path_join(root, "localization/locales/en-US.json"),
+    "{\"common\":{\"hello\":\"Hello {$name}\"}}\n",
+  )
+  write_file(
+    path_join(root, "localization/locales/zh-CN.json"),
+    "{\"common\":{\"hello\":\"你好，{$name}\"}}\n",
+  )
+  write_file(
+    path_join(root, "main/moon.pkg"),
+    scaffold_main_package(module_name),
+  )
+  write_file(path_join(root, "main/main.mbt"), scaffold_main_source())
+}
+
+///|
+async fn run_scaffold(args : Array[String]) -> Unit raise CliError {
+  if args.length() != 3 {
+    cli_fail(usage())
+  }
+  let module_name = args[1]
+  if !valid_module_name(module_name) {
+    cli_fail("module name must be owner/module with portable ASCII segments")
+  }
+  let destination = resolved_path(args[2])
+  if is_root_path(destination) {
+    cli_fail("refusing to scaffold into a filesystem root")
+  }
+  if file_exists(destination) {
+    cli_fail(
+      "refusing to overwrite existing scaffold destination: \{destination}",
+    )
+  }
+  let parent = path_dirname(destination)
+  ensure_directory(parent)
+  let stage = path_join(
+    parent,
+    ".\{path_basename(destination)}.scaffold-\{@async.now()}",
+  )
+  if file_exists(stage) {
+    cli_fail("cannot allocate scaffold staging directory: \{stage}")
+  }
+  ensure_directory(stage)
+  try {
+    write_scaffold_sources(stage, module_name)
+    run_generate(
+      [
+        "generate",
+        path_join(stage, "localization/config.json"),
+        path_join(stage, "localization/schema.json"),
+        path_join(stage, "localization/locales"),
+        path_join(stage, "i18n"),
+        path_join(stage, "public/i18n"),
+      ],
+      false,
+    )
+    rename_path(stage, destination)
+  } catch {
+    CommandFailed(message) => {
+      remove_path(stage) catch {
+        _ => ()
+      }
+      cli_fail(message)
+    }
+  }
+  println("scaffolded \{module_name} at \{destination}")
 }
 
 ///|
@@ -1078,7 +1407,11 @@ fn user_args(args : Array[String]) -> Array[String] {
 
 ///|
 fn without_allow_partial(args : Array[String]) -> Array[String] {
-  args.filter(arg => arg != "--allow-partial")
+  args.filter(arg => {
+    arg != "--allow-partial" &&
+    arg != "--diagnostic-format=json" &&
+    arg != "--diagnostic-format=human"
+  })
 }
 
 ///|
@@ -1192,16 +1525,122 @@ async fn load_artifacts(
   if sources.is_empty() {
     cli_fail("no locale JSON files found in: \{locale_dir}")
   }
+  let config_source = read_file_limited(
+    config_file,
+    @runtime.CATALOG_MAX_SOURCE_BYTES,
+  )
+  let schema_source = read_file_limited(
+    schema_file,
+    @runtime.CATALOG_MAX_SOURCE_BYTES,
+  )
   match
-    @generator.generate(
-      read_file_limited(config_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
-      read_file_limited(schema_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
+    @generator.generate_with_diagnostics(
+      config_source,
+      schema_source,
       sources,
+      config_path=config_file,
+      schema_path=schema_file,
+      locale_directory=locale_dir,
       enforce_coverage~,
     ) {
     Ok(value) => value
-    Err(message) => cli_fail(message)
+    Err(diagnostics) => cli_fail(diagnostic_envelope(diagnostics[0]))
   }
+}
+
+///|
+fn sha256_text(source : String) -> String {
+  @crypto.bytes_to_hex_string(@crypto.sha256(@utf8.encode(source)))
+}
+
+///|
+fn manifest_path(root : String, path : String) -> String {
+  let relative = as_path(resolved_path(path)).relative(base=as_path(root))
+  let value = relative.to_string().replace_all(old="\\", new="/")
+  if value.is_empty() {
+    "."
+  } else {
+    value
+  }
+}
+
+///|
+fn manifest_file(kind : String, path : String, source : String) -> Json {
+  Json::object({
+    "kind": Json::string(kind),
+    "path": Json::string(path),
+    "sha256": Json::string(sha256_text(source)),
+    "bytes": Json::number(@utf8.encode(source).length().to_double()),
+  })
+}
+
+///|
+async fn generation_manifest(
+  config_file : String,
+  schema_file : String,
+  locale_dir : String,
+  package_dir : String,
+  catalog_dir : String,
+  code : String,
+  package_manifest : String,
+  catalogs : Array[(String, String)],
+  contract_hash : String,
+) -> String raise CliError {
+  let root = path_dirname(resolved_path(config_file))
+  let inputs : Array[Json] = [
+    manifest_file(
+      "config",
+      manifest_path(root, config_file),
+      read_file_limited(config_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
+    ),
+    manifest_file(
+      "schema",
+      manifest_path(root, schema_file),
+      read_file_limited(schema_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
+    ),
+  ]
+  for catalog in catalogs {
+    let locale_file = path_join(locale_dir, catalog.0 + ".json")
+    inputs.push(
+      manifest_file(
+        "locale",
+        manifest_path(root, locale_file),
+        read_file_limited(locale_file, @runtime.CATALOG_MAX_SOURCE_BYTES),
+      ),
+    )
+  }
+  let outputs : Array[Json] = [
+    manifest_file(
+      "moonbit",
+      manifest_path(root, path_join(package_dir, "generated.mbt")),
+      code,
+    ),
+    manifest_file(
+      "moon-package",
+      manifest_path(root, path_join(package_dir, "moon.pkg")),
+      package_manifest,
+    ),
+  ]
+  for catalog in catalogs {
+    let content = text_file_content(catalog.1)
+    outputs.push(
+      manifest_file(
+        "catalog",
+        manifest_path(root, path_join(catalog_dir, catalog.0 + ".json")),
+        content,
+      ),
+    )
+  }
+  Json::object({
+    "manifestVersion": Json::number(1.0),
+    "generator": Json::string("lampclaw/i18n"),
+    "generatorVersion": Json::string(CLI_VERSION),
+    "profile": Json::string(@runtime.CATALOG_PROFILE),
+    "contractHash": Json::string(contract_hash),
+    "inputs": Json::array(inputs),
+    "outputs": Json::array(outputs),
+  }).stringify(indent=2) +
+  "\n"
 }
 
 ///|
@@ -1223,6 +1662,17 @@ async fn run_generate(
   let code = format_moonbit_source(artifacts.code)
   let manifest = text_file_content(artifacts.package_manifest)
   let package_dir = values[4]
+  let generated_manifest = generation_manifest(
+    values[1],
+    values[2],
+    values[3],
+    package_dir,
+    values[5],
+    code,
+    manifest,
+    artifacts.catalogs,
+    artifacts.contract_hash,
+  )
   if check_mode {
     check_file(
       path_join(package_dir, "generated.mbt"),
@@ -1234,14 +1684,21 @@ async fn run_generate(
       manifest,
       "generated package manifest",
     )
-    let package_files = ["generated.mbt", "moon.pkg"]
+    let package_files = [
+      "generated.mbt", "moon.pkg", "generation-manifest.json",
+    ]
     check_file(
       path_join(package_dir, ".lampclaw-i18n.json"),
       ownership_manifest("package", package_files),
       "package ownership manifest",
     )
+    check_file(
+      path_join(package_dir, "generation-manifest.json"),
+      generated_manifest,
+      "generation manifest",
+    )
     let expected_package_files = [
-      ".lampclaw-i18n.json", "generated.mbt", "moon.pkg",
+      ".lampclaw-i18n.json", "generated.mbt", "generation-manifest.json", "moon.pkg",
     ]
     if file_exists(path_join(package_dir, "pkg.generated.mbti")) {
       expected_package_files.push("pkg.generated.mbti")
@@ -1280,6 +1737,7 @@ async fn run_generate(
       manifest,
       catalog_names,
       catalog_contents,
+      generation_manifest=generated_manifest,
     )
   }
   println(artifacts.coverage_report)
@@ -1302,6 +1760,7 @@ async fn run_command(args : Array[String]) -> Unit raise CliError {
   match args[0] {
     "--help" | "-h" | "help" => println(usage())
     "--version" | "-V" => println("moon-i18n \{CLI_VERSION}")
+    "scaffold" => run_scaffold(args)
     "generate" => run_generate(args, false)
     "check" => run_generate(args, true)
     "coverage" => run_coverage(args)
@@ -1309,6 +1768,58 @@ async fn run_command(args : Array[String]) -> Unit raise CliError {
     "export-xliff" => run_export_xliff(args)
     "import-xliff" => run_import_xliff(args)
     _ => cli_fail(usage())
+  }
+}
+
+///|
+fn diagnostic_json_enabled(args : Array[String]) -> Bool {
+  args.contains("--diagnostic-format=json")
+}
+
+///|
+fn without_diagnostic_format(args : Array[String]) -> Array[String] {
+  args.filter(arg => {
+    arg != "--diagnostic-format=json" && arg != "--diagnostic-format=human"
+  })
+}
+
+///|
+fn cli_diagnostic(
+  message : String,
+  args : Array[String],
+) -> @generator.Diagnostic {
+  let values = without_diagnostic_format(args)
+  let path = if values.length() > 1 { values[1] } else { "<command>" }
+  {
+    code: "I18N0001",
+    severity: Error,
+    message,
+    path,
+    span: {
+      start: { byte_offset: 0, line: 1, column: 1 },
+      end: { byte_offset: 0, line: 1, column: 1 },
+    },
+  }
+}
+
+///|
+fn render_cli_error(message : String, args : Array[String]) -> String {
+  let json = diagnostic_json_enabled(args)
+  if message.has_prefix(DIAGNOSTIC_ENVELOPE) {
+    let body = message[DIAGNOSTIC_ENVELOPE.length():].to_owned()
+    let pieces : Array[String] = body
+      .split(DIAGNOSTIC_HUMAN_SEPARATOR)
+      .map(piece => piece.to_owned())
+      .collect()
+    if pieces.length() == 2 {
+      return if json { pieces[0] } else { pieces[1] }
+    }
+  }
+  let diagnostic = cli_diagnostic(message, args)
+  if json {
+    diagnostic.to_json_string()
+  } else {
+    diagnostic.to_human_string()
   }
 }
 
@@ -1323,7 +1834,8 @@ fn is_generated_content(source : String) -> Bool {
 
 ///|
 async fn main {
-  run_command(user_args(@env.args())) catch {
-    CommandFailed(message) => die(message)
+  let args = user_args(@env.args())
+  run_command(without_diagnostic_format(args)) catch {
+    CommandFailed(message) => die(render_cli_error(message, args))
   }
 }

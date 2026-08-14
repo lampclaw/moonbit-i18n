@@ -7,6 +7,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -129,6 +130,28 @@ try {
   run("moon", ["run", ...generationArgs], { cwd: library });
   generationArgs[generationArgs.indexOf("generate")] = "check";
   run("moon", ["run", ...generationArgs], { cwd: library });
+  assert.ok(
+    existsSync(join(app, "i18n", "generation-manifest.json")),
+    "deterministic generation manifest was not emitted",
+  );
+  const generatedBefore = statSync(join(app, "i18n", "generated.mbt"));
+  const manifestBefore = statSync(
+    join(app, "i18n", "generation-manifest.json"),
+  );
+  generationArgs[generationArgs.indexOf("check")] = "generate";
+  run("moon", ["run", ...generationArgs], { cwd: library });
+  const generatedAfter = statSync(join(app, "i18n", "generated.mbt"));
+  const manifestAfter = statSync(
+    join(app, "i18n", "generation-manifest.json"),
+  );
+  assert.equal(generatedAfter.ino, generatedBefore.ino, "no-op replaced code");
+  assert.equal(generatedAfter.mtimeMs, generatedBefore.mtimeMs, "no-op rewrote code");
+  assert.equal(manifestAfter.ino, manifestBefore.ino, "no-op replaced manifest");
+  assert.equal(
+    manifestAfter.mtimeMs,
+    manifestBefore.mtimeMs,
+    "no-op rewrote manifest",
+  );
   const locks = existsSync(state)
     ? readdirSync(state).filter((name) => name.endsWith(".lampclaw.lock"))
     : [];

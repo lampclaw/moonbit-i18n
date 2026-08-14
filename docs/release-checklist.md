@@ -1,6 +1,35 @@
 # Release checklist
 
-## Pinned publish-client behavior
+## Current stable-release procedure (`0.2.0` and later)
+
+Releases in the approved roadmap range are direct stable releases. Read the
+version from `moon.mod`; never infer it from the previous tag and never publish
+an RC unless the release policy is changed explicitly. All commands below use
+`version="$(node scripts/version-contract.mjs get)"` and tag `v$version`.
+
+Before publishing, the reviewed release commit must be clean, pushed to
+`origin/main`, and green in every required Test job. Run the full quality and
+package gates below with Node.js `26.7.0`, verify `moon whoami` is `lampclaw`,
+then run `node scripts/publish-dry-run.mjs`. The helper accepts a non-zero 255
+status only for the exact historical Moon `0.1.20260803` / mooncake-bin
+`0.1.20260731` pair and only with both archive checks plus the exact registry
+success response. Every newer client must exit zero.
+
+Create and locally verify one signed `v$version` tag at the reviewed commit.
+Invoke `moon publish` exactly once. A non-zero or ambiguous result is never an
+authorization to retry: first verify the exact version on mooncakes.io and run
+`node scripts/registry-smoke.mjs "$version"`. Only after the registry assets,
+README/API rendering, and clean-module smoke pass should the signed tag be
+pushed. The stable tag automatically runs Registry smoke on Linux, macOS, and
+Windows. Record the commit, tag verification, archive SHA-256, CI runs,
+registry URL, publish timestamps/status, and known limitations under
+`docs/releases/<version>-acceptance.md`.
+
+If a defect is found after the registry accepted a version, fix it in the next
+SemVer patch. Mooncakes versions and signed tags are immutable and must never
+be overwritten.
+
+## Historical `0.1.0` pinned publish-client behavior
 
 The stable `0.1.0` release uses Moon `0.1.20260803` with bundled
 `mooncake-bin 0.1.20260731`. With this exact pair, `moon publish --dry-run`
@@ -81,9 +110,9 @@ from the published archive.
       clean local workspace dependency, generate a bilingual app, run its
       JavaScript output, install a dynamic catalog, and execute the Wasm binary
       launcher.
-- [ ] Confirm `moon add lampclaw/i18n@0.1.0` is the library workflow and
-      `moonx lampclaw/i18n/cmd/i18n@0.1.0` is the primary CLI workflow.
-- [ ] Treat `moon add --bin lampclaw/i18n@0.1.0` and global
+- [ ] Confirm `moon add lampclaw/i18n@<version>` is the library workflow and
+      `moonx lampclaw/i18n/cmd/i18n@<version>` is the primary CLI workflow.
+- [ ] Treat `moon add --bin lampclaw/i18n@<version>` and global
       `moon install` as optional compatibility paths, not prerequisites for
       authoring.
 
@@ -98,13 +127,13 @@ from the published archive.
       from a dirty or unreviewed worktree.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
-      `v0.1.0` tag locally. Publish only `lampclaw/i18n` from that tagged
+      `v<version>` tag locally. Publish only `lampclaw/i18n` from that tagged
       commit. Keep the tag local until the exact registry version and its CLI
       asset are available so the tag-triggered Registry smoke cannot race the
       registry build.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
-      mooncakes.io for `lampclaw/i18n@0.1.0` before considering any retry.
+      mooncakes.io for `lampclaw/i18n@<version>` before considering any retry.
 - [ ] In a brand-new temporary module, run `moon add` for the exact version and
       execute the pinned CLI with `moonx`. Dispatch the `Registry smoke`
       workflow with the exact published version to repeat this on Linux,
@@ -138,11 +167,12 @@ git rev-list --left-right --count HEAD...origin/main
 moon version --all
 mooncake --version
 moon whoami
+version="$(node scripts/version-contract.mjs get)"
 node scripts/publish-dry-run.mjs
 ~~~
 
 `git status --short` must be empty, the divergence count must be `0 0`, the
-tool versions must match the pinned versions above, and `moon whoami` must be
+tool versions must match the support policy, and `moon whoami` must be
 `lampclaw`. After required CI passes, create and verify the immutable release
 reference. This release uses the existing Lampclaw ED25519 key through Git's
 SSH signing backend; command-local settings avoid changing the user's global
@@ -150,14 +180,16 @@ Git configuration:
 
 ~~~bash
 allowed_signers="$(mktemp)"
+version="$(node scripts/version-contract.mjs get)"
+tag="v$version"
 printf 'lampclaw@gmail.com %s\n' "$(cat ~/.ssh/id_ed25519_lampclaw_github.pub)" > "$allowed_signers"
 git -c gpg.format=ssh \
   -c user.signingkey=~/.ssh/id_ed25519_lampclaw_github.pub \
-  tag -s v0.1.0 -m "lampclaw/i18n 0.1.0"
+  tag -s "$tag" -m "lampclaw/i18n $version"
 git -c gpg.format=ssh \
   -c gpg.ssh.allowedSignersFile="$allowed_signers" \
-  tag -v v0.1.0
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.1.0)"
+  tag -v "$tag"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 "$tag")"
 ~~~
 
 Then run the real command exactly once:
@@ -167,17 +199,17 @@ moon publish
 ~~~
 
 If it returns non-zero, stop. Do not rerun it. First open
-`https://mooncakes.io/docs/#/lampclaw/i18n/0.1.0` and attempt the exact
+`https://mooncakes.io/docs/#/lampclaw/i18n/<version>` and attempt the exact
 post-publish smoke below. A successful exact-version install proves the
 accepted publish completed even if the pinned client returned 255:
 
 ~~~bash
-LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs 0.1.0
-git push origin v0.1.0
+LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs "$version"
+git push origin "$tag"
 ~~~
 
-Pushing the verified tag automatically dispatches
-`.github/workflows/registry-smoke.yml` for `0.1.0`. The manual workflow
+Pushing the verified stable tag automatically dispatches
+`.github/workflows/registry-smoke.yml` for that version. The manual workflow
 dispatch remains available for a later rerun. Inspect the mooncakes.io README,
 metadata and public library API docs, and record the final registry URL and
 archive checksum. The executable-only CLI need not appear as an empty API

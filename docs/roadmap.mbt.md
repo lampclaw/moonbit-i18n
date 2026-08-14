@@ -161,6 +161,10 @@ framework package was part of this phase.
 
 ### `0.2.x` — authoring and diagnostics
 
+**Status: stable in `0.2.0`.** The canonical JSON format and strict-v1 runtime
+profile remain unchanged. This release adds only explicit authoring workflow,
+diagnostic, and reproducibility contracts.
+
 - Add a CLI scaffold for a minimal bilingual module using the canonical JSON
   authoring layout and a generated application package.
 - Add stable diagnostic codes, source paths and spans, human output, and
@@ -173,6 +177,12 @@ framework package was part of this phase.
 Exit gate: a new user can scaffold, generate, diagnose an invalid message,
 repair it, and build the application on every supported CLI platform; repeated
 generation produces no diff.
+
+`0.2.0` met this gate with an atomically published bilingual scaffold, stable
+human/JSON diagnostics carrying paths and spans, a versioned SHA-256
+input/output manifest, byte-for-byte check mode, and a locked true no-op path
+that preserves generated interfaces. The clean-module scenario is part of the
+package and cross-platform Registry smoke gates.
 
 ### `0.3.x` — translation lifecycle and interchange
 
