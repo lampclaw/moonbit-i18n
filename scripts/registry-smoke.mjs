@@ -35,6 +35,15 @@ const standardMessageProfile = "unicode-mf2-ldml48.2-js-v1";
 const messageProfileArgs = supportsMessageProfiles
   ? ["--message-profile", standardMessageProfile]
   : [];
+const invalidTranslationDiagnostic = supportsMessageProfiles
+  ? {
+      code: /"code": "I18N2002"/u,
+      path: /localization[/\\]schema\.json/u,
+    }
+  : {
+      code: /"code": "I18N3001"/u,
+      path: /localization[/\\]locales[/\\]zh-CN\.json/u,
+    };
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -125,8 +134,8 @@ try {
     ],
     { cwd: app },
   );
-  assert.match(diagnosticOutput, /"code": "I18N3001"/u);
-  assert.match(diagnosticOutput, /localization[/\\]locales[/\\]zh-CN\.json/u);
+  assert.match(diagnosticOutput, invalidTranslationDiagnostic.code);
+  assert.match(diagnosticOutput, invalidTranslationDiagnostic.path);
   writeFileSync(
     join(app, "localization", "locales", "zh-CN.json"),
     '{"common":{"hello":"你好 {$name}"}}\n',
