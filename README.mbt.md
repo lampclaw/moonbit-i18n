@@ -3,9 +3,10 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.4.0` ships one module containing the runtime, generator, and a
-portable `moonx` CLI. Generated application facades currently target
-JavaScript and use the host's `Intl` implementation behind a `Result` boundary.
+MoonBit. `0.5.0` ships one module containing the runtime, generator, a portable
+`moonx` CLI, and a standalone pinned Unicode MF2 syntax/data-model API.
+Generated application facades currently target JavaScript and use the host's
+`Intl` implementation behind a `Result` boundary.
 
 The normal authoring surface is JSON: edit a schema plus locale resources,
 generate a dedicated MoonBit package, and import only that generated package
@@ -14,9 +15,10 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.4.0` is the stable production Web delivery release on top of the
-Web/JavaScript strict-v1 runtime, `0.2.x` authoring, and `0.3.x` translation
-lifecycle contracts.
+`0.5.0` retains the stable production Web delivery workflow and adds complete
+pinned MF2 grammar, validity, NFC-name handling, deterministic syntax
+serialization, and normative JSON interchange. Existing generated applications
+remain on the Web/JavaScript strict-v1 catalog profile.
 It is not a prototype and not a claim of complete Unicode MessageFormat 2
 conformance. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
@@ -33,24 +35,24 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.4.0
+moon add lampclaw/i18n@0.5.0
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.5.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.4.0` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.5.0` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.4.0`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.5.0`; it is named `moon-i18n`.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.5.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -144,14 +146,14 @@ independently.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -244,7 +246,8 @@ state and a loss report. Translator notes, reviewed/final state, supported
 metadata, explicit ID renames, and removals are covered by the documented
 [translation lifecycle contract](docs/translation-lifecycle.mbt.md).
 
-The catalog profile is `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. It
+The application catalog profile is
+`lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. It
 supports MF2 patterns, declarations, matching, markup parts, `:string`,
 `:number`, `:integer`, and `:offset`, plus `:lampclaw:datetime` for
 `InstantMillis`. It deliberately rejects unsupported optional registry
@@ -252,6 +255,13 @@ functions instead of approximating them. This is a strict project subset, not
 a claim of full Unicode MessageFormat 2 conformance. Exact accepted/rejected
 features and the pinned upstream snapshot are documented in
 [`docs/mf2-profile.mbt.md`](docs/mf2-profile.mbt.md).
+
+Tooling may separately use `unicode-mf2-ldml48.2-syntax-v1` through
+`parse_mf2_syntax`, `parse_valid_mf2_model`, `serialize_mf2_model`,
+`mf2_model_to_json`, and `parse_mf2_model_json`. This profile passes every
+pinned upstream syntax and data-model fixture but deliberately performs no
+resolution or formatting yet. See the
+[syntax and interchange guide](docs/mf2-syntax-data-model.mbt.md).
 
 Full BCP 47 canonicalization and Unicode bidi isolation are not included in
 this release. Limits include 1,000 locales, 64 MiB aggregate locale
@@ -261,7 +271,7 @@ message, and 64 parameters or declared rich tags per generated message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.4.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.5.0/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

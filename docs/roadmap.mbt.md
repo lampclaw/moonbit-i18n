@@ -251,6 +251,15 @@ become implicit standard behavior.
 
 ### `0.5.x` — syntax and data model
 
+**Status: stable in `0.5.0`.** The standalone
+`unicode-mf2-ldml48.2-syntax-v1` profile implements the pinned complete
+grammar, the well-formed/valid split, Unicode 16 NFC-equivalent name handling,
+the normative public/JSON interchange model, and deterministic functional
+syntax serialization. Vendored upstream coverage includes all 114 accepted
+syntax, 133 syntax-error, and 23 data-model cases. Existing catalogs remain on
+strict-v1 so this phase does not pre-empt the explicit authoring switch planned
+for `0.8.x`.
+
 - Implement the pinned stable specification's complete grammar and its
   well-formed versus valid distinction.
 - Cover compact messages, declarations, expressions, options, attributes,

@@ -11,6 +11,14 @@ pub const MF2_MAX_DECLARATIONS : Int = 4096
 pub const MF2_MAX_VARIANTS : Int = 4096
 
 ///|
+/// Maximum number of selectors accepted in one MF2 matcher.
+pub const MF2_MAX_SELECTORS : Int = 64
+
+///|
+/// Maximum number of parts accepted in one MF2 pattern model.
+pub const MF2_MAX_PATTERN_PARTS : Int = 65536
+
+///|
 /// Maximum parameter count accepted by a message contract.
 pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
 
@@ -142,10 +150,53 @@ pub(all) enum Mf2ErrorKind {
 } derive(Eq, Debug)
 
 ///|
+/// Stable machine-readable error code within an MF2 error category.
+pub(all) enum Mf2ErrorCode {
+  /// A grammar production could not be parsed.
+  Mf2SyntaxCode
+  /// A data-model rule without a more specific code was violated.
+  Mf2DataModelCode
+  /// A resolution rule without a more specific code was violated.
+  Mf2ResolutionCode
+  /// A variant has a different number of keys than the matcher has selectors.
+  Mf2VariantKeyMismatchCode
+  /// No matcher variant has catch-all keys for every selector.
+  Mf2MissingFallbackVariantCode
+  /// A matcher selector is not backed by a function-annotated declaration.
+  Mf2MissingSelectorAnnotationCode
+  /// A declaration binds a name already used by declaration data flow.
+  Mf2DuplicateDeclarationCode
+  /// A function or markup contains NFC-equivalent duplicate option names.
+  Mf2DuplicateOptionNameCode
+  /// Two matcher variants have NFC-equivalent key tuples.
+  Mf2DuplicateVariantCode
+  /// A variable could not be resolved.
+  Mf2UnresolvedVariableCode
+  /// A function is not present in the active registry.
+  Mf2UnknownFunctionCode
+  /// A resolved value cannot be used as a selector.
+  Mf2BadSelectorCode
+  /// A function rejected its operand.
+  Mf2BadOperandCode
+  /// A function rejected an option name or value.
+  Mf2BadOptionCode
+  /// A selector rejected a variant key.
+  Mf2BadVariantKeyCode
+  /// A requested operation is unsupported by the active provider.
+  Mf2UnsupportedOperationCode
+  /// A platform formatter failed operationally.
+  Mf2FormattingCode
+  /// A configured resource limit was exceeded.
+  Mf2LimitCode
+} derive(Eq, Debug)
+
+///|
 /// Structured MF2 failure with a source offset.
 pub(all) struct Mf2Error {
   /// Stable error category.
   kind : Mf2ErrorKind
+  /// Stable machine-readable error code.
+  code : Mf2ErrorCode
   /// Human-readable diagnostic detail.
   message : String
   /// Character offset associated with the failure.
@@ -297,7 +348,14 @@ priv struct ResolvedBinding {
 
 ///|
 fn mf2_error(kind : Mf2ErrorKind, message : String, offset : Int) -> Mf2Error {
-  { kind, message, offset }
+  let code = match kind {
+    Mf2SyntaxError => Mf2SyntaxCode
+    Mf2DataModelError => Mf2DataModelCode
+    Mf2ResolutionError => Mf2ResolutionCode
+    Mf2FormattingError => Mf2FormattingCode
+    Mf2LimitError => Mf2LimitCode
+  }
+  { kind, code, message, offset }
 }
 
 ///|

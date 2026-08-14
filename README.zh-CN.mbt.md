@@ -3,8 +3,9 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.4.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
-facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
+`0.5.0` 以一个模块发布 runtime、generator、可移植 `moonx` CLI，以及独立的固定
+Unicode MF2 语法/data-model API。生成的应用 facade 当前面向 JavaScript，并通过
+`Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
 业务代码只导入这个生成 package。catalog JSON 是用于内嵌或动态加载的生成部署产物，
@@ -12,9 +13,10 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.4.0` 是建立在 Web/JavaScript strict-v1 runtime、`0.2.x` authoring 和 `0.3.x`
-翻译生命周期契约之上的稳定生产级 Web 交付版本。它不是原型，也不表示完整通过
-Unicode MessageFormat 2。公开的
+`0.5.0` 保留稳定生产级 Web 交付流程，并增加完整的固定 MF2 grammar、validity、
+NFC 名称处理、确定性语法序列化与规范 JSON interchange。现有生成应用继续使用
+Web/JavaScript strict-v1 catalog profile。它不是原型，也不表示完整通过 Unicode
+MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
@@ -27,24 +29,24 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.4.0
+moon add lampclaw/i18n@0.5.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.5.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.4.0` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.5.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.4.0` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.5.0` 全局安装，命令名为
 `moon-i18n`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.5.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -132,14 +134,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.5.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -222,12 +224,18 @@ locale，拒绝不安全 XML 和 MF2 字段内的 inline XML，并返回版本�
 与 loss report。translator note、reviewed/final state、受支持 metadata、显式 ID
 rename/removal 的完整契约见[翻译生命周期文档](docs/translation-lifecycle.zh-CN.mbt.md)。
 
-catalog profile 为 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。它支持 MF2
+应用 catalog profile 为 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。它支持 MF2
 pattern、declaration、matcher、markup parts、`:string`、`:number`、`:integer`、
 `:offset`，以及针对 `InstantMillis` 的 `:lampclaw:datetime`。不支持的可选 registry
 function 会被明确拒绝，而不是近似处理。这是严格的项目子集，不表示完整通过 Unicode
 MessageFormat 2。精确能力矩阵和固定上游快照见
 [`docs/mf2-profile.zh-CN.mbt.md`](docs/mf2-profile.zh-CN.mbt.md)。
+
+工具可以通过 `parse_mf2_syntax`、`parse_valid_mf2_model`、
+`serialize_mf2_model`、`mf2_model_to_json` 和 `parse_mf2_model_json` 单独使用
+`unicode-mf2-ldml48.2-syntax-v1`。该 profile 通过固定上游的全部 syntax 与
+data-model fixture，但刻意还不执行 resolution 或 formatting。详见
+[语法与 interchange 指南](docs/mf2-syntax-data-model.zh-CN.mbt.md)。
 
 完整 BCP 47 canonicalization 与 Unicode bidi isolation 不属于本次发布。限制包括：
 1,000 个 locale、64 MiB locale 总输入、64 MiB 生成 MoonBit、16 MiB/100,000 条消息
@@ -236,7 +244,7 @@ MessageFormat 2。精确能力矩阵和固定上游快照见
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.4.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.5.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

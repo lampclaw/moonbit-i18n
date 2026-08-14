@@ -2,7 +2,31 @@
   "upstreamRepository": "https://github.com/unicode-org/message-format-wg",
   "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
   "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
-  "conformanceClaim": "strict-project-subset-not-unicode-mf2-conformance",
+  "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
+  "conformanceClaim": "unicode-mf2-syntax-and-data-model-only",
+  "syntaxFixtureCounts": {
+    "wellFormed": 114,
+    "syntaxErrors": 133,
+    "dataModelCases": 23
+  },
+  "syntaxProfileAcceptedFeatures": [
+    "complete-pinned-message-abnf",
+    "well-formed-versus-valid",
+    "compact-and-multiline-complex-messages",
+    "declarations-expressions-options-attributes-markup",
+    "quoted-patterns-and-literals",
+    "unbalanced-markup-data-model",
+    "unicode-16-nfc-equivalent-names",
+    "normative-json-interchange-data-model",
+    "deterministic-functional-syntax-roundtrip"
+  ],
+  "syntaxProfileDeferredFeatures": [
+    "declaration-resolution-and-best-effort-formatting",
+    "bidi-isolation",
+    "default-function-registry",
+    "catalog-authoring-message-profile-selection",
+    "full-formatting-fixture-conformance"
+  ],
   "acceptedFeatures": [
     "simple-patterns",
     "quoted-and-unquoted-literals",

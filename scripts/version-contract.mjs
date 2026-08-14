@@ -32,7 +32,10 @@ const activeFiles = [
 
 const replaceActiveVersion = (path, from, to) => {
   const source = read(path);
-  const updated = source.replaceAll(from, to);
+  const updated =
+    path === "moon.mod"
+      ? source.replace(`version = "${from}"`, `version = "${to}"`)
+      : source.replaceAll(from, to);
   assert.notEqual(updated, source, `${path} did not contain ${from}`);
   write(path, updated);
 };

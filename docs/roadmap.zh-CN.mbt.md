@@ -200,6 +200,13 @@ chunk、通过文档化 fallback 恢复，并保持在公开体积预算内。
 
 ### `0.5.x`——语法与数据模型
 
+**状态：已在 `0.5.0` 稳定。** 独立的
+`unicode-mf2-ldml48.2-syntax-v1` profile 已实现固定版本的完整 grammar、
+well-formed/valid 分层、Unicode 16 NFC 等价名称处理、规范公共/JSON interchange
+model，以及确定性、功能等价的语法序列化。vendored 上游覆盖包含全部 114 个接受语法、
+133 个 syntax-error 和 23 个 data-model 用例。现有 catalog 仍使用 strict-v1，因此
+本阶段不会提前替代 `0.8.x` 规划的显式 authoring 切换。
+
 - 实现所固定稳定规范的完整 grammar，以及 well-formed 与 valid 的区别。
 - 覆盖 compact message、declaration、expression、option、attribute、markup、
   reserved syntax、quoted form 和规范性 interchange data model。
