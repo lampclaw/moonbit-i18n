@@ -19,6 +19,9 @@ const coordinate = `lampclaw/i18n@${version}`;
 const cli = `lampclaw/i18n/cmd/i18n@${version}`;
 const root = mkdtempSync(join(tmpdir(), "lampclaw-i18n-registry-"));
 const state = join(root, "state");
+const versionParts = version.split(".").map((part) => Number.parseInt(part, 10));
+const supportsLifecycle =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 3);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -192,6 +195,89 @@ try {
     join(app, "public", "i18n", "zh-CN.json"),
     "utf8",
   );
+
+  if (supportsLifecycle) {
+    const xliff = join(app, "translation.xlf");
+    const imported = join(app, "imported-zh-CN.json");
+    const exchangeState = join(app, "translation-state.json");
+    const exchangeReport = join(app, "translation-report.json");
+    run(
+      "moonx",
+      [
+        cli,
+        "export-xliff",
+        "localization/schema.json",
+        "en-US",
+        "localization/locales/en-US.json",
+        "zh-CN",
+        "localization/locales/zh-CN.json",
+        xliff,
+      ],
+      { cwd: app },
+    );
+    run(
+      "moonx",
+      [
+        cli,
+        "import-xliff",
+        "--state-output",
+        exchangeState,
+        "--report-output",
+        exchangeReport,
+        "localization/schema.json",
+        "en-US",
+        "localization/locales/en-US.json",
+        "zh-CN",
+        xliff,
+        imported,
+      ],
+      { cwd: app },
+    );
+    assert.match(readFileSync(exchangeState, "utf8"), /"sourceSha256"/u);
+    assert.match(readFileSync(exchangeReport, "utf8"), /"lossCount": 0/u);
+    assert.deepEqual(
+      JSON.parse(readFileSync(imported, "utf8")),
+      JSON.parse(readFileSync(join(app, "localization", "locales", "zh-CN.json"), "utf8")),
+    );
+    const i18nextOutput = join(app, "i18next-zh-CN.json");
+    const i18nextReport = join(app, "i18next-report.json");
+    run(
+      "moonx",
+      [
+        cli,
+        "import-i18next",
+        "localization/schema.json",
+        "zh-CN",
+        "localization/locales/zh-CN.json",
+        i18nextOutput,
+        i18nextReport,
+      ],
+      { cwd: app },
+    );
+    assert.match(readFileSync(i18nextReport, "utf8"), /"lossCount": 0/u);
+    const arb = join(app, "simple.arb");
+    const arbOutput = join(app, "arb-zh-CN.json");
+    const arbReport = join(app, "arb-report.json");
+    writeFileSync(
+      arb,
+      '{"@@locale":"zh-CN","common.hello":"你好 {name}"}\n',
+    );
+    run(
+      "moonx",
+      [
+        cli,
+        "import-arb",
+        "localization/schema.json",
+        "zh-CN",
+        arb,
+        arbOutput,
+        arbReport,
+      ],
+      { cwd: app },
+    );
+    assert.match(readFileSync(arbOutput, "utf8"), /你好 \{\$name\}/u);
+    assert.match(readFileSync(arbReport, "utf8"), /"lossCount": 0/u);
+  }
 
   writeFileSync(
     join(app, "main", "moon.pkg"),

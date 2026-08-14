@@ -165,6 +165,66 @@ try {
     /formatter\(ignore: \[ "generated\.mbt" \]\)/u,
   );
 
+  const xliff = join(app, "translation.xlf");
+  const imported = join(app, "imported-zh-CN.json");
+  const exchangeState = join(app, "translation-state.json");
+  const exchangeReport = join(app, "translation-report.json");
+  const cliPrefix = ["run", "--target", "wasm", "cmd/i18n", "--"];
+  run(
+    "moon",
+    [
+      ...cliPrefix,
+      "export-xliff",
+      join(app, "localization", "schema.json"),
+      "en-US",
+      join(app, "localization", "locales", "en-US.json"),
+      "zh-CN",
+      join(app, "localization", "locales", "zh-CN.json"),
+      xliff,
+    ],
+    { cwd: library },
+  );
+  run(
+    "moon",
+    [
+      ...cliPrefix,
+      "import-xliff",
+      "--state-output",
+      exchangeState,
+      "--report-output",
+      exchangeReport,
+      join(app, "localization", "schema.json"),
+      "en-US",
+      join(app, "localization", "locales", "en-US.json"),
+      "zh-CN",
+      xliff,
+      imported,
+    ],
+    { cwd: library },
+  );
+  assert.match(readFileSync(exchangeState, "utf8"), /"sourceSha256"/u);
+  assert.match(readFileSync(exchangeReport, "utf8"), /"lossCount": 0/u);
+  assert.deepEqual(
+    JSON.parse(readFileSync(imported, "utf8")),
+    JSON.parse(readFileSync(join(app, "localization", "locales", "zh-CN.json"), "utf8")),
+  );
+  const migrationOutput = join(app, "i18next-zh-CN.json");
+  const migrationReport = join(app, "i18next-report.json");
+  run(
+    "moon",
+    [
+      ...cliPrefix,
+      "import-i18next",
+      join(app, "localization", "schema.json"),
+      "zh-CN",
+      join(app, "localization", "locales", "zh-CN.json"),
+      migrationOutput,
+      migrationReport,
+    ],
+    { cwd: library },
+  );
+  assert.match(readFileSync(migrationReport, "utf8"), /"lossCount": 0/u);
+
   const dynamicCatalog = readFileSync(
     join(app, "public", "i18n", "zh-CN.json"),
     "utf8",

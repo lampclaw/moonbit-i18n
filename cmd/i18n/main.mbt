@@ -1175,7 +1175,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.2.1"
+const CLI_VERSION : String = "0.3.0"
 
 ///|
 fn usage() -> String {
@@ -1183,13 +1183,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1202,6 +1204,8 @@ fn is_command(arg : String) -> Bool {
   arg == "pseudo" ||
   arg == "export-xliff" ||
   arg == "import-xliff" ||
+  arg == "import-i18next" ||
+  arg == "import-arb" ||
   arg == "help" ||
   arg == "--help" ||
   arg == "-h" ||
@@ -1245,7 +1249,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.2.1\"\n\n" +
+  "version = \"0.3.0\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1782,6 +1786,8 @@ async fn run_command(args : Array[String]) -> Unit raise CliError {
     "pseudo" => run_pseudo(args)
     "export-xliff" => run_export_xliff(args)
     "import-xliff" => run_import_xliff(args)
+    "import-i18next" => run_import_i18next(args)
+    "import-arb" => run_import_arb(args)
     _ => cli_fail(usage())
   }
 }

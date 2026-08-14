@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.2.1` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
+`0.3.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
 facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
@@ -12,8 +12,9 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.2.1` 是建立在 Web/JavaScript strict-v1 runtime 基线之上的稳定 authoring 与
-diagnostics 版本。它不是原型，也不表示完整通过 Unicode MessageFormat 2。公开的
+`0.3.0` 是建立在 Web/JavaScript strict-v1 runtime 基线与 `0.2.x` authoring
+契约之上的稳定翻译生命周期与互操作版本。它不是原型，也不表示完整通过 Unicode
+MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
@@ -26,24 +27,24 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.2.1
+moon add lampclaw/i18n@0.3.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.2.1 --help
+moonx lampclaw/i18n/cmd/i18n@0.3.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.2.1` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.3.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.2.1` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.3.0` 全局安装，命令名为
 `moon-i18n`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.2.1 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.3.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -126,14 +127,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.2.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.3.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.2.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.3.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -204,9 +205,11 @@ runtime 状态。
 
 ## 工具与支持 profile
 
-CLI 还提供 `coverage`、`pseudo`、`export-xliff` 和 `import-xliff`。XLIFF 2.1
-导入会核验 source 内容及两端 locale，拒绝不安全 XML 和 MF2 字段内的 inline XML，
-并保留转义文本、CDATA、实体和排版空白。
+CLI 还提供 `coverage`、`pseudo`、带状态的 `export-xliff`/`import-xliff`，以及单向
+`import-i18next`/`import-arb` 迁移。XLIFF 2.1 导入会核验 source 内容及两端
+locale，拒绝不安全 XML 和 MF2 字段内的 inline XML，并返回版本化 lifecycle state
+与 loss report。translator note、reviewed/final state、受支持 metadata、显式 ID
+rename/removal 的完整契约见[翻译生命周期文档](docs/translation-lifecycle.zh-CN.mbt.md)。
 
 catalog profile 为 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。它支持 MF2
 pattern、declaration、matcher、markup parts、`:string`、`:number`、`:integer`、
@@ -222,7 +225,7 @@ MessageFormat 2。精确能力矩阵和固定上游快照见
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.2.1/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.3.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

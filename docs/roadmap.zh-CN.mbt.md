@@ -152,6 +152,9 @@ human/JSON diagnostics；版本化 SHA-256 输入/输出 manifest；逐字节 ch
 
 ### `0.3.x`——翻译生命周期与互操作
 
+**状态：已在 `0.3.0` 稳定。** canonical locale JSON 继续作为消息内容事实来源；
+XLIFF 生命周期 metadata 由版本化 sidecar 承载，每一项有意损失都会形成机器可读报告。
+
 - 扩展 XLIFF 交换，支持翻译状态、source identity、translator note、过期 source
   检测和安全的 ID rename/removal 处理。
 - 提供从常见 i18next JSON 与 Flutter ARB 到 canonical 项目模型的确定性单向
@@ -162,6 +165,10 @@ human/JSON diagnostics；版本化 SHA-256 输入/输出 manifest；逐字节 ch
 
 出口门槛：export/import round trip 保留消息 identity、source text、translator
 context、state 和 MF2 payload；过期翻译不能被静默接受。
+
+`0.3.0` 以标准 segment state、source SHA-256 identity、translator note、严格的
+过期 source/target 检查、显式版本化 rename/removal map，以及确定性的 i18next/ARB
+迁移报告达到该门槛。由于尚无书面低损失 MF2 映射和真实消费者证据，PO/POT 仍被排除。
 
 ### `0.4.x`——生产级 Web 交付
 

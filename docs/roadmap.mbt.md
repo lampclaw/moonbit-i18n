@@ -191,6 +191,10 @@ the accepted `0.2.x` release.
 
 ### `0.3.x` — translation lifecycle and interchange
 
+**Status: stable in `0.3.0`.** Canonical locale JSON remains the message-content
+source of truth. XLIFF lifecycle metadata is carried by a versioned sidecar and
+every intentional loss is machine-reported.
+
 - Extend XLIFF exchange with translation state, source identity, translator
   notes, stale-source detection, and safe ID rename/removal handling.
 - Provide deterministic, one-way importers from common i18next JSON and Flutter
@@ -204,6 +208,12 @@ the accepted `0.2.x` release.
 Exit gate: export/import round trips preserve message identity, source text,
 translator context, state, and MF2 payloads; stale translations cannot be
 accepted silently.
+
+`0.3.0` meets this gate with standard segment states, source SHA-256 identity,
+translator notes, strict stale-source/target checks, explicit versioned
+rename/removal maps, and deterministic i18next/ARB migration reports. PO/POT
+remains excluded because no written low-loss MF2 mapping and real-consumer
+evidence exists yet.
 
 ### `0.4.x` — production Web delivery
 

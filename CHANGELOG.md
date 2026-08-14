@@ -6,6 +6,38 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-14
+
+### Added
+
+- State-aware XLIFF 2.1 import/export with a versioned exchange-state sidecar,
+  source SHA-256 identity, translator notes, standard segment states, supported
+  workflow metadata, and a versioned preservation/loss report.
+- Explicit versioned ID rename/removal maps with collision checks and loss
+  reporting; unknown identities and stale source or target payloads fail
+  closed.
+- Deterministic one-way importers for common i18next JSON and Flutter ARB,
+  including typed placeholder conversion and per-field reports for semantics
+  which cannot be represented by canonical locale JSON.
+- English and Chinese translation-lifecycle contracts covering authoring,
+  sidecars, metadata, migration boundaries, security limits, and the deliberate
+  exclusion of PO/POT.
+
+### Changed
+
+- XLIFF translation state is now emitted on standard `segment@state`. The
+  earlier `target@state` form remains accepted and is reported as a normalized
+  compatibility input.
+- `import-xliff` always writes state and report sidecars, using deterministic
+  paths next to the locale output unless explicit output paths are supplied.
+
+### Security
+
+- XLIFF lifecycle input enforces bounded bytes, units, nesting and notes;
+  rejects unsafe hierarchy, inline XML, invalid metadata, duplicate migrated
+  identities and `DOCTYPE`; and reports every intentionally discarded metadata
+  item.
+
 ## [0.2.1] - 2026-08-14
 
 ### Fixed
@@ -123,7 +155,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...v0.1.0
