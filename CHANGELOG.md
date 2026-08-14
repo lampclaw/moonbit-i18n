@@ -6,6 +6,45 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-14
+
+### Added
+
+- Standalone `unicode-mf2-ldml48.2-resolution-v1` profile with source-ordered,
+  at-most-once declaration resolution, normative option processing,
+  multi-selector Match/BetterThan ranking, and lazy selected-pattern
+  formatting.
+- Best-effort `Mf2FormatResult` carrying concatenated text, safe structured
+  parts, and deterministic typed errors; normative variable, literal,
+  function-only, and whole-message fallback representations are preserved.
+- Default Unicode bidi isolation with explicit direction metadata,
+  `u:dir`/`u:id`, and an opt-out strategy for presentation layers that provide
+  equivalent isolation.
+- Renderer-independent markup events retaining kind, name, resolved inert
+  options, attributes, and IDs without executing HTML, DOM, or callbacks.
+- Strict RFC 5646 canonicalization and RFC 4647 lookup APIs generated from the
+  pinned IANA Language Subtag Registry dated 2026-08-08, including
+  Preferred-Value mappings, extlang handling, extension ordering, and explicit
+  collision errors.
+- SHA-256-pinned upstream formatting/error references and generated tests for
+  all 67 fallback, pattern-selection, bidi, and Unicode-option fixtures.
+
+### Changed
+
+- The pre-0.6 `normalize_locale_code` and `resolve_locale_code` APIs retain
+  their broad compatibility behavior; standards-facing code can opt into the
+  strict typed boundary without silently invalidating existing catalogs.
+- The existing generated authoring/catalog path remains on
+  `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. Stable default functions and a
+  public custom registry remain intentionally gated to 0.7.
+
+### Security
+
+- Standalone formatting enforces 64-input and 64-KiB output limits, returns a
+  bounded whole-message fallback on overflow, never infers direction by
+  scanning untrusted text, and never interprets localized markup as executable
+  renderer source.
+
 ## [0.5.0] - 2026-08-14
 
 ### Added
@@ -231,7 +270,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...v0.3.0

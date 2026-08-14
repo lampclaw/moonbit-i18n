@@ -25,6 +25,8 @@ const supportsLifecycle =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 3);
 const supportsChunks =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 4);
+const supportsResolution =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 6);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -312,13 +314,19 @@ try {
     assert.match(readFileSync(arbReport, "utf8"), /"lossCount": 0/u);
   }
 
+  const runtimeImport = supportsResolution
+    ? '  "lampclaw/i18n/runtime" @runtime,\n'
+    : "";
+  const resolutionSmoke = supportsResolution
+    ? `  if @runtime.canonicalize_locale_tag("iw-BU") != Ok("he-MM") {\n    abort("strict BCP 47 canonicalization failed")\n  }\n  let context = match @runtime.Mf2FormattingContext::new(\n    locale="en-US",\n    inputs=[\n      @runtime.Mf2Input::new("name", @runtime.TextValue("MoonBit")),\n    ],\n    bidi_isolation=@runtime.Mf2NoBidiIsolation,\n  ) {\n    Ok(value) => value\n    Err(error) => abort(error.to_string())\n  }\n  let standalone = @runtime.format_mf2_standalone(\n    "Standalone {$name}",\n    context,\n  )\n  if standalone.value != "Standalone MoonBit" || !standalone.errors.is_empty() {\n    abort("standalone MF2 resolution failed")\n  }\n`
+    : "";
   writeFileSync(
     join(app, "main", "moon.pkg"),
-    'import {\n  "smoke/scaffolded/i18n" @app_i18n,\n}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n',
+    `import {\n  "smoke/scaffolded/i18n" @app_i18n,\n${runtimeImport}}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n`,
   );
   writeFileSync(
     join(app, "main", "main.mbt"),
-    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  ${dynamicInstall}\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
+    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  ${dynamicInstall}\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n${resolutionSmoke}  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
   );
   run("moon", ["fmt"], { cwd: app });
   run("moon", ["check", "--deny-warn", "--target", "js"], { cwd: app });

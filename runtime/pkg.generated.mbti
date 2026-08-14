@@ -6,6 +6,10 @@ import {
 }
 
 // Values
+pub const BCP47_REGISTRY_DATE : String = "2026-08-08"
+
+pub const BCP47_REGISTRY_SHA256 : String = "be21e91b6851f750a7b1a687f11209d46ad5a8471d6b10a1efc8d1dac4c8a926"
+
 pub const CATALOG_MAX_MESSAGES : Int = 100000
 
 pub const CATALOG_MAX_SOURCE_BYTES : Int = 16777216
@@ -26,19 +30,29 @@ pub const MF2_MAX_MESSAGE_BYTES : Int = 65536
 
 pub const MF2_MAX_OPTIONS : Int = 64
 
+pub const MF2_MAX_OUTPUT_BYTES : Int = 65536
+
 pub const MF2_MAX_PATTERN_PARTS : Int = 65536
 
 pub const MF2_MAX_SELECTORS : Int = 64
 
 pub const MF2_MAX_VARIANTS : Int = 4096
 
+pub const MF2_RESOLUTION_PROFILE : String = "unicode-mf2-ldml48.2-resolution-v1"
+
 pub const MF2_SYNTAX_PROFILE : String = "unicode-mf2-ldml48.2-syntax-v1"
+
+pub fn canonicalize_locale_tag(String) -> Result[String, LocaleError]
 
 pub fn compile_mf2_message(String, MessageContract) -> Result[CompiledMessage, Array[Mf2Error]]
 
 pub fn format_mf2_message(String, String, Array[MessageArg], Formatter) -> Result[String, String]
 
+pub fn format_mf2_model_standalone(Mf2MessageModel, Mf2FormattingContext) -> Mf2FormatResult
+
 pub fn format_mf2_rich(String, String, Array[MessageArg], Formatter) -> Result[Array[RichPart], String]
+
+pub fn format_mf2_standalone(String, Mf2FormattingContext) -> Mf2FormatResult
 
 pub fn format_parts(CompiledMessage, String, Array[MessageArg], Formatter) -> Result[Array[MessagePart], Mf2Error]
 
@@ -47,6 +61,8 @@ pub fn format_text(CompiledMessage, String, Array[MessageArg], Formatter) -> Res
 pub fn locale_lookup_chain(String) -> Array[String]
 
 pub fn mf2_model_to_json(Mf2MessageModel) -> Result[String, Array[Mf2Error]]
+
+pub fn negotiate_locale_code(Array[String], Array[String], fallback? : String?) -> Result[String?, LocaleError]
 
 pub fn normalize_locale_code(String) -> Result[String, String]
 
@@ -61,6 +77,8 @@ pub fn parse_valid_mf2_model(String) -> Result[Mf2MessageModel, Array[Mf2Error]]
 pub fn resolve_locale_code(Array[String], Array[String], String) -> String
 
 pub fn serialize_mf2_model(Mf2MessageModel) -> Result[String, Array[Mf2Error]]
+
+pub fn strict_locale_lookup_chain(String) -> Result[Array[String], LocaleError]
 
 pub fn validate_mf2_message(String, Array[String]) -> Result[Unit, String]
 
@@ -191,6 +209,22 @@ pub fn I18n::take_diagnostics(Self) -> DiagnosticBatch
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
 
+pub(all) struct LocaleError {
+  code : LocaleErrorCode
+  message : String
+  subtag_index : Int
+} derive(Eq, @debug.Debug)
+pub fn LocaleError::to_string(Self) -> String
+
+pub(all) enum LocaleErrorCode {
+  LocaleEmptyTagCode
+  LocaleSyntaxCode
+  LocaleDuplicateVariantCode
+  LocaleDuplicateExtensionCode
+  LocaleInvalidExtlangCode
+  LocaleDuplicateSupportedCode
+} derive(Eq, @debug.Debug)
+
 pub(all) struct MessageArg {
   name : String
   value : MessageValue
@@ -222,6 +256,17 @@ pub(all) enum MessageValue {
   DoubleValue(Double)
   BoolValue(Bool)
   InstantMillis(Int64)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2BidiIsolation {
+  Mf2DefaultBidiIsolation
+  Mf2NoBidiIsolation
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2Direction {
+  Mf2LeftToRight
+  Mf2RightToLeft
+  Mf2DirectionUnknown
 } derive(Eq, @debug.Debug)
 
 pub(all) struct Mf2Error {
@@ -260,6 +305,55 @@ pub(all) enum Mf2ErrorKind {
   Mf2FormattingError
   Mf2LimitError
 } derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2FormatResult {
+  value : String
+  parts : Array[Mf2FormattedPart]
+  errors : Array[Mf2Error]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2FormattedExpression {
+  value : String
+  function_name : String?
+  direction : Mf2Direction
+  id : String?
+  options : Array[FormatOption]
+  attributes : Array[Mf2ModelAttribute]
+  fallback : Bool
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Mf2FormattedMarkup {
+  kind : Mf2ModelMarkupKind
+  name : String
+  options : Array[FormatOption]
+  attributes : Array[Mf2ModelAttribute]
+  id : String?
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Mf2FormattedPart {
+  Mf2FormattedText(String)
+  Mf2FormattedExpressionPart(Mf2FormattedExpression)
+  Mf2FormattedMarkupPart(Mf2FormattedMarkup)
+  Mf2FormattedBidiIsolation(String)
+} derive(Eq, @debug.Debug)
+
+pub struct Mf2FormattingContext {
+  locales : Array[String]
+  inputs : Array[Mf2Input]
+  direction : Mf2Direction
+  fallback : String
+  bidi_isolation : Mf2BidiIsolation
+}
+pub fn Mf2FormattingContext::locale(Self) -> String
+pub fn Mf2FormattingContext::locales(Self) -> Array[String]
+pub fn Mf2FormattingContext::new(locale~ : String, fallback_locales? : Array[String], inputs? : Array[Mf2Input], direction? : Mf2Direction, fallback? : String, bidi_isolation? : Mf2BidiIsolation) -> Result[Self, LocaleError]
+
+pub(all) struct Mf2Input {
+  name : String
+  value : MessageValue
+  direction : Mf2Direction
+} derive(Eq, @debug.Debug)
+pub fn Mf2Input::new(String, MessageValue, direction? : Mf2Direction) -> Self
 
 pub(all) enum Mf2MessageModel {
   Mf2PatternMessage(Array[Mf2ModelDeclaration], Mf2ModelPattern)

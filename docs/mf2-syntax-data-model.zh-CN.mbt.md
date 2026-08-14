@@ -87,3 +87,8 @@ option。interchange JSON 同样有大小和嵌套深度限制。这些实现限
 isolation 或 function registry，也不会改变现有 locale JSON 或 catalog-v2 的含义。
 在 `0.8.x` 引入显式标准模式 authoring profile 前，应用仍应使用自身的 generated
 facade。
+
+`0.6.0` 通过独立的 `unicode-mf2-ldml48.2-resolution-v1` profile 增加上述与目标无关
+的 resolution、selection、fallback、structured-output 与 bidi 语义，详见
+[resolution 指南](mf2-resolution-formatting.zh-CN.mbt.md)。Syntax profile 本身仍只负责
+parse/validate，因此其契约没有改变。

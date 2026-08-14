@@ -3,8 +3,9 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.5.0` ships one module containing the runtime, generator, a portable
-`moonx` CLI, and a standalone pinned Unicode MF2 syntax/data-model API.
+MoonBit. `0.6.0` ships one module containing the runtime, generator, a portable
+`moonx` CLI, and standalone pinned Unicode MF2 syntax/data-model and
+resolution-core APIs.
 Generated application facades currently target JavaScript and use the host's
 `Intl` implementation behind a `Result` boundary.
 
@@ -15,10 +16,12 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.5.0` retains the stable production Web delivery workflow and adds complete
-pinned MF2 grammar, validity, NFC-name handling, deterministic syntax
-serialization, and normative JSON interchange. Existing generated applications
-remain on the Web/JavaScript strict-v1 catalog profile.
+`0.6.0` retains the stable production Web delivery workflow and adds normative
+declaration resolution, matcher selection, fallback/error behavior, default
+bidi isolation, inert structured markup/attributes, and strict pinned BCP 47
+canonicalization and lookup on top of the complete MF2 syntax/data model.
+Existing generated applications remain on the Web/JavaScript strict-v1 catalog
+profile.
 It is not a prototype and not a claim of complete Unicode MessageFormat 2
 conformance. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
@@ -35,24 +38,24 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.5.0
+moon add lampclaw/i18n@0.6.0
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.5.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.6.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.5.0` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.6.0` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.5.0`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.6.0`; it is named `moon-i18n`.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.5.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.6.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -146,14 +149,14 @@ independently.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.5.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.6.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.5.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.6.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -259,19 +262,27 @@ features and the pinned upstream snapshot are documented in
 Tooling may separately use `unicode-mf2-ldml48.2-syntax-v1` through
 `parse_mf2_syntax`, `parse_valid_mf2_model`, `serialize_mf2_model`,
 `mf2_model_to_json`, and `parse_mf2_model_json`. This profile passes every
-pinned upstream syntax and data-model fixture but deliberately performs no
-resolution or formatting yet. See the
+pinned upstream syntax and data-model fixture. The separate
+`unicode-mf2-ldml48.2-resolution-v1` profile adds
+`Mf2FormattingContext`, `Mf2Input`, `format_mf2_standalone`, and
+`format_mf2_model_standalone`; it returns best-effort text, structured parts,
+and typed errors. Annotated default functions remain explicitly unavailable
+until the 0.7 registry phase. See the
 [syntax and interchange guide](docs/mf2-syntax-data-model.mbt.md).
 
-Full BCP 47 canonicalization and Unicode bidi isolation are not included in
-this release. Limits include 1,000 locales, 64 MiB aggregate locale
-input, 64 MiB generated MoonBit, 16 MiB/100,000-message catalogs, 64 KiB per
-message, and 64 parameters or declared rich tags per generated message.
+Resolution, bidi, safe structured output, and strict locale boundaries are
+documented in the
+[resolution and formatting guide](docs/mf2-resolution-formatting.mbt.md).
+
+Limits include 1,000 locales, 64 MiB aggregate locale input, 64 MiB generated
+MoonBit, 16 MiB/100,000-message catalogs, 64 KiB per message and standalone
+formatted output, and 64 parameters, inputs, or declared rich tags per
+message.
 
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.5.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.6.0/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

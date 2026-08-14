@@ -97,7 +97,10 @@ jobs:
 
       - name: MF2 profile contract
         run: |
+          node scripts/sync-mf2-upstream-fixtures.mjs --check
           node scripts/generate-mf2-syntax-tests.mjs --check
+          node scripts/generate-mf2-format-tests.mjs --check
+          node scripts/sync-bcp47-registry.mjs --check
           node scripts/check-mf2-profile.mjs
           node scripts/version-contract.mjs check
 
@@ -150,6 +153,8 @@ jobs:
           fi
           printf '%s\n' "$package_list" | grep -q '^runtime/message.mbt$'
           printf '%s\n' "$package_list" | grep -q '^runtime/mf2_syntax.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^runtime/mf2_format.mbt$'
+          printf '%s\n' "$package_list" | grep -q '^runtime/bcp47_registry.generated.mbt$'
           printf '%s\n' "$package_list" | grep -q '^generator/generate.mbt$'
           printf '%s\n' "$package_list" | grep -q '^generator/interchange.mbt$'
           printf '%s\n' "$package_list" | grep -q '^cmd/i18n/main.mbt$'
@@ -159,6 +164,8 @@ jobs:
           printf '%s\n' "$package_list" | grep -q '^docs/support-policy.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/mf2-syntax-data-model.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/mf2-syntax-data-model.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/mf2-resolution-formatting.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/mf2-resolution-formatting.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.mbt.md$'

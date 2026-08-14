@@ -34,9 +34,18 @@ catches `Intl` constructor and invocation exceptions and converts them to
 `InvalidFormatterOption` or `PlatformFormatterFailure`; no JavaScript exception
 crosses this formatter boundary.
 
+The separate standards-core path uses `parse_valid_mf2_model` followed by
+`format_mf2_model_standalone`, or the convenience
+`format_mf2_standalone`. Its `Mf2FormatResult` returns best-effort text,
+renderer-independent structured parts, and all discovered typed errors.
+`Mf2FormattingContext` requires strict BCP 47 locales and explicit value/message
+direction metadata. This path is not used by catalog-v2 until the authoring
+profile switch in `0.8.x`; see
+[`mf2-resolution-formatting.mbt.md`](mf2-resolution-formatting.mbt.md).
+
 ## Catalog compatibility contract
 
-The `0.5.0` release accepts exactly catalog format version `2` and profile
+The `0.6.0` release accepts exactly catalog format version `2` and profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`. `contractHash` is the SHA-256 digest
 of a canonical UTF-8 contract containing the profile, message IDs, parameter
 types, and allowed markup names. A catalog is accepted only when version,
@@ -88,7 +97,9 @@ The stable profile supports patterns, declarations, matching, markup parts,
 `:lampclaw:datetime` as the project extension for `InstantMillis`. Full CLDR
 plural/date behavior is supplied by the JS formatter. Optional registry
 functions, bidi isolation, full BCP 47 canonicalization, and arbitrary
-user-defined functions are not part of this profile and are rejected.
+user-defined functions are not part of this catalog profile and are rejected.
+The separately named 0.6 resolution-core profile supplies bidi and strict BCP
+47 APIs without changing catalog semantics.
 This name intentionally avoids claiming complete Unicode MF2 conformance; see
 [`mf2-profile.mbt.md`](mf2-profile.mbt.md) for the pinned reference snapshot
 and the compatibility matrix.
