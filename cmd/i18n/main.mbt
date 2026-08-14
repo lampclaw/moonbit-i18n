@@ -1175,7 +1175,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.2.0"
+const CLI_VERSION : String = "0.2.1"
 
 ///|
 fn usage() -> String {
@@ -1183,13 +1183,13 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.2.0 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 export-xliff <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.2.1 import-xliff <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
   )
 }
 
@@ -1245,7 +1245,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.2.0\"\n\n" +
+  "version = \"0.2.1\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1338,6 +1338,20 @@ async fn write_scaffold_sources(
 }
 
 ///|
+async fn remove_scaffold_stage_locks(stage : String) -> Unit raise CliError {
+  let lock_directory = generation_lock_directory()
+  for directory in [path_join(stage, "i18n"), path_join(stage, "public/i18n")] {
+    let lock_path = transaction_lock_path(directory, lock_directory)
+    if file_exists(lock_path) {
+      if !(file_kind(lock_path) is Regular) {
+        cli_fail("scaffold generation lock is not a regular file: \{lock_path}")
+      }
+      remove_path(lock_path)
+    }
+  }
+}
+
+///|
 async fn run_scaffold(args : Array[String]) -> Unit raise CliError {
   if args.length() != 3 {
     cli_fail(usage())
@@ -1378,6 +1392,7 @@ async fn run_scaffold(args : Array[String]) -> Unit raise CliError {
       ],
       false,
     )
+    remove_scaffold_stage_locks(stage)
     rename_path(stage, destination)
   } catch {
     CommandFailed(message) => {

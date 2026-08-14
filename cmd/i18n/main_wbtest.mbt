@@ -91,7 +91,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.2.0"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.2.1"))
   assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }
@@ -132,6 +132,28 @@ async test "scaffold creates one safe canonical bilingual module" {
     () => run_scaffold(["scaffold", "example/hello", destination]),
     "refusing to overwrite existing scaffold destination",
   )
+  transaction_test_remove(root)
+}
+
+///|
+async test "scaffold removes locks owned only by its staging paths" {
+  let root = transaction_test_root()
+  let stage = path_join(root, ".app.scaffold-test")
+  let lock_directory = generation_lock_directory()
+  ensure_directory(lock_directory)
+  let package_lock = transaction_lock_path(
+    path_join(stage, "i18n"),
+    lock_directory,
+  )
+  let catalog_lock = transaction_lock_path(
+    path_join(stage, "public/i18n"),
+    lock_directory,
+  )
+  write_file(package_lock, "")
+  write_file(catalog_lock, "")
+  remove_scaffold_stage_locks(stage)
+  assert_false(file_exists(package_lock))
+  assert_false(file_exists(catalog_lock))
   transaction_test_remove(root)
 }
 

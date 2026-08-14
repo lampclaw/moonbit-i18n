@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 const version = process.argv[2];
 assert.ok(version, "usage: verify-mooncakes.mjs <published-version> [sha256]");
-assert.match(version, /^0\.1\.0(?:-rc\.[1-9][0-9]*)?$/u);
+assert.match(version, /^0\.[0-9]+\.[0-9]+(?:-rc\.[1-9][0-9]*)?$/u);
 const expectedChecksum = process.argv[3];
 if (expectedChecksum) assert.match(expectedChecksum, /^[0-9a-f]{64}$/u);
 
