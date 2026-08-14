@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- The exact-version Registry smoke now expects the standards-profile schema
+  diagnostic and path introduced in 0.8.0 while retaining the compatibility
+  assertion for older published versions.
+
 ## [0.8.0] - 2026-08-14
 
 ### Added
