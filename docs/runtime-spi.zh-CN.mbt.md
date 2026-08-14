@@ -29,9 +29,17 @@ formatter callback 返回带 `FormatterIssue` 的 `Result`。JS adapter 会捕�
 构造和执行异常，转换成 `InvalidFormatterOption` 或 `PlatformFormatterFailure`，因此
 JavaScript 异常不会穿过 formatter 边界。
 
+独立 standards-core 路径先调用 `parse_valid_mf2_model`，再调用
+`format_mf2_model_standalone`，也可以直接使用 `format_mf2_standalone`。它的
+`Mf2FormatResult` 会同时返回 best-effort 文本、不绑定 renderer 的 structured part 与
+已发现的 typed error。`Mf2FormattingContext` 要求严格 BCP 47 locale，以及显式的
+value/message 方向 metadata。在 `0.8.x` 切换 authoring profile 前，catalog-v2 不使用
+该路径；详见
+[`mf2-resolution-formatting.zh-CN.mbt.md`](mf2-resolution-formatting.zh-CN.mbt.md)。
+
 ## Catalog 兼容契约
 
-`0.5.0` 只接受精确的 catalog format version `2` 和 profile
+`0.6.0` 只接受精确的 catalog format version `2` 和 profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。`contractHash` 是规范 UTF-8 契约的
 SHA-256；该契约覆盖 profile、消息 ID、参数类型与允许的 markup。只有版本、profile、
 contract hash 和归一化 locale 全部匹配时才会接受 catalog。
@@ -72,6 +80,7 @@ runtime 在有界、去重的 buffer 中记录消息缺失、逐消息 fallback 
 `:number`、`:integer` 与 `:offset`，并用项目扩展 `:lampclaw:datetime` 处理
 `InstantMillis`。完整 CLDR plural/date 行为由 JS formatter 提供。可选 registry
 function、bidi isolation、完整 BCP 47 canonicalization 和任意用户自定义 function
-不属于该 profile，会被明确拒绝。
+不属于该 catalog profile，会被明确拒绝。另行命名的 0.6 resolution-core profile 在不
+改变 catalog 语义的前提下提供 bidi 与严格 BCP 47 API。
 该名称刻意不宣称完整 Unicode MF2 合规；固定参考快照与兼容矩阵见
 [`mf2-profile.zh-CN.mbt.md`](mf2-profile.zh-CN.mbt.md)。

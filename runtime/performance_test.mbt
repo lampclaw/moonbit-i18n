@@ -21,6 +21,29 @@ test "compiled MF2 text formatting" (bench : @bench.T) {
 }
 
 ///|
+test "standalone MF2 model resolution and structured formatting" (
+  bench : @bench.T,
+) {
+  let model = match parse_valid_mf2_model("Hello {$name}; code {42}") {
+    Ok(value) => value
+    Err(_) => fail("standalone benchmark model must parse")
+  }
+  let context = match
+    Mf2FormattingContext::new(
+      locale="en-US",
+      inputs=[Mf2Input::new("name", TextValue("MoonBit"))],
+      direction=Mf2LeftToRight,
+      bidi_isolation=Mf2NoBidiIsolation,
+    ) {
+    Ok(value) => value
+    Err(_) => fail("standalone benchmark context must be valid")
+  }
+  bench.bench(name="standalone-model-format", fn() {
+    bench.keep(format_mf2_model_standalone(model, context))
+  })
+}
+
+///|
 test "indexed catalog lookup at ten thousand messages" (bench : @bench.T) {
   let entries = Array::makei(10000, index => CatalogEntry::{
     id: "message.\{index}",

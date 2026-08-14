@@ -2,55 +2,64 @@
 
 [中文](mf2-profile.zh-CN.mbt.md)
 
-Version `0.5.0` exposes two deliberately separate profiles:
+Version `0.6.0` exposes three deliberately separate profiles:
 
 - `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` is the catalog, generator,
   generated-facade, and formatting profile used by existing applications.
-- `unicode-mf2-ldml48.2-syntax-v1` is the new standalone Unicode MF2 syntax
-  and interchange-data-model profile. It parses and validates the complete
-  pinned grammar, but does not yet format that model.
+- `unicode-mf2-ldml48.2-syntax-v1` parses and validates the complete pinned
+  grammar and normative interchange data model.
+- `unicode-mf2-ldml48.2-resolution-v1` adds declaration and option resolution,
+  matcher selection, best-effort fallback, structured output, Unicode bidi
+  isolation, and strict BCP 47 boundaries to that model.
 
-This separation prevents a syntax expansion from silently changing existing
-catalog meaning. Normal JSON authoring and generated applications continue to
-use strict-v1 in `0.5.0`; explicit catalog `messageProfile` selection arrives
-in `0.8.x`. The standalone API is documented in the
-[syntax and data-model guide](mf2-syntax-data-model.mbt.md).
+This separation prevents standards work from silently changing existing
+catalog meaning. Canonical JSON authoring and generated applications continue
+to use strict-v1; explicit catalog `messageProfile` selection arrives in
+`0.8.x`. The standalone APIs are documented in the
+[syntax/data-model guide](mf2-syntax-data-model.mbt.md) and
+[resolution/formatting guide](mf2-resolution-formatting.mbt.md).
 
 The upstream comparison point is Unicode MessageFormat WG commit
 [`d115a614079678850aac8b52742360e888b8f027`](https://github.com/unicode-org/message-format-wg/commit/d115a614079678850aac8b52742360e888b8f027),
 dated 2026-06-11 and from the LDML 48.2 era. The immutable pin, vendored
 fixtures, Unicode license, and machine-readable matrix live under
-`tests/unicode-mf2/`.
+`tests/unicode-mf2/`. Locale canonicalization uses the separately pinned IANA
+Language Subtag Registry snapshot dated 2026-08-08.
 
 ## Compatibility matrix
 
-| Area | Existing catalog profile | `unicode-mf2-ldml48.2-syntax-v1` |
-|---|---|---|
-| Grammar | Strict, line-oriented project subset | Complete pinned message ABNF, including compact complex messages |
-| Well-formed vs valid | Compile/install failure | Separate `parse_mf2_syntax` and `validate_mf2_model` stages |
-| Declarations and selection | Runtime-ready strict-v1 model | Normative declarations, selectors, variants, and data-model validity |
-| Expressions | Runtime-supported operands and functions | Literal, variable, function-only, options, and attributes |
-| Markup | Balanced markup in structured parts | Normative open, close, standalone, and intentionally unbalanced model |
-| NFC handling | No full NFC identifier/key normalization | Unicode 16 NFC names and NFC-equivalent duplicate detection |
-| Interchange model | Internal compiled model and catalog JSON | Normative public model plus deterministic JSON interchange |
-| Formatting | Text and rich-parts formatting | Deferred to `0.6.x` and `0.7.x` |
-| Functions | `:string`, `:number`, `:integer`, `:offset`, private `:lampclaw:datetime` | Function references retained without registry interpretation |
-| Errors | Strict failure | Pinned syntax and specific data-model error codes; recovery deferred |
-| Directionality | Catalog direction metadata | Bidi controls accepted by grammar; output isolation deferred |
+| Area | Existing catalog profile | Syntax profile | Resolution profile |
+|---|---|---|---|
+| Grammar | Strict line-oriented project subset | Complete pinned message ABNF | Same complete pinned model |
+| Validity | Catalog compile/install failure | Separate parse and validity stages | Invalid models produce whole-message fallback plus errors |
+| Declarations | Eager strict-v1 bindings | Retained in interchange data | Source-ordered, at-most-once resolution |
+| Selection | Project ranking rules | Retained, not executed | Normative Match/BetterThan multi-selector algorithm |
+| Runtime errors | Operation fails | Not applicable | Typed errors plus best-effort output and fallback values |
+| Markup | Balanced legacy rich parts | Normative open/close/standalone model | Inert structured events preserving options and attributes |
+| NFC | No full identifier/key normalization | Required names and duplicate detection | Required selector-key normalization |
+| Locale | Legacy underscore-compatible normalization | Not applicable | Strict RFC 5646 canonicalization and RFC 4647 lookup |
+| Bidi | Catalog direction metadata | Syntax controls accepted | Default LRI/RLI/FSI/PDI strategy and structured controls |
+| Functions | Project subset and private datetime | References retained only | Unknown until the stable default/public registry in `0.7.x` |
 
 ## Conformance statement
 
-`0.5.0` claims conformance only for the pinned MF2 syntax and validity/data
-model surface. It does not claim full Unicode MessageFormat conformance. The
-vendored suite proves 114 well-formed syntax cases, 133 syntax-error cases, and
-23 data-model cases from the exact upstream commit on all four MoonBit
-backends. Resolution, fallback formatting, bidi isolation, the default
-function registry, and full formatting fixtures remain version-gated work.
+The current release claims the pinned syntax, validity/data-model, and
+resolution-core surfaces only. The vendored suite proves 114 well-formed
+syntax cases, 133 syntax-error cases, 23 data-model cases, and 67 fallback,
+pattern-selection, bidi, and Unicode-option cases on all four MoonBit
+backends.
+
+It does not claim full Unicode MessageFormat conformance. The stable default
+function registry, JavaScript `Intl`/CLDR provider, public custom registry, and
+complete function fixtures remain the `0.7.x` gate. Catalog authoring profile
+selection, private-datetime migration, a normative requirement matrix, and
+differential testing remain the `0.8.x` gate.
 
 ## Change discipline
 
-Both identifiers are public compatibility contracts. The legacy catalog
+All three identifiers are public compatibility contracts. The legacy catalog
 identifier participates in every catalog contract hash. Any semantic expansion
 or incompatible tightening changes the relevant identifier and updates the
-matrix, fixtures, tests, and both language versions of these documents in one
-change. CI verifies those sources against the immutable upstream pin.
+matrix, pinned fixtures, tests, and both language versions of these documents
+in one change. CI verifies generated fixture tests, the pinned MF2 sources,
+the pinned IANA registry, profile claims, and archive contents.

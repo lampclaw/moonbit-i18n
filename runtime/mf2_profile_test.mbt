@@ -2,9 +2,10 @@
 const MF2_REFERENCE_COMMIT : String = "d115a614079678850aac8b52742360e888b8f027"
 
 ///|
-test "legacy catalog and pinned syntax profile identities are deliberate" {
+test "legacy catalog and pinned standalone profile identities are deliberate" {
   assert_eq(CATALOG_PROFILE, "lampclaw-mf2-strict-v1+lampclaw-datetime-v1")
   assert_eq(MF2_SYNTAX_PROFILE, "unicode-mf2-ldml48.2-syntax-v1")
+  assert_eq(MF2_RESOLUTION_PROFILE, "unicode-mf2-ldml48.2-resolution-v1")
   assert_eq(MF2_REFERENCE_COMMIT.length(), 40)
 }
 

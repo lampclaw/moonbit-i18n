@@ -3,11 +3,19 @@
   "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
   "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
-  "conformanceClaim": "unicode-mf2-syntax-and-data-model-only",
+  "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
+  "conformanceClaim": "unicode-mf2-syntax-data-model-and-resolution-core",
   "syntaxFixtureCounts": {
     "wellFormed": 114,
     "syntaxErrors": 133,
     "dataModelCases": 23
+  },
+  "resolutionFixtureCounts": {
+    "fallback": 8,
+    "patternSelection": 22,
+    "bidi": 27,
+    "unicodeOptions": 10,
+    "total": 67
   },
   "syntaxProfileAcceptedFeatures": [
     "complete-pinned-message-abnf",
@@ -21,11 +29,29 @@
     "deterministic-functional-syntax-roundtrip"
   ],
   "syntaxProfileDeferredFeatures": [
-    "declaration-resolution-and-best-effort-formatting",
-    "bidi-isolation",
     "default-function-registry",
     "catalog-authoring-message-profile-selection",
     "full-formatting-fixture-conformance"
+  ],
+  "resolutionProfileAcceptedFeatures": [
+    "ordered-at-most-once-declaration-resolution",
+    "normative-option-and-variable-resolution",
+    "normative-multi-selector-pattern-ranking",
+    "typed-resolution-and-message-function-errors",
+    "best-effort-expression-and-message-fallback-values",
+    "default-and-disabled-bidi-isolation-strategies",
+    "u-dir-and-u-id-universal-options",
+    "renderer-independent-markup-and-attribute-parts",
+    "strict-bcp47-canonicalization-with-pinned-iana-registry",
+    "rfc4647-lookup-negotiation-boundaries",
+    "bounded-input-output-and-structured-results"
+  ],
+  "resolutionProfileDeferredFeatures": [
+    "stable-default-function-registry",
+    "public-custom-function-registry",
+    "intl-cldr-javascript-provider",
+    "catalog-authoring-message-profile-selection",
+    "complete-default-function-fixtures"
   ],
   "acceptedFeatures": [
     "simple-patterns",

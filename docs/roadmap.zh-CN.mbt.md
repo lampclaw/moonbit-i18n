@@ -214,6 +214,15 @@ model，以及确定性、功能等价的语法序列化。vendored 上游覆盖
 
 ### `0.6.x`——resolution、错误与 Unicode 行为
 
+**状态：已在 `0.6.0` 稳定。** 独立的
+`unicode-mf2-ldml48.2-resolution-v1` profile 已实现按源码顺序且最多一次的
+declaration resolution、规范多 selector ranking、best-effort fallback 与 typed error、
+默认 bidi isolation、`u:id`/`u:dir`，以及不绑定 renderer 的 markup/attribute part。
+严格 locale API 使用固定 IANA registry 完成 RFC 5646 canonicalization 与 RFC 4647
+lookup；0.6 之前的 locale API 保留已记录的兼容面。固定上游的 67 个 fallback、
+pattern-selection、bidi 与 Unicode-option fixture 在四个 MoonBit backend 全部通过。稳定
+默认及公开 function registry 仍明确留在 `0.7.x`。
+
 - 实现规范性的 declaration resolution、matcher selection、fallback value、
   error category 和 best-effort formatting 行为。
 - 完成 BCP 47 locale canonicalization 与 negotiation 边界。

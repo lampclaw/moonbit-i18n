@@ -2,48 +2,56 @@
 
 [English](mf2-profile.mbt.md)
 
-`0.5.0` 刻意提供两个彼此独立的 profile：
+`0.6.0` 刻意提供三个彼此独立的 profile：
 
-- `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` 是现有 catalog、generator、
-  generated facade 与格式化流程使用的 profile。
-- `unicode-mf2-ldml48.2-syntax-v1` 是新增的独立 Unicode MF2 语法与 interchange
-  data model profile。它解析、校验固定版本的完整 grammar，但暂不格式化该模型。
+- `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` 是已有应用使用的 catalog、
+  generator、generated facade 与 formatting profile；
+- `unicode-mf2-ldml48.2-syntax-v1` 解析和校验完整的固定 grammar 与规范
+  interchange data model；
+- `unicode-mf2-ldml48.2-resolution-v1` 在该 model 上增加 declaration/option
+  resolution、matcher selection、best-effort fallback、structured output、Unicode bidi
+  isolation 与严格 BCP 47 边界。
 
-这种隔离避免语法扩展悄悄改变已有 catalog 的含义。`0.5.0` 中常规 JSON authoring
-和生成应用仍使用 strict-v1；catalog 的显式 `messageProfile` 选择在 `0.8.x` 引入。
-独立 API 见[语法与数据模型指南](mf2-syntax-data-model.zh-CN.mbt.md)。
+这种隔离避免标准能力悄悄改变现有 catalog 含义。Canonical JSON authoring 和 generated
+application 继续使用 strict-v1；显式 catalog `messageProfile` 选择在 `0.8.x` 到来。独立
+API 分别记录于[语法/data-model 指南](mf2-syntax-data-model.zh-CN.mbt.md)和
+[resolution/formatting 指南](mf2-resolution-formatting.zh-CN.mbt.md)。
 
-上游比较基线固定为 Unicode MessageFormat WG 的
+上游比较点是 Unicode MessageFormat WG commit
 [`d115a614079678850aac8b52742360e888b8f027`](https://github.com/unicode-org/message-format-wg/commit/d115a614079678850aac8b52742360e888b8f027)，
-日期为 2026-06-11，属于 LDML 48.2 时期。不可变 pin、vendored fixture、Unicode
-许可证与机器可读矩阵位于 `tests/unicode-mf2/`。
+日期为 2026-06-11，属于 LDML 48.2 时期。不可变 pin、vendored fixture、Unicode license
+和机器可读矩阵位于 `tests/unicode-mf2/`。Locale canonicalization 另行固定到日期为
+2026-08-08 的 IANA Language Subtag Registry。
 
 ## 兼容矩阵
 
-| 领域 | 现有 catalog profile | `unicode-mf2-ldml48.2-syntax-v1` |
-|---|---|---|
-| Grammar | 严格、按行的项目子集 | 固定版本的完整 message ABNF，包括 compact complex message |
-| Well-formed 与 valid | compile/install 失败 | `parse_mf2_syntax` 与 `validate_mf2_model` 两个独立阶段 |
-| Declaration 与选择 | 可直接运行的 strict-v1 模型 | 规范 declaration、selector、variant 与 data-model validity |
-| Expression | runtime 支持的 operand 与 function | literal、variable、function-only、option 与 attribute |
-| Markup | structured parts 中要求配对 | 规范的 open、close、standalone，以及刻意不配对的模型 |
-| NFC 处理 | 不提供完整的 identifier/key NFC 规范化 | Unicode 16 NFC 名称及 NFC 等价重复检测 |
-| Interchange model | 内部编译模型与 catalog JSON | 规范公共模型及确定性 JSON interchange |
-| Formatting | 文本与 rich-parts 格式化 | 延后到 `0.6.x`、`0.7.x` |
-| Function | `:string`、`:number`、`:integer`、`:offset`、私有 `:lampclaw:datetime` | 保留 function reference，不解释 registry 语义 |
-| 错误 | 严格失败 | 固定语法错误及具体 data-model code；恢复行为尚未实现 |
-| 方向性 | catalog direction metadata | grammar 接受 bidi control；输出 isolation 尚未实现 |
+| 领域 | 现有 catalog profile | Syntax profile | Resolution profile |
+|---|---|---|---|
+| Grammar | 严格、面向行的项目子集 | 完整固定 message ABNF | 相同完整固定 model |
+| Validity | catalog compile/install 失败 | parse 与 validity 分层 | invalid model 返回整条 fallback 与 error |
+| Declaration | eager strict-v1 binding | 保留在 interchange data | 按源码顺序、最多求值一次 |
+| Selection | 项目 ranking 规则 | 保留但不执行 | 规范 Match/BetterThan 多 selector 算法 |
+| 运行期错误 | 操作失败 | 不适用 | typed error、best-effort 输出与 fallback value |
+| Markup | 平衡的 legacy rich part | 规范 open/close/standalone model | 保留 option/attribute 的惰性 structured event |
+| NFC | 无完整 identifier/key normalization | name 与 duplicate detection | selector key normalization |
+| Locale | 兼容下划线的 legacy normalization | 不适用 | 严格 RFC 5646 canonicalization 与 RFC 4647 lookup |
+| Bidi | catalog direction metadata | 接受 syntax control | 默认 LRI/RLI/FSI/PDI 与 structured control |
+| Function | 项目子集和私有 datetime | 只保留 reference | 在 `0.7.x` 稳定默认/公开 registry 前报告 unknown |
 
 ## Conformance 声明
 
-`0.5.0` 只声明固定版本的 MF2 语法与 validity/data model 能力，不声明完整 Unicode
-MessageFormat conformance。vendored 上游套件在四种 MoonBit backend 上验证 114 个
-well-formed 语法用例、133 个 syntax-error 用例和 23 个 data-model 用例。resolution、
-fallback formatting、bidi isolation、默认 function registry 与完整 formatting fixture
-仍是后续版本门槛。
+当前版本只声明固定的 syntax、validity/data-model 和 resolution-core 能力。Vendored suite
+在四个 MoonBit backend 上证明 114 个 well-formed syntax、133 个 syntax-error、23 个
+data-model，以及 67 个 fallback、pattern-selection、bidi 与 Unicode-option 用例。
+
+这不是完整 Unicode MessageFormat conformance 声明。稳定默认 function registry、
+JavaScript `Intl`/CLDR provider、公开 custom registry 和完整 function fixture 属于
+`0.7.x` 门槛。Catalog authoring profile 选择、私有 datetime 迁移、规范 requirement matrix
+与 differential test 属于 `0.8.x` 门槛。
 
 ## 变更纪律
 
-两个标识都是公开兼容契约。legacy catalog 标识参与每个 catalog contract hash。
-任何语义扩展或不兼容收紧都必须变更对应标识，并在同一变更中同步矩阵、fixture、
-测试及中英文文档。CI 会依据不可变上游 pin 校验这些来源。
+三个 identifier 都是公共兼容契约，legacy catalog identifier 还参与每个 catalog contract
+hash。任何语义扩展或不兼容收紧，都必须改变相关 identifier，并在同一变更中同步 matrix、
+固定 fixture、测试和中英文文档。CI 会校验生成 fixture test、固定 MF2 source、固定 IANA
+registry、profile 声明与 archive 内容。

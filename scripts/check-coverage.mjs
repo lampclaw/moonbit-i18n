@@ -57,10 +57,24 @@ try {
     ["generator", { hit: 0, total: 0 }],
     ["cli", { hit: 0, total: 0 }],
   ]);
+  const generatedDataFiles = new Set([
+    // This source is a mechanical encoding of the SHA-256-pinned IANA
+    // registry. Its generator/checksum gate covers every mapping; counting
+    // thousands of match arms as hand-written control flow would obscure the
+    // coverage of the parser and canonicalization algorithm that consumes it.
+    "runtime/bcp47_registry.generated.mbt",
+  ]);
+  let generatedDataHit = 0;
+  let generatedDataTotal = 0;
   for (const line of summary.split(/\r?\n/)) {
     const match = /^(.*\.mbt):\s+(\d+)\/(\d+)$/.exec(line.trim());
     if (!match) continue;
     const file = relative(root, match[1]).replaceAll("\\", "/");
+    if (generatedDataFiles.has(file)) {
+      generatedDataHit += Number(match[2]);
+      generatedDataTotal += Number(match[3]);
+      continue;
+    }
     const group = file.startsWith("runtime/")
       ? "runtime"
       : file.startsWith("generator/")
@@ -73,6 +87,10 @@ try {
     value.hit += Number(match[2]);
     value.total += Number(match[3]);
   }
+
+  console.log(
+    `generated registry data (checksum/generator gated, excluded): ${generatedDataHit}/${generatedDataTotal}`,
+  );
 
   const thresholds = { runtime: 0.9, generator: 0.85, cli: 0.85 };
   let overallHit = 0;

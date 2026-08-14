@@ -270,6 +270,17 @@ for `0.8.x`.
 
 ### `0.6.x` — resolution, errors, and Unicode behavior
 
+**Status: stable in `0.6.0`.** The standalone
+`unicode-mf2-ldml48.2-resolution-v1` profile implements source-ordered,
+at-most-once declaration resolution, normative multi-selector ranking,
+best-effort fallback and typed errors, default bidi isolation, `u:id`/`u:dir`,
+and renderer-independent markup/attribute parts. Strict locale APIs use a
+pinned IANA registry for RFC 5646 canonicalization and RFC 4647 lookup while
+the pre-0.6 locale API retains its documented compatibility surface. All 67
+pinned fallback, pattern-selection, bidi, and Unicode-option fixtures pass on
+all four MoonBit backends. The stable default and public function registries
+remain explicitly gated to `0.7.x`.
+
 - Implement normative declaration resolution, matcher selection, fallback
   values, error categories, and best-effort formatting behavior.
 - Complete BCP 47 locale canonicalization and negotiation boundaries.

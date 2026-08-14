@@ -101,3 +101,9 @@ isolate bidirectional text, or invoke a function registry. It does not change
 the meaning of existing locale JSON or catalog-v2 files. Applications should
 continue using their generated facade until an explicit standards-mode
 authoring profile is introduced in `0.8.x`.
+
+Version `0.6.0` adds those target-independent resolution, selection, fallback,
+structured-output, and bidi semantics through the separate
+`unicode-mf2-ldml48.2-resolution-v1` profile. See the
+[resolution guide](mf2-resolution-formatting.mbt.md). The syntax profile itself
+remains parse/validate-only so its contract has not changed.
