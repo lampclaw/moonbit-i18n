@@ -63,8 +63,8 @@ the `Registry smoke` workflow with the exact version. It validates `moon add`, p
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
-The historical Moon `0.1.20260803` / `mooncake-bin 0.1.20260731` pair has a known
-dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
+Moon `0.1.20260803` / `mooncake-bin 0.1.20260731` and the current publish
+client used for `0.2.0` have a known dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
 rules in the repository's release checklist; do not treat exit 255 as a
 general success code. This release tracks the behavior locally and does not
 require an upstream report. Maintainers should run

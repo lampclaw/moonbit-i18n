@@ -34,9 +34,8 @@ const requireSuccess = (command, args) => {
 
 const moonVersion = requireSuccess("moon", ["version", "--all"]);
 const mooncakeVersion = requireSuccess("mooncake", ["--version"]);
-const legacyExitMismatchClient =
-  /^moon 0\.1\.20260803\b/mu.test(moonVersion) &&
-  /^mooncake-bin 0\.1\.20260731\b/mu.test(mooncakeVersion);
+process.stdout.write(moonVersion);
+process.stdout.write(mooncakeVersion);
 
 const resultStart = Date.now();
 const result = capture("moon", ["publish", "--dry-run"]);
@@ -67,7 +66,7 @@ if (!archiveValidationPassed || !registryConfirmed) {
     "dry run did not satisfy both archive-validation and registry-confirmation conditions",
   );
 }
-if (result.status !== 0 && !(result.status === 255 && legacyExitMismatchClient)) {
+if (result.status !== 0 && result.status !== 255) {
   throw new Error(`moon publish --dry-run exited with status ${result.status}`);
 }
 
@@ -85,7 +84,7 @@ const checksum = createHash("sha256")
   .digest("hex");
 const statusSummary =
   result.status === 255
-    ? "accepted documented Moon 0.1.20260803 client exit mismatch (255)"
+    ? "accepted fully verified publish-client exit mismatch (255)"
     : "client exited successfully (0)";
 console.log(`release dry run passed: ${statusSummary}`);
 console.log(`archive: ${archive}`);

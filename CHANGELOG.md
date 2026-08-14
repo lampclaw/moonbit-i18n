@@ -25,6 +25,9 @@ All notable changes to this project are documented here. The format follows
 - Stable release tooling, exact-version checks, and Registry smoke tag
   dispatch now accept every planned `0.x` minor instead of being hardcoded to
   `0.1.0`.
+- Dry-run validation accepts the publish client's erroneous exit 255 only when
+  both archive checks and the exact version-specific registry success response
+  prove that no changes were made; every other non-zero result still fails.
 - Post-release engineering, browser, Registry smoke, and consumer product
   gates now use Node.js 26.7.0 exclusively; the redundant Node.js 24 matrix is
   no longer maintained.
