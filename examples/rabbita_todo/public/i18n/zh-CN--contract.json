@@ -1,0 +1,13 @@
+{
+  "catalogVersion": 2,
+  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
+  "locale": "zh-CN",
+  "direction": "ltr",
+  "messages": {
+    "contract.formatted_number": "契约数字：{$value :number}",
+    "contract.last_updated": "更新于 {$when :lampclaw:datetime dateStyle=medium timeZone=UTC}",
+    "contract.rich_notice": "{#strong}类型安全{/strong}的本地化"
+  },
+  "namespace": "contract"
+}

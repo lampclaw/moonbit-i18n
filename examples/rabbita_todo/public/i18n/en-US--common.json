@@ -1,0 +1,15 @@
+{
+  "catalogVersion": 2,
+  "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
+  "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
+  "locale": "en-US",
+  "direction": "ltr",
+  "messages": {
+    "common.catalog_error": "Could not load that language.",
+    "common.catalog_loading": "Loading language…",
+    "common.catalog_retry": "Retry",
+    "common.current_language": "Current language",
+    "common.switch_language": "中文"
+  },
+  "namespace": "common"
+}

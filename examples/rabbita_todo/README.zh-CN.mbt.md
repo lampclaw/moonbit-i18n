@@ -10,14 +10,14 @@
 在仓库根目录执行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.3.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -53,8 +53,8 @@ localization/config.json + schema.json + locales/*.json
                          │
               ┌──────────┴──────────┐
               ▼                     ▼
-i18n/generated.mbt + moon.pkg  public/i18n/*.json
-类型化 facade + 内嵌数据       catalog v2 + 契约 hash
+i18n/generated.mbt + moon.pkg  public/i18n/manifest.json + chunks
+类型化 facade + 内嵌数据       namespace + SHA-256 + 契约 hash
               │
               ▼
 main/moon.pkg 导入生成 i18n + browser_preferences
@@ -68,9 +68,12 @@ Rabbita model / update / view       localStorage / navigator
 catalog 状态和诊断。业务代码使用
 `@app_i18n.TodoUi(@app_i18n.ActiveCount(active))` 这样的类型化值。
 
-JavaScript bundle 只内嵌英文 fallback catalog。第一次切换语言时从
-`/i18n/zh-CN.json` 获取中文 catalog，完成校验和原子安装后复用，不再重复请求。
-请求失败或 catalog 无效时保持当前 locale 不变，并显示可重试状态。
+JavaScript bundle 只内嵌英文 fallback catalog。第一次切换语言时，分别从
+`/i18n/zh-CN--common.json` 和 `/i18n/zh-CN--todo_ui.json` 获取中文 `common`、
+`todo_ui` namespace。应用先把精确 UTF-8 字节数和 SHA-256 与生成的 deployment
+metadata 比较，再交给 facade 验证并安装。请求失败、integrity 不匹配或 chunk 无效时
+保持当前 locale 不变，并显示可重试状态；retry 只重新请求缺失 namespace。示例有意
+不加载 `contract` namespace，以验证常规的 message-level 英文 fallback。
 
 示例使用浏览器 `localStorage` 的
 `lampclaw.i18n.rabbita-todo.locale` 保存用户明确选择的语言。启动时按“保存值、
@@ -78,8 +81,8 @@ JavaScript bundle 只内嵌英文 fallback catalog。第一次切换语言时从
 校验动态 catalog 才提交中文 locale，因此页面可能短暂显示内嵌英文的加载状态。
 浏览器推断出的语言不会自动保存；只有用户主动切换或重试成功才形成长期偏好。
 存储是尽力而为的能力：隐私策略或安全策略阻止存储时，当前会话仍可正常切换。
-刷新会创建新的内存 `I18n` 实例，因此需要重新安装中文 catalog；常规 HTTP 缓存
-仍可避免再次传输。Todo 项目数据本身有意不做持久化。
+刷新会创建新的内存 `I18n` 实例，因此需要重新安装两个必要的中文 chunk；常规
+HTTP 缓存仍可避免再次传输。Todo 项目数据本身有意不做持久化。
 
 locale 检测、加载和持久化都是应用拥有的 adapter。生成 facade 接收 locale code
 和 catalog 数据，但不访问浏览器存储，也不自行发起网络请求。

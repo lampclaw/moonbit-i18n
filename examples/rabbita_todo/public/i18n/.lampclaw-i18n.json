@@ -2,5 +2,5 @@
   "version": 2,
   "generator": "lampclaw/i18n",
   "kind": "catalogs",
-  "files": ["en-US.json", "zh-CN.json"]
+  "files": ["manifest.json", "en-US--common.json", "en-US--contract.json", "en-US--todo_ui.json", "zh-CN--common.json", "zh-CN--contract.json", "zh-CN--todo_ui.json"]
 }

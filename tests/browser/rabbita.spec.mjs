@@ -6,7 +6,7 @@ test("loads a dynamic catalog once and reuses the installed catalog", async ({
   page,
 }) => {
   let catalogRequests = 0;
-  await page.route("**/i18n/zh-CN.json", async (route) => {
+  await page.route("**/i18n/zh-CN--*.json", async (route) => {
     catalogRequests += 1;
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.continue();
@@ -30,16 +30,22 @@ test("loads a dynamic catalog once and reuses the installed catalog", async ({
   await expect(app).toHaveAttribute("data-locale", "en-US");
   await page.locator("#locale-toggle").click();
   await expect(app).toHaveAttribute("data-locale", "zh-CN");
-  expect(catalogRequests).toBe(1);
+  expect(catalogRequests).toBe(2);
 });
 
 test("keeps the old locale after an invalid catalog and supports retry", async ({
   page,
 }) => {
   let catalogRequests = 0;
-  await page.route("**/i18n/zh-CN.json", async (route) => {
+  let failedCommon = false;
+  await page.route("**/i18n/zh-CN--*.json", async (route) => {
     catalogRequests += 1;
-    if (catalogRequests === 1) {
+    if (
+      !failedCommon &&
+      route.request().url().endsWith("/i18n/zh-CN--common.json")
+    ) {
+      failedCommon = true;
+      await new Promise((resolve) => setTimeout(resolve, 150));
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -70,7 +76,7 @@ test("keeps the old locale after an invalid catalog and supports retry", async (
   expect(
     await page.evaluate((key) => localStorage.getItem(key), LOCALE_STORAGE_KEY),
   ).toBe("zh-CN");
-  expect(catalogRequests).toBe(2);
+  expect(catalogRequests).toBe(3);
 });
 
 test("persists an explicit locale and restores it after reload", async ({
@@ -85,9 +91,9 @@ test("persists an explicit locale and restores it after reload", async ({
   const reloadRequest = new Promise((resolve) => {
     observeReloadRequest = resolve;
   });
-  await page.route("**/i18n/zh-CN.json", async (route) => {
+  await page.route("**/i18n/zh-CN--*.json", async (route) => {
     catalogRequests += 1;
-    if (catalogRequests === 2) {
+    if (catalogRequests === 3) {
       observeReloadRequest();
       await reloadCatalogGate;
     }
@@ -125,7 +131,7 @@ test("persists an explicit locale and restores it after reload", async ({
     "data-state",
     "ready",
   );
-  expect(catalogRequests).toBe(2);
+  expect(catalogRequests).toBe(4);
 });
 
 test("keeps locale switching usable when browser storage throws", async ({

@@ -158,6 +158,37 @@ test "XLIFF reports every intentionally discarded metadata item" {
 }
 
 ///|
+test "XLIFF drops namespace-qualified subState with an explicit loss report" {
+  let schema = "{ \"messages\": { \"common\": [\"save\"] } }"
+  let source = "{ \"common\": { \"save\": \"Save\" } }"
+  let xliff =
+    #|<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" xmlns:vendor="https://example.com/xliff/vendor" version="2.1" srcLang="en-US" trgLang="fr">
+    #|  <file id="messages"><unit id="common.save"><segment state="reviewed" subState="vendor:approved">
+    #|    <source>Save</source><target>Enregistrer</target>
+    #|  </segment></unit></file>
+    #|</xliff>
+  guard import_xliff_with_state(schema, "en-US", source, "fr", xliff, None)
+    is Ok(imported) else {
+    fail("namespace-qualified XLIFF subState should import with reported loss")
+  }
+  assert_true(imported.report.contains("segment@subState"))
+  assert_true(imported.report.contains("namespace-qualified XLIFF subState"))
+  let target = "{ \"common\": { \"save\": \"Enregistrer\" } }"
+  guard export_xliff_with_state(
+      schema,
+      "en-US",
+      source,
+      "fr",
+      Some(target),
+      Some(imported.exchange_state),
+    )
+    is Ok(exported) else {
+    fail("state-aware XLIFF export should succeed after dropping the prefix")
+  }
+  assert_false(exported.contains("subState=\"vendor:approved\""))
+}
+
+///|
 test "i18next and ARB importers are deterministic and loss-explicit" {
   let schema =
     #|{

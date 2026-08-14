@@ -63,7 +63,11 @@ pub struct I18n {
   fallback_locale_code : String
   contract_hash : String
   profile : String
+  /// Whole-locale catalogs retained for catalog-v2 compatibility.
   catalogs : Map[String, Catalog]
+  /// Namespace chunks keyed by normalized locale and namespace.
+  catalog_chunks : Map[String, Catalog]
+  /// Effective per-locale messages after whole catalogs and chunks are merged.
   compiled_catalogs : Map[String, Map[String, CompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
@@ -95,6 +99,7 @@ pub fn I18n::new(
     contract_hash,
     profile,
     catalogs: Map([]),
+    catalog_chunks: Map([]),
     compiled_catalogs: Map([]),
     formatter,
     diagnostics: [],
@@ -194,9 +199,79 @@ pub fn I18n::install_generated_catalog(
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  self.catalogs[catalog.locale_code] = catalog
-  self.compiled_catalogs[catalog.locale_code] = compiled
+  let merged = self.merged_catalog_for_install(catalog, compiled)
+  match catalog.chunk_namespace {
+    Some(chunk_namespace) =>
+      self.catalog_chunks[chunk_catalog_key(
+        catalog.locale_code,
+        chunk_namespace,
+      )] = catalog
+    None => self.catalogs[catalog.locale_code] = catalog
+  }
+  self.compiled_catalogs[catalog.locale_code] = merged
   Ok(())
+}
+
+///|
+fn chunk_catalog_key(locale_code : String, chunk_namespace : String) -> String {
+  locale_code + "\n" + chunk_namespace
+}
+
+///|
+fn merge_compiled_messages(
+  destination : Map[String, CompiledMessage],
+  source : Map[String, CompiledMessage],
+) -> Unit {
+  for pair in source.iter() {
+    destination[pair.0] = pair.1
+  }
+}
+
+///|
+fn I18n::merged_catalog_for_install(
+  self : I18n,
+  candidate : Catalog,
+  candidate_compiled : Map[String, CompiledMessage],
+) -> Map[String, CompiledMessage] {
+  let merged : Map[String, CompiledMessage] = Map([])
+  match candidate.chunk_namespace {
+    Some(candidate_namespace) => {
+      match self.catalogs.get(candidate.locale_code) {
+        Some(base) =>
+          match base.compile_messages() {
+            Ok(compiled) => merge_compiled_messages(merged, compiled)
+            Err(_) => ()
+          }
+        None => ()
+      }
+      let candidate_key = chunk_catalog_key(
+        candidate.locale_code,
+        candidate_namespace,
+      )
+      for pair in self.catalog_chunks.iter() {
+        if pair.0 != candidate_key &&
+          pair.1.locale_code == candidate.locale_code {
+          match pair.1.compile_messages() {
+            Ok(compiled) => merge_compiled_messages(merged, compiled)
+            Err(_) => ()
+          }
+        }
+      }
+      merge_compiled_messages(merged, candidate_compiled)
+    }
+    None => {
+      merge_compiled_messages(merged, candidate_compiled)
+      for pair in self.catalog_chunks.iter() {
+        if pair.1.locale_code == candidate.locale_code {
+          match pair.1.compile_messages() {
+            Ok(compiled) => merge_compiled_messages(merged, compiled)
+            Err(_) => ()
+          }
+        }
+      }
+    }
+  }
+  merged
 }
 
 ///|
@@ -235,19 +310,163 @@ pub fn I18n::install_catalog_source_for(
 }
 
 ///|
+/// Parses and atomically installs one catalog chunk only when its locale and
+/// namespace match the expected deployment-manifest entry.
+pub fn I18n::install_catalog_chunk_source_for(
+  self : I18n,
+  expected_locale_code : String,
+  expected_namespace : String,
+  source : String,
+) -> Result[Unit, String] {
+  let expected_locale = match normalize_locale_code(expected_locale_code) {
+    Ok(value) => value
+    Err(message) => return Err(message)
+  }
+  let catalog = match parse_catalog(source) {
+    Ok(value) => value
+    Err(message) => return Err(message)
+  }
+  if catalog.locale_code != expected_locale {
+    return Err(
+      "catalog locale mismatch: expected \{expected_locale}, got \{catalog.locale_code}",
+    )
+  }
+  match catalog.chunk_namespace {
+    Some(value) if value == expected_namespace => ()
+    Some(value) =>
+      return Err(
+        "catalog namespace mismatch: expected \{expected_namespace}, got \{value}",
+      )
+    None =>
+      return Err("catalog namespace is missing: expected \{expected_namespace}")
+  }
+  self.install_generated_catalog(catalog)
+}
+
+///|
 /// Returns whether a normalized locale catalog is currently installed.
 pub fn I18n::has_catalog(self : I18n, locale_code : String) -> Bool {
   let normalized = match normalize_locale_code(locale_code) {
     Ok(value) => value
     Err(_) => return false
   }
-  self.catalogs.contains(normalized)
+  if self.catalogs.contains(normalized) {
+    return true
+  }
+  for pair in self.catalog_chunks.iter() {
+    if pair.1.locale_code == normalized {
+      return true
+    }
+  }
+  false
+}
+
+///|
+/// Returns whether a whole-locale catalog is installed, excluding namespace
+/// chunks.
+pub fn I18n::has_whole_catalog(self : I18n, locale_code : String) -> Bool {
+  match normalize_locale_code(locale_code) {
+    Ok(value) => self.catalogs.contains(value)
+    Err(_) => false
+  }
+}
+
+///|
+/// Returns whether data for one namespace is installed for a locale.
+pub fn I18n::has_catalog_namespace(
+  self : I18n,
+  locale_code : String,
+  expected_namespace : String,
+) -> Bool {
+  let normalized = match normalize_locale_code(locale_code) {
+    Ok(value) => value
+    Err(_) => return false
+  }
+  if self.catalog_chunks.contains(
+      chunk_catalog_key(normalized, expected_namespace),
+    ) {
+    return true
+  }
+  match self.catalogs.get(normalized) {
+    Some(catalog) => {
+      let prefix = expected_namespace + "."
+      for pair in catalog.entries.iter() {
+        if pair.0.has_prefix(prefix) {
+          return true
+        }
+      }
+      false
+    }
+    None => false
+  }
+}
+
+///|
+/// Returns whether every requested namespace is installed for a locale.
+pub fn I18n::has_catalog_namespaces(
+  self : I18n,
+  locale_code : String,
+  expected_namespaces : Array[String],
+) -> Bool {
+  for expected_namespace in expected_namespaces {
+    if !self.has_catalog_namespace(locale_code, expected_namespace) {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// Returns installed namespaces for one locale in deterministic lexical
+/// order.
+pub fn I18n::catalog_namespaces(
+  self : I18n,
+  locale_code : String,
+) -> Array[String] {
+  let normalized = match normalize_locale_code(locale_code) {
+    Ok(value) => value
+    Err(_) => return []
+  }
+  let result : Array[String] = []
+  let seen : Map[String, Bool] = Map([])
+  match self.catalogs.get(normalized) {
+    Some(catalog) =>
+      for pair in catalog.entries.iter() {
+        let pieces : Array[String] = pair.0
+          .split(".")
+          .map(piece => piece.to_owned())
+          .collect()
+        if !pieces.is_empty() && !seen.contains(pieces[0]) {
+          seen[pieces[0]] = true
+          result.push(pieces[0])
+        }
+      }
+    None => ()
+  }
+  for pair in self.catalog_chunks.iter() {
+    if pair.1.locale_code == normalized {
+      match pair.1.chunk_namespace {
+        Some(value) if !seen.contains(value) => {
+          seen[value] = true
+          result.push(value)
+        }
+        _ => ()
+      }
+    }
+  }
+  result.sort_by((left, right) => left.lexical_compare(right))
+  result
 }
 
 ///|
 /// Returns installed locale codes in deterministic lexical order.
 pub fn I18n::catalog_locale_codes(self : I18n) -> Array[String] {
   let result : Array[String] = self.catalogs.keys().collect()
+  for pair in self.catalog_chunks.iter() {
+    if !result.contains(pair.1.locale_code) {
+      result.push(pair.1.locale_code)
+    }
+  }
   result.sort_by((left, right) => left.lexical_compare(right))
   result
 }
@@ -269,6 +488,20 @@ pub fn I18n::take_diagnostics(self : I18n) -> DiagnosticBatch {
 pub fn I18n::find_catalog(self : I18n, locale_code : String) -> Catalog? {
   match normalize_locale_code(locale_code) {
     Ok(value) => self.catalogs.get(value)
+    Err(_) => None
+  }
+}
+
+///|
+/// Returns an installed namespace chunk without applying locale fallback.
+pub fn I18n::find_catalog_chunk(
+  self : I18n,
+  locale_code : String,
+  expected_namespace : String,
+) -> Catalog? {
+  match normalize_locale_code(locale_code) {
+    Ok(value) =>
+      self.catalog_chunks.get(chunk_catalog_key(value, expected_namespace))
     Err(_) => None
   }
 }

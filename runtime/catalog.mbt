@@ -31,6 +31,7 @@ pub struct Catalog {
   contract_hash : String
   locale_code : String
   direction : String
+  chunk_namespace : String?
   entries : Map[String, String]
   validation_error : String?
 }
@@ -66,6 +67,13 @@ pub fn Catalog::catalog_version(self : Catalog) -> Int {
 }
 
 ///|
+/// Returns this chunk's message namespace, or `None` for a whole-locale
+/// catalog.
+pub fn Catalog::chunk_namespace(self : Catalog) -> String? {
+  self.chunk_namespace
+}
+
+///|
 /// Builds a catalog from code-generated entries without parsing JSON.
 pub fn Catalog::from_generated_entries(
   locale_code~ : String,
@@ -73,11 +81,51 @@ pub fn Catalog::from_generated_entries(
   entries~ : Array[CatalogEntry],
   direction? : String = "ltr",
 ) -> Catalog {
+  catalog_from_generated_entries(
+    locale_code~,
+    contract_hash~,
+    entries~,
+    direction~,
+    chunk_namespace=None,
+  )
+}
+
+///|
+/// Builds one namespace chunk from code-generated entries without parsing
+/// JSON. Every entry identifier must begin with `namespace + "."`.
+pub fn Catalog::from_generated_chunk_entries(
+  locale_code~ : String,
+  chunk_namespace~ : String,
+  contract_hash~ : String,
+  entries~ : Array[CatalogEntry],
+  direction? : String = "ltr",
+) -> Catalog {
+  catalog_from_generated_entries(
+    locale_code~,
+    contract_hash~,
+    entries~,
+    direction~,
+    chunk_namespace=Some(chunk_namespace),
+  )
+}
+
+///|
+fn catalog_from_generated_entries(
+  locale_code~ : String,
+  contract_hash~ : String,
+  entries~ : Array[CatalogEntry],
+  direction~ : String,
+  chunk_namespace~ : String?,
+) -> Catalog {
   let (messages, validation_error) = generated_entries_map(
     entries,
     CATALOG_MAX_MESSAGES,
     CATALOG_MAX_SOURCE_BYTES,
   )
+  let validation_error = match validation_error {
+    Some(_) => validation_error
+    None => validate_catalog_namespace(chunk_namespace, messages)
+  }
   {
     catalog_version: CATALOG_VERSION,
     profile: CATALOG_PROFILE,
@@ -87,8 +135,57 @@ pub fn Catalog::from_generated_entries(
       Err(_) => locale_code
     },
     direction,
+    chunk_namespace,
     entries: messages,
     validation_error,
+  }
+}
+
+///|
+fn validate_catalog_namespace(
+  chunk_namespace : String?,
+  entries : Map[String, String],
+) -> String? {
+  guard chunk_namespace is Some(value) else { return None }
+  let chars = value.to_array()
+  if chars.is_empty() || !is_ascii_letter(chars[0]) {
+    return Some("catalog namespace must start with an ASCII letter")
+  }
+  for char in chars {
+    if !(is_ascii_letter(char) ||
+      is_ascii_digit(char) ||
+      char == '_' ||
+      char == '-' ||
+      char == ' ') {
+      return Some(
+        "catalog namespace must contain only ASCII letters, digits, '_', '-' or spaces",
+      )
+    }
+  }
+  let prefix = value + "."
+  for pair in entries.iter() {
+    if !pair.0.has_prefix(prefix) {
+      return Some(
+        "catalog chunk message is outside namespace \{value}: \{pair.0}",
+      )
+    }
+  }
+  None
+}
+
+///|
+fn is_ascii_letter(char : Char) -> Bool {
+  match char {
+    'a'..='z' | 'A'..='Z' => true
+    _ => false
+  }
+}
+
+///|
+fn is_ascii_digit(char : Char) -> Bool {
+  match char {
+    '0'..='9' => true
+    _ => false
   }
 }
 
@@ -239,6 +336,17 @@ pub fn parse_catalog(source : String) -> Result[Catalog, String] {
     None => "ltr"
     _ => return Err("direction must be a string")
   }
+  let chunk_namespace = match obj.get("namespace") {
+    Some(String(value)) => {
+      let validation = validate_catalog_namespace(Some(value), Map([]))
+      match validation {
+        Some(message) => return Err(message)
+        None => Some(value)
+      }
+    }
+    None => None
+    _ => return Err("namespace must be a string")
+  }
   let entries : Map[String, String] = Map([])
   match obj.get("messages") {
     Some(Object(messages)) => {
@@ -263,12 +371,17 @@ pub fn parse_catalog(source : String) -> Result[Catalog, String] {
     }
     _ => return Err("messages must be an object")
   }
+  match validate_catalog_namespace(chunk_namespace, entries) {
+    Some(message) => return Err(message)
+    None => ()
+  }
   Ok({
     catalog_version: version,
     profile,
     contract_hash,
     locale_code,
     direction,
+    chunk_namespace,
     entries,
     validation_error: None,
   })
@@ -283,14 +396,19 @@ pub fn Catalog::to_json_string(self : Catalog) -> String {
   for entry in sorted {
     messages[entry.0] = Json::string(entry.1)
   }
-  Json::object({
+  let root : Map[String, Json] = {
     "catalogVersion": Json::number(self.catalog_version.to_double()),
     "profile": Json::string(self.profile),
     "contractHash": Json::string(self.contract_hash),
     "locale": Json::string(self.locale_code),
     "direction": Json::string(self.direction),
     "messages": Json::object(messages),
-  }).stringify(indent=2)
+  }
+  match self.chunk_namespace {
+    Some(value) => root["namespace"] = Json::string(value)
+    None => ()
+  }
+  Json::object(root).stringify(indent=2)
 }
 
 ///|

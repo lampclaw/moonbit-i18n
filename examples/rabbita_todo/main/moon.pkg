@@ -8,6 +8,8 @@ import {
   "moonbit-community/rabbita/http",
   "moonbitlang/core/immut/sorted_map",
   "moonbitlang/core/immut/vector",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/x/crypto",
 }
 
 supported_targets = "js"

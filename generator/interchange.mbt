@@ -882,6 +882,16 @@ fn parse_xliff_exchange(
             current_sub_state = require_xliff_attribute(element, "subState").unwrap_or(
               "",
             )
+            if current_sub_state.contains(":") {
+              notices.push(
+                notice(
+                  "I18N_XLIFF_METADATA_DISCARDED", "warning", raw_id, "segment@subState",
+                  "discarded namespace-qualified XLIFF subState because extension namespace declarations are not retained",
+                  true,
+                ),
+              )
+              current_sub_state = ""
+            }
             match validate_translation_state(current_state, raw_id) {
               Ok(_) => ()
               Err(message) => return Err(message)

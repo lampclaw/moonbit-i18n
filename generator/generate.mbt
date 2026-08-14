@@ -1,12 +1,35 @@
 ///|
+/// One immutable, independently deployable locale/namespace catalog chunk.
+pub(all) struct CatalogChunkArtifact {
+  /// Normalized locale code carried by the chunk.
+  locale : String
+  /// Canonical schema group used as the chunk namespace.
+  chunk_namespace : String
+  /// Portable relative filename referenced by the deployment manifest.
+  path : String
+  /// Exact UTF-8 catalog-v2 JSON bytes, including the final newline.
+  source : String
+  /// Lowercase SHA-256 of `source` for application-owned integrity checks.
+  sha256 : String
+  /// UTF-8 byte length of `source`.
+  bytes : Int
+  /// Number of translated messages carried by this chunk.
+  message_count : Int
+} derive(Eq, Debug)
+
+///|
 /// Complete output of one deterministic generator run.
 pub(all) struct Artifacts {
   /// Generated MoonBit facade source before formatting.
   code : String
   /// Generated `moon.pkg` contents for the facade package.
   package_manifest : String
-  /// Locale codes paired with catalog-v2 JSON.
+  /// Whole-locale catalog-v2 JSON retained for generator API compatibility.
   catalogs : Array[(String, String)]
+  /// Independently deployable locale/namespace chunks.
+  catalog_chunks : Array[CatalogChunkArtifact]
+  /// Deterministic deployment manifest for `catalog_chunks`.
+  deployment_manifest : String
   /// Human-readable per-locale coverage report.
   coverage_report : String
   /// SHA-256 contract hash shared by the facade and catalogs.
@@ -77,6 +100,8 @@ pub fn generate(
   }
   let reports : Array[String] = []
   let catalogs : Array[(String, String)] = []
+  let catalog_chunks : Array[CatalogChunkArtifact] = []
+  let schema_namespaces = groups(schema.entries)
   for locale in locales {
     let coverage = coverage(schema, locale)
     reports.push(
@@ -103,8 +128,41 @@ pub fn generate(
       Err(message) =>
         return Err("generated catalog is outside runtime limits: \{message}")
     }
+    for chunk_namespace in schema_namespaces {
+      let chunk_entries = entries_for(locale.entries, chunk_namespace).map(entry => @runtime.CatalogEntry::{
+        id: message_id(entry),
+        message: entry.text,
+      })
+      let chunk = @runtime.Catalog::from_generated_chunk_entries(
+        locale_code=locale.locale,
+        chunk_namespace~,
+        contract_hash=hash,
+        entries=chunk_entries,
+        direction=locale_direction(config, locale.locale),
+      )
+      let chunk_source = chunk.to_json_string() + "\n"
+      match @runtime.parse_catalog(chunk_source) {
+        Ok(_) => ()
+        Err(message) =>
+          return Err(
+            "generated catalog chunk is outside runtime limits: \{message}",
+          )
+      }
+      catalog_chunks.push({
+        locale: locale.locale,
+        chunk_namespace,
+        path: catalog_chunk_path(locale.locale, chunk_namespace),
+        source: chunk_source,
+        sha256: sha256_source(chunk_source),
+        bytes: @utf8.encode(chunk_source).length(),
+        message_count: chunk_entries.length(),
+      })
+    }
   }
-  let code = generate_bindings(config, schema, locales, hash)
+  let deployment_manifest = deployment_manifest(
+    config, schema_namespaces, catalog_chunks, hash,
+  )
+  let code = generate_bindings(config, schema, locales, hash, catalog_chunks~)
   match validate_generated_code_budget(code, I18N_MAX_GENERATED_CODE_BYTES) {
     Ok(_) => ()
     Err(message) => return Err(message)
@@ -113,9 +171,61 @@ pub fn generate(
     code,
     package_manifest: generated_package_manifest(),
     catalogs,
+    catalog_chunks,
+    deployment_manifest,
     coverage_report: reports.join("\n"),
     contract_hash: hash,
   })
+}
+
+///|
+fn catalog_chunk_path(locale : String, chunk_namespace : String) -> String {
+  locale + "--" + chunk_namespace.replace_all(old=" ", new="_") + ".json"
+}
+
+///|
+fn sha256_source(source : String) -> String {
+  @crypto.bytes_to_hex_string(@crypto.sha256(@utf8.encode(source)))
+}
+
+///|
+fn deployment_manifest(
+  config : I18nConfig,
+  schema_namespaces : Array[String],
+  chunks : Array[CatalogChunkArtifact],
+  hash : String,
+) -> String {
+  let namespace_values = schema_namespaces.map(value => Json::string(value))
+  let embedded_values = config.embedded_locales.map(value => Json::string(value))
+  let chunk_values : Array[Json] = []
+  for chunk in chunks {
+    chunk_values.push(
+      Json::object({
+        "locale": Json::string(chunk.locale),
+        "namespace": Json::string(chunk.chunk_namespace),
+        "path": Json::string(chunk.path),
+        "sha256": Json::string(chunk.sha256),
+        "bytes": Json::number(chunk.bytes.to_double()),
+        "messageCount": Json::number(chunk.message_count.to_double()),
+        "direction": Json::string(locale_direction(config, chunk.locale)),
+        "embeddedLocale": Json::boolean(
+          config.embedded_locales.contains(chunk.locale),
+        ),
+      }),
+    )
+  }
+  Json::object({
+    "manifestVersion": Json::number(1.0),
+    "generator": Json::string("lampclaw/i18n"),
+    "catalogVersion": Json::number(@runtime.CATALOG_VERSION.to_double()),
+    "profile": Json::string(@runtime.CATALOG_PROFILE),
+    "contractHash": Json::string(hash),
+    "fallbackLocale": Json::string(config.fallback_locale),
+    "embeddedLocales": Json::array(embedded_values),
+    "namespaces": Json::array(namespace_values),
+    "chunks": Json::array(chunk_values),
+  }).stringify(indent=2) +
+  "\n"
 }
 
 ///|

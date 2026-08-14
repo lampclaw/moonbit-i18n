@@ -45,8 +45,61 @@ test "generate catalog artifacts and coverage report" {
   assert_eq(catalog.locale_code(), "en-US")
   assert_eq(catalog.contract_hash(), artifacts.contract_hash)
   assert_eq(catalog.find("common.save"), Some("Save"))
+  assert_eq(artifacts.catalog_chunks.length(), 4)
+  assert_eq(artifacts.catalog_chunks[0].locale, "en-US")
+  assert_eq(artifacts.catalog_chunks[0].chunk_namespace, "common")
+  assert_eq(artifacts.catalog_chunks[0].path, "en-US--common.json")
+  assert_true(artifacts.catalog_chunks[0].source.has_suffix("\n"))
+  assert_eq(artifacts.catalog_chunks[0].sha256.length(), 64)
+  assert_eq(
+    artifacts.catalog_chunks[0].bytes,
+    @utf8.encode(artifacts.catalog_chunks[0].source).length(),
+  )
+  assert_eq(artifacts.catalog_chunks[0].message_count, 1)
+  guard @runtime.parse_catalog(artifacts.catalog_chunks[0].source) is Ok(chunk) else {
+    fail("generated chunk should round-trip through the runtime parser")
+  }
+  assert_eq(chunk.chunk_namespace(), Some("common"))
+  assert_true(artifacts.deployment_manifest.contains("\"manifestVersion\": 1"))
+  assert_true(
+    artifacts.deployment_manifest.contains("\"path\": \"zh-CN--counter.json\""),
+  )
+  assert_true(
+    artifacts.deployment_manifest.contains(
+      "\"sha256\": \"" + artifacts.catalog_chunks[0].sha256 + "\"",
+    ),
+  )
   assert_true(artifacts.coverage_report.contains("en-US: 2/2 (100%)"))
   assert_true(artifacts.coverage_report.contains("zh-CN: 1/2 (50%)"))
+}
+
+///|
+test "deployment artifacts are deterministic and portable for spaced groups" {
+  let spaced_schema =
+    #|{
+    #|  "messages": { "account settings": ["title"] }
+    #|}
+  let spaced_en =
+    #|{
+    #|  "account settings": { "title": "Account settings" }
+    #|}
+  let spaced_zh =
+    #|{
+    #|  "account settings": { "title": "账户设置" }
+    #|}
+  let sources = [
+    LocaleSource::{ code: "en-US", source: spaced_en },
+    LocaleSource::{ code: "zh-CN", source: spaced_zh },
+  ]
+  guard generate(generation_config, spaced_schema, sources) is Ok(first) else {
+    fail("first generation should succeed")
+  }
+  guard generate(generation_config, spaced_schema, sources) is Ok(second) else {
+    fail("second generation should succeed")
+  }
+  assert_eq(first.catalog_chunks, second.catalog_chunks)
+  assert_eq(first.deployment_manifest, second.deployment_manifest)
+  assert_eq(first.catalog_chunks[0].path, "en-US--account_settings.json")
 }
 
 ///|

@@ -8,6 +8,20 @@ fn runtime_catalog(locale : String, messages : Array[CatalogEntry]) -> Catalog {
 }
 
 ///|
+fn runtime_chunk(
+  locale : String,
+  chunk_namespace : String,
+  messages : Array[CatalogEntry],
+) -> Catalog {
+  Catalog::from_generated_chunk_entries(
+    locale_code=locale,
+    chunk_namespace~,
+    contract_hash=TEST_CONTRACT_HASH,
+    entries=messages,
+  )
+}
+
+///|
 fn test_i18n(
   fallback? : String = "en-US",
   diagnostic_capacity? : Int = 256,
@@ -129,6 +143,122 @@ test "runtime installs catalog JSON for a normalized locale" {
   assert_true(i18n.find_catalog("en--US") is None)
   assert_eq(i18n.catalog_locale_codes(), ["en-US"])
   assert_eq(i18n.translator_from_code("en-US").t("common.hello", []), "Hello")
+}
+
+///|
+test "runtime installs independent chunks and reports namespace readiness" {
+  let i18n = test_i18n()
+  let common = runtime_chunk("zh-CN", "common", [
+    { id: "common.hello", message: "你好" },
+  ])
+  let account = runtime_chunk("zh-CN", "account", [
+    { id: "account.title", message: "账户" },
+  ])
+  assert_true(
+    i18n.install_catalog_chunk_source_for(
+      "zh_cn",
+      "common",
+      common.to_json_string(),
+    )
+    is Ok(_),
+  )
+  assert_true(i18n.has_catalog("zh-CN"))
+  assert_true(i18n.has_catalog_namespace("zh-CN", "common"))
+  assert_false(i18n.has_catalog_namespace("zh-CN", "account"))
+  assert_false(i18n.has_catalog_namespaces("zh-CN", ["account", "common"]))
+  assert_eq(i18n.catalog_namespaces("zh-CN"), ["common"])
+  assert_eq(i18n.translator("zh-CN").t("common.hello", []), "你好")
+  assert_true(i18n.install_generated_catalog(account) is Ok(_))
+  assert_true(i18n.has_catalog_namespaces("zh-CN", ["account", "common"]))
+  assert_eq(i18n.catalog_namespaces("zh-CN"), ["account", "common"])
+  assert_true(i18n.find_catalog("zh-CN") is None)
+  assert_true(i18n.find_catalog_chunk("zh-CN", "account") is Some(_))
+  assert_eq(i18n.catalog_locale_codes(), ["zh-CN"])
+  assert_eq(i18n.translator("zh-CN").t("account.title", []), "账户")
+}
+
+///|
+test "chunk replacement is atomic and rejects incompatible identity" {
+  let i18n = test_i18n()
+  let valid = runtime_chunk("fr", "common", [
+    { id: "common.save", message: "Enregistrer" },
+  ])
+  assert_true(i18n.install_generated_catalog(valid) is Ok(_))
+  let malformed = runtime_chunk("fr", "common", [
+    { id: "common.save", message: "Broken {" },
+  ])
+  assert_true(i18n.install_generated_catalog(malformed) is Err(_))
+  assert_eq(i18n.translator("fr").t("common.save", []), "Enregistrer")
+  assert_true(
+    i18n.install_catalog_chunk_source_for(
+      "fr",
+      "account",
+      valid.to_json_string(),
+    )
+    is Err("catalog namespace mismatch: expected account, got common"),
+  )
+  assert_true(
+    i18n.install_catalog_chunk_source_for(
+      "de",
+      "common",
+      valid.to_json_string(),
+    )
+    is Err("catalog locale mismatch: expected de, got fr"),
+  )
+}
+
+///|
+test "whole catalogs and chunks expose complete compatibility accessors" {
+  let i18n = test_i18n()
+  install_for_test(
+    i18n,
+    runtime_catalog("fr", [
+      { id: "account.title", message: "Compte" },
+      { id: "common.save", message: "Sauvegarder" },
+    ]),
+  )
+  assert_true(i18n.has_whole_catalog("fr"))
+  assert_false(i18n.has_whole_catalog("bad--locale"))
+  assert_true(i18n.has_catalog_namespace("fr", "account"))
+  assert_false(i18n.has_catalog_namespace("fr", "missing"))
+  assert_false(i18n.has_catalog_namespace("bad--locale", "common"))
+  assert_eq(i18n.catalog_namespaces("fr"), ["account", "common"])
+  assert_eq(i18n.catalog_namespaces("bad--locale"), [])
+  install_for_test(
+    i18n,
+    runtime_chunk("fr", "common", [
+      { id: "common.save", message: "Enregistrer" },
+    ]),
+  )
+  install_for_test(
+    i18n,
+    runtime_chunk("fr", "route", [{ id: "route.title", message: "Route" }]),
+  )
+  assert_eq(i18n.catalog_namespaces("fr"), ["account", "common", "route"])
+  assert_eq(i18n.translator("fr").t("common.save", []), "Enregistrer")
+  install_for_test(
+    i18n,
+    runtime_catalog("fr", [
+      { id: "account.title", message: "Nouveau compte" },
+      { id: "common.save", message: "Base" },
+    ]),
+  )
+  assert_eq(i18n.translator("fr").t("account.title", []), "Nouveau compte")
+  assert_eq(i18n.translator("fr").t("common.save", []), "Enregistrer")
+  let whole_source = runtime_catalog("fr", []).to_json_string()
+  assert_true(
+    i18n.install_catalog_chunk_source_for("fr", "common", whole_source)
+    is Err("catalog namespace is missing: expected common"),
+  )
+  assert_true(
+    i18n.install_catalog_chunk_source_for("bad--locale", "common", "{}")
+    is Err(_),
+  )
+  assert_true(
+    i18n.install_catalog_chunk_source_for("fr", "common", "not-json")
+    is Err("invalid catalog JSON"),
+  )
+  assert_true(i18n.find_catalog_chunk("bad--locale", "common") is None)
 }
 
 ///|

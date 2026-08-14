@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.3.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
+`0.4.0` 以一个模块发布 runtime、generator 与可移植 `moonx` CLI。生成的应用
 facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 常规 authoring 界面是 JSON：编辑 schema 与 locale 资源，生成专用 MoonBit package，
@@ -12,9 +12,9 @@ facade 当前面向 JavaScript，并通过 `Result` 错误边界使用宿主环�
 
 ## 路线图与当前状态
 
-`0.3.0` 是建立在 Web/JavaScript strict-v1 runtime 基线与 `0.2.x` authoring
-契约之上的稳定翻译生命周期与互操作版本。它不是原型，也不表示完整通过 Unicode
-MessageFormat 2。公开的
+`0.4.0` 是建立在 Web/JavaScript strict-v1 runtime、`0.2.x` authoring 和 `0.3.x`
+翻译生命周期契约之上的稳定生产级 Web 交付版本。它不是原型，也不表示完整通过
+Unicode MessageFormat 2。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
 authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路径。
 [当前 MF2 profile](docs/mf2-profile.zh-CN.mbt.md) 仍是已经发布能力的事实依据；
@@ -27,24 +27,24 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.3.0
+moon add lampclaw/i18n@0.4.0
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.4.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.3.0` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.4.0` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.3.0` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.4.0` 全局安装，命令名为
 `moon-i18n`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.4.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -71,6 +71,10 @@ app/
 │   ├── generated.mbt
 │   ├── generation-manifest.json
 │   └── moon.pkg
+├── public/i18n/          # 生成的 deployment manifest + namespace chunk
+│   ├── manifest.json
+│   ├── en-US--common.json
+│   └── zh-CN--common.json
 └── main/
     ├── main.mbt
     └── moon.pkg
@@ -120,21 +124,22 @@ markup 名称。
 }
 ~~~
 
-这个配置只内嵌英文；生成的 `zh-CN.json` 可以稍后下载并动态安装。
+这个配置只内嵌英文；生成的 `zh-CN--common.json` namespace chunk 可以稍后下载，
+根据 `manifest.json` 完成校验后独立安装。
 
 ## 生成与校验
 
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.3.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -188,10 +193,15 @@ let count = t.t(
 )
 ~~~
 
-动态部署某个 locale 时，获取其生成 catalog 文本，在创建或使用对应 translator 前安装：
+动态部署某个 locale 时，从 deployment manifest 选择 locale/namespace 项，由应用校验
+精确字节数和 SHA-256，再在使用对应路由前安装文本：
 
 ~~~moonbit
-match i18n.install_catalog_source(@app_i18n.ZhCN, downloaded_catalog_json) {
+match i18n.install_catalog_chunk_source(
+  @app_i18n.ZhCN,
+  @app_i18n.CatalogCommon,
+  verified_catalog_json,
+) {
   Ok(_) => ()
   Err(message) => println("catalog rejected: \{message}")
 }
@@ -200,8 +210,9 @@ let zh = i18n.translator(@app_i18n.ZhCN)
 
 facade 还提供 locale 协商、严格的 `try_t`/`try_t_parts`、便捷的
 `t`/`t_parts`、catalog 状态和有界去重诊断。动态安装会先检查 catalog 版本、
-formatter profile、SHA-256 契约 hash、locale 身份、消息有效性与资源限制，再改变
-runtime 状态。
+formatter profile、SHA-256 契约 hash、locale/namespace 身份、消息有效性与资源限制，
+再改变 runtime 状态。网络、cache、integrity、retry 和 locale commit 策略仍由应用
+持有；详见[生产级 Web 交付契约](docs/web-delivery.zh-CN.mbt.md)。
 
 ## 工具与支持 profile
 
@@ -225,7 +236,7 @@ MessageFormat 2。精确能力矩阵和固定上游快照见
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.3.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.4.0/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用

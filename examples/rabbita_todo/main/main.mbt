@@ -101,7 +101,11 @@ enum Msg {
   Toggle(Int)
   SetTab(TodoTab)
   ToggleLocale
-  CatalogLoaded(@app_i18n.Locale, Result[String, Error])
+  CatalogLoaded(
+    @app_i18n.Locale,
+    @app_i18n.CatalogNamespace,
+    Result[String, Error]
+  )
 }
 
 ///|
@@ -137,7 +141,7 @@ fn update_todo(model : Model, msg : Msg) -> Model {
   match msg {
     TitleChanged(title) => { ..model, title, }
     SetTab(tab) => { ..model, tab, }
-    ToggleLocale | CatalogLoaded(_, _) => model
+    ToggleLocale | CatalogLoaded(_, _, _) => model
     Add if title == "" => model
     Toggle(id) => {
       let todo = items[id]
@@ -159,13 +163,73 @@ fn finish_catalog_load(
   i18n : @app_i18n.I18n,
   model : Model,
   locale : @app_i18n.Locale,
+  chunk_namespace : @app_i18n.CatalogNamespace,
   catalog_source : String,
   request_source : LocaleRequestSource,
 ) -> Model {
-  match i18n.install_catalog_source(locale, catalog_source) {
-    Ok(_) => commit_locale(model, locale, request_source)
+  let metadata = match
+    @app_i18n.catalog_chunk_metadata(locale, chunk_namespace) {
+    Some(value) => value
+    None =>
+      return {
+        ..model,
+        catalog_state: CatalogFailed(locale, "chunk metadata is missing"),
+      }
+  }
+  if @utf8.encode(catalog_source).length() != metadata.bytes {
+    return {
+      ..model,
+      catalog_state: CatalogFailed(locale, "chunk byte count mismatch"),
+    }
+  }
+  let digest = @crypto.bytes_to_hex_string(
+    @crypto.sha256(@utf8.encode(catalog_source)),
+  )
+  if digest != metadata.sha256 {
+    return {
+      ..model,
+      catalog_state: CatalogFailed(locale, "chunk SHA-256 mismatch"),
+    }
+  }
+  finish_verified_catalog_load(
+    i18n, model, locale, chunk_namespace, catalog_source, request_source,
+  )
+}
+
+///|
+fn finish_verified_catalog_load(
+  i18n : @app_i18n.I18n,
+  model : Model,
+  locale : @app_i18n.Locale,
+  chunk_namespace : @app_i18n.CatalogNamespace,
+  catalog_source : String,
+  request_source : LocaleRequestSource,
+) -> Model {
+  match
+    i18n.install_catalog_chunk_source(locale, chunk_namespace, catalog_source) {
+    Ok(_) =>
+      if required_namespaces_ready(i18n, locale) {
+        commit_locale(model, locale, request_source)
+      } else {
+        model
+      }
     Err(message) => { ..model, catalog_state: CatalogFailed(locale, message) }
   }
+}
+
+///|
+fn required_catalog_namespaces() -> Array[@app_i18n.CatalogNamespace] {
+  [@app_i18n.CatalogCommon, @app_i18n.CatalogTodoUi]
+}
+
+///|
+fn required_namespaces_ready(
+  i18n : @app_i18n.I18n,
+  locale : @app_i18n.Locale,
+) -> Bool {
+  required_catalog_namespaces().all(chunk_namespace => {
+    i18n.has_catalog_namespace(locale, chunk_namespace)
+  })
 }
 
 ///|
@@ -188,14 +252,22 @@ fn request_locale(
   request_source : LocaleRequestSource,
   emit : Emit[Msg],
 ) -> (Model, @rabbita.Cmd) {
-  if i18n.has_catalog(target) {
+  if required_namespaces_ready(i18n, target) {
     (commit_locale(model, target, request_source), @rabbita.none)
   } else {
+    let requests : Array[@rabbita.Cmd] = []
+    for chunk_namespace in required_catalog_namespaces() {
+      if !i18n.has_catalog_namespace(target, chunk_namespace) {
+        requests.push(
+          @http.get("/i18n/\{target.code()}--\{chunk_namespace.code()}.json").expect_text(
+            emit.map(result => CatalogLoaded(target, chunk_namespace, result)),
+          ),
+        )
+      }
+    }
     (
       { ..model, catalog_state: CatalogLoading(target, request_source) },
-      @http.get("/i18n/\{target.code()}.json").expect_text(
-        emit.map(result => CatalogLoaded(target, result)),
-      ),
+      @rabbita.batch(requests),
     )
   }
 }
@@ -225,13 +297,15 @@ fn update(
       }
       request_locale(i18n, model, target, UserPreference, emit)
     }
-    CatalogLoaded(locale, result) =>
+    CatalogLoaded(locale, chunk_namespace, result) =>
       match model.catalog_state {
         CatalogLoading(expected, request_source) if expected == locale =>
           match result {
             Ok(source) =>
               (
-                finish_catalog_load(i18n, model, locale, source, request_source),
+                finish_catalog_load(
+                  i18n, model, locale, chunk_namespace, source, request_source,
+                ),
                 @rabbita.none,
               )
             Err(_) =>

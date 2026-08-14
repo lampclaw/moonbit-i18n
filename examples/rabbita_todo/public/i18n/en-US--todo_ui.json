@@ -5,14 +5,6 @@
   "locale": "en-US",
   "direction": "ltr",
   "messages": {
-    "common.catalog_error": "Could not load that language.",
-    "common.catalog_loading": "Loading language…",
-    "common.catalog_retry": "Retry",
-    "common.current_language": "Current language",
-    "common.switch_language": "中文",
-    "contract.formatted_number": "Contract number: {$value :number}",
-    "contract.last_updated": "Updated {$when :lampclaw:datetime dateStyle=medium timeZone=UTC}",
-    "contract.rich_notice": "{#strong}Typed{/strong} localization",
     "todo_ui.active_count": ".input {$count :number}\n.match $count\none {{One active}}\n* {{{$count} active}}",
     "todo_ui.add": "Add",
     "todo_ui.delete": "Delete",
@@ -33,5 +25,6 @@
     "todo_ui.tab_done": "Done",
     "todo_ui.tab_stats": "Stats",
     "todo_ui.title": "Todos"
-  }
+  },
+  "namespace": "todo_ui"
 }

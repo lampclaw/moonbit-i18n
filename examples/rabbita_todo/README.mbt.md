@@ -12,14 +12,14 @@ import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.3.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.3.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.4.0 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -56,8 +56,8 @@ localization/config.json + schema.json + locales/*.json
                          │
               ┌──────────┴──────────┐
               ▼                     ▼
-i18n/generated.mbt + moon.pkg  public/i18n/*.json
-typed facade + embedded data   catalog v2 + contract hash
+i18n/generated.mbt + moon.pkg  public/i18n/manifest.json + chunks
+typed facade + embedded data   namespace + SHA-256 + contract hash
               │
               ▼
 main/moon.pkg imports generated i18n + browser_preferences
@@ -73,9 +73,14 @@ uses typed values such as
 `@app_i18n.TodoUi(@app_i18n.ActiveCount(active))`.
 
 Only the English fallback catalog is embedded in the JavaScript bundle. The
-Chinese catalog is fetched from `/i18n/zh-CN.json` on first use, validated and
-installed atomically, then reused without another request. A failed request or
-invalid catalog leaves the current locale unchanged and exposes a retry state.
+Chinese `common` and `todo_ui` namespaces are fetched independently from
+`/i18n/zh-CN--common.json` and `/i18n/zh-CN--todo_ui.json` on first use. The
+application compares each exact UTF-8 byte count and SHA-256 with generated
+deployment metadata before asking the facade to validate and install it. A
+failed request, integrity mismatch, or invalid chunk leaves the current locale
+unchanged and exposes a retry state; a retry requests only missing namespaces.
+The `contract` namespace is intentionally left unloaded to exercise normal
+message-level English fallback.
 
 The example keeps an explicit language choice in browser `localStorage` under
 `lampclaw.i18n.rabbita-todo.locale`. On startup it negotiates in this order:
@@ -85,8 +90,9 @@ the application may briefly show the embedded English loading state. Browser
 language inference is not saved until the user explicitly switches or retries.
 Storage is best effort: blocked or unavailable storage never prevents an
 in-session language change. Refreshing creates a new in-memory `I18n` instance,
-so the Chinese catalog is installed again; normal HTTP caching may serve it
-without another transfer. Todo items themselves are intentionally not stored.
+so the two required Chinese chunks are installed again; normal HTTP caching may
+serve them without another transfer. Todo items themselves are intentionally
+not stored.
 
 Locale detection, loading, and persistence remain application-owned adapters.
 The generated facade accepts locale codes and catalog data but does not access

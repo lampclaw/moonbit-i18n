@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "generator": "lampclaw/i18n",
-  "generatorVersion": "0.3.0",
+  "generatorVersion": "0.4.0",
   "profile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   "contractHash": "d52425eddb2d59c3534d42dce2191c92305dcc267452d0b63c4832ceddeed0e4",
   "inputs": [
@@ -34,8 +34,8 @@
     {
       "kind": "moonbit",
       "path": "../i18n/generated.mbt",
-      "sha256": "8d3f3339f3fbb6b32bfb484dd0d4a61e582f59feffa873dff03237877a2cd203",
-      "bytes": 12527
+      "sha256": "925bf68282b72023e33d6f5c0d3d0abcc85cfd7ee07cfd3de27075e22cca5636",
+      "bytes": 16168
     },
     {
       "kind": "moon-package",
@@ -44,16 +44,46 @@
       "bytes": 199
     },
     {
-      "kind": "catalog",
-      "path": "../public/i18n/en-US.json",
-      "sha256": "4afba415ce970630aa4d49cb037fbcaacb3d9d70cb29866a604797686fc8cdf8",
-      "bytes": 1512
+      "kind": "deployment-manifest",
+      "path": "../public/i18n/manifest.json",
+      "sha256": "4192e739c019ecbb7ce20e3ce3dcaf3c204d98321799d02237cff9e71cba80f1",
+      "bytes": 2123
     },
     {
-      "kind": "catalog",
-      "path": "../public/i18n/zh-CN.json",
-      "sha256": "9e5b255f009137ef8e3e8ce2e62fefa9a2166c50aae65549978f5acdb6790ccf",
-      "bytes": 1552
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/en-US--common.json",
+      "sha256": "bec0371b3ee358f0268fd500cf12bc71ff60e94cde403cbd30fe311f17de3625",
+      "bytes": 502
+    },
+    {
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/en-US--contract.json",
+      "sha256": "e8d3d6399e2a7c40dfee0dc3e2037d337efbe50670eaa3858fc9b2a75ca0f6b0",
+      "bytes": 497
+    },
+    {
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/en-US--todo_ui.json",
+      "sha256": "88d31c83b42d24b7cf949c45aea1cde077967005e42f1cac2c63be4df410886b",
+      "bytes": 1061
+    },
+    {
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/zh-CN--common.json",
+      "sha256": "0c86f496b75c5a834eee0b2c6d445efbd0a01f23cb7114b34232325381f67eeb",
+      "bytes": 497
+    },
+    {
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/zh-CN--contract.json",
+      "sha256": "ae13adf1358eac304aa850a4eecf074073b681df91f713aa371243e61a7b286e",
+      "bytes": 503
+    },
+    {
+      "kind": "catalog-chunk",
+      "path": "../public/i18n/zh-CN--todo_ui.json",
+      "sha256": "39a16a2bce383c6e001bd9ce94fc30545cf5d3b8a5ce5d8458d23fab6f5eeab8",
+      "bytes": 1100
     }
   ]
 }

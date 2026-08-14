@@ -91,7 +91,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.3.0"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.4.0"))
   assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }
@@ -127,6 +127,10 @@ async test "scaffold creates one safe canonical bilingual module" {
     read_file(path_join(destination, "i18n/generation-manifest.json")).contains(
       "\"manifestVersion\": 1",
     ),
+  )
+  assert_true(file_exists(path_join(destination, "public/i18n/manifest.json")))
+  assert_true(
+    file_exists(path_join(destination, "public/i18n/zh-CN--common.json")),
   )
   expect_cli_error(
     () => run_scaffold(["scaffold", "example/hello", destination]),
@@ -625,7 +629,9 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   let catalog_dir = path_join(root, "catalogs")
   run_command(["generate", config, schema, locales, package_dir, catalog_dir])
   assert_true(file_exists(path_join(package_dir, "generated.mbt")))
-  assert_true(file_exists(path_join(catalog_dir, "en-US.json")))
+  assert_true(file_exists(path_join(catalog_dir, "manifest.json")))
+  assert_true(file_exists(path_join(catalog_dir, "en-US--common.json")))
+  assert_true(file_exists(path_join(catalog_dir, "zh-CN--todo_ui.json")))
   run_command(["check", config, schema, locales, package_dir, catalog_dir])
   run_command(["coverage", config, schema, locales])
   let pseudo_file = path_join(root, "en-XA.json")

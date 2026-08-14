@@ -524,6 +524,11 @@ fn looks_like_generated_catalog(source : String) -> Bool {
     value => value
   }
   guard json is Object(object) else { return false }
+  if json_int_field(object, "manifestVersion") is Some(1) &&
+    json_string_field(object, "generator") is Some("lampclaw/i18n") &&
+    object.get("chunks") is Some(Array(_)) {
+    return true
+  }
   guard object.get("catalogVersion") is Some(Number(_, ..)) else {
     return false
   }
@@ -1175,7 +1180,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.3.0"
+const CLI_VERSION : String = "0.4.0"
 
 ///|
 fn usage() -> String {
@@ -1183,15 +1188,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.3.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.4.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1249,7 +1254,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.3.0\"\n\n" +
+  "version = \"0.4.0\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1503,9 +1508,8 @@ async fn check_file(
 ///|
 async fn check_catalog_set(
   catalog_dir : String,
-  catalogs : Array[(String, String)],
+  expected : Array[String],
 ) -> Unit raise CliError {
-  let expected = catalogs.map(catalog => catalog.0 + ".json")
   for file in read_dir(catalog_dir) {
     if file.has_suffix(".json") &&
       file != ".lampclaw-i18n.json" &&
@@ -1603,6 +1607,8 @@ async fn generation_manifest(
   code : String,
   package_manifest : String,
   catalogs : Array[(String, String)],
+  catalog_chunks : Array[@generator.CatalogChunkArtifact],
+  deployment_manifest : String,
   contract_hash : String,
 ) -> String raise CliError {
   let root = path_dirname(resolved_path(config_file))
@@ -1640,13 +1646,19 @@ async fn generation_manifest(
       package_manifest,
     ),
   ]
-  for catalog in catalogs {
-    let content = text_file_content(catalog.1)
+  outputs.push(
+    manifest_file(
+      "deployment-manifest",
+      manifest_path(root, path_join(catalog_dir, "manifest.json")),
+      deployment_manifest,
+    ),
+  )
+  for catalog in catalog_chunks {
     outputs.push(
       manifest_file(
-        "catalog",
-        manifest_path(root, path_join(catalog_dir, catalog.0 + ".json")),
-        content,
+        "catalog-chunk",
+        manifest_path(root, path_join(catalog_dir, catalog.path)),
+        catalog.source,
       ),
     )
   }
@@ -1690,6 +1702,8 @@ async fn run_generate(
     code,
     manifest,
     artifacts.catalogs,
+    artifacts.catalog_chunks,
+    artifacts.deployment_manifest,
     artifacts.contract_hash,
   )
   if check_mode {
@@ -1725,15 +1739,23 @@ async fn run_generate(
     check_exact_generated_set(
       package_dir, expected_package_files, "generated package",
     )
-    for catalog in artifacts.catalogs {
+    check_file(
+      path_join(values[5], "manifest.json"),
+      artifacts.deployment_manifest,
+      "deployment manifest",
+    )
+    for catalog in artifacts.catalog_chunks {
       check_file(
-        path_join(values[5], catalog.0 + ".json"),
-        text_file_content(catalog.1),
-        "catalog",
+        path_join(values[5], catalog.path),
+        catalog.source,
+        "catalog chunk",
       )
     }
-    check_catalog_set(values[5], artifacts.catalogs)
-    let catalog_files = artifacts.catalogs.map(catalog => catalog.0 + ".json")
+    let catalog_files : Array[String] = ["manifest.json"]
+    for catalog in artifacts.catalog_chunks {
+      catalog_files.push(catalog.path)
+    }
+    check_catalog_set(values[5], catalog_files)
     check_file(
       path_join(values[5], ".lampclaw-i18n.json"),
       ownership_manifest("catalogs", catalog_files),
@@ -1743,11 +1765,11 @@ async fn run_generate(
     expected_catalog_files.push(".lampclaw-i18n.json")
     check_exact_generated_set(values[5], expected_catalog_files, "catalog")
   } else {
-    let catalog_names : Array[String] = []
-    let catalog_contents : Array[String] = []
-    for catalog in artifacts.catalogs {
-      catalog_names.push(catalog.0 + ".json")
-      catalog_contents.push(text_file_content(catalog.1))
+    let catalog_names : Array[String] = ["manifest.json"]
+    let catalog_contents : Array[String] = [artifacts.deployment_manifest]
+    for catalog in artifacts.catalog_chunks {
+      catalog_names.push(catalog.path)
+      catalog_contents.push(catalog.source)
     }
     write_generated_transaction(
       package_dir,
