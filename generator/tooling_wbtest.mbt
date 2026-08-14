@@ -137,6 +137,31 @@ test "pseudo locale preserves expressions and robust matcher boundaries" {
 }
 
 ///|
+test "pseudo locale validates the standards message profile" {
+  let schema =
+    #|{
+    #|  "messages": { "common": ["updated"] },
+    #|  "params": {
+    #|    "common.updated": [{ "name": "when", "type": "InstantMillis" }]
+    #|  }
+    #|}
+  let source =
+    #|{"common":{"updated":"Updated {$when :date length=medium timeZone=UTC}"}}
+  guard pseudo_locale(
+      schema,
+      "en-US",
+      source,
+      "en-XA",
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Ok(pseudo) else {
+    fail("standards-profile pseudo locale should succeed")
+  }
+  assert_true(pseudo.contains("{$when :date length=medium timeZone=UTC}"))
+  assert_true(pseudo.contains("Üpdátëd"))
+}
+
+///|
 test "tooling rejects unknown pseudo modes and unsupported XLIFF shapes" {
   let schema = "{ \"messages\": { \"common\": [\"save\"] } }"
   let source = "{ \"common\": { \"save\": \"Save\" } }"

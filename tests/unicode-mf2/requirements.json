@@ -1,0 +1,209 @@
+{
+  "matrixVersion": 1,
+  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
+  "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
+  "defaultFunctionProfile": "unicode-mf2-ldml48.2-default-functions-v1",
+  "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
+  "statusVocabulary": ["passed", "not-applicable", "blocked"],
+  "requirements": [
+    {
+      "id": "MF2-SYNTAX-001",
+      "section": "syntax",
+      "requirement": "The complete pinned message grammar accepts every vendored well-formed fixture.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned well-formed syntax fixtures"}]
+    },
+    {
+      "id": "MF2-SYNTAX-002",
+      "section": "syntax",
+      "requirement": "Malformed grammar is distinguished from data-model invalidity.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "well-formed and valid MF2 are distinct"}]
+    },
+    {
+      "id": "MF2-SYNTAX-003",
+      "section": "syntax",
+      "requirement": "Declarations, matchers, expressions, options, attributes, markup, quoted patterns, and literals are represented by the pinned data model.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "retains expressions attributes and markup"}]
+    },
+    {
+      "id": "MF2-SYNTAX-004",
+      "section": "syntax",
+      "requirement": "Names and variant keys use Unicode NFC equivalence and reject collisions.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "compare as if normalized to NFC"}]
+    },
+    {
+      "id": "MF2-MODEL-001",
+      "section": "data-model",
+      "requirement": "All vendored data-model-error fixtures produce a stable data-model failure.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned data-model-error fixtures"}]
+    },
+    {
+      "id": "MF2-MODEL-002",
+      "section": "data-model",
+      "requirement": "Functional syntax and JSON interchange serialization are deterministic and round-trip the normative model.",
+      "status": "passed",
+      "evidence": [
+        {"path": "runtime/mf2_syntax_test.mbt", "contains": "syntax serialization is deterministic"},
+        {"path": "runtime/mf2_syntax_test.mbt", "contains": "interchange JSON is deterministic"}
+      ]
+    },
+    {
+      "id": "MF2-RESOLVE-001",
+      "section": "resolution",
+      "requirement": "Declarations resolve in source order at most once and variable/option references preserve typed failures.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
+    },
+    {
+      "id": "MF2-RESOLVE-002",
+      "section": "resolution",
+      "requirement": "Multi-selector pattern ranking, exact keys, plural keys, and wildcard fallback follow the pinned algorithm.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
+    },
+    {
+      "id": "MF2-RESOLVE-003",
+      "section": "fallback",
+      "requirement": "Expression and message fallback values are emitted together with structured errors.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "emits runtime fallback values and errors"}]
+    },
+    {
+      "id": "MF2-ERROR-001",
+      "section": "errors",
+      "requirement": "Syntax, data-model, resolution, formatting, bad-operand, bad-option, unknown-function, and limit failures remain machine-classifiable.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
+    },
+    {
+      "id": "MF2-BIDI-001",
+      "section": "bidi",
+      "requirement": "Default formatting applies normative Unicode isolation and offers an explicit no-isolation strategy.",
+      "status": "passed",
+      "evidence": [
+        {"path": "runtime/mf2_format_test.mbt", "contains": "formats literals with default bidi isolation"},
+        {"path": "runtime/mf2_format_test.mbt", "contains": "no-isolation strategy is explicit"}
+      ]
+    },
+    {
+      "id": "MF2-UNIVERSAL-001",
+      "section": "universal-options",
+      "requirement": "u:dir and u:id are resolved as universal options without executing renderer behavior.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "u:dir on markup is reported but never executed"}]
+    },
+    {
+      "id": "MF2-MARKUP-001",
+      "section": "markup",
+      "requirement": "Markup, attributes, and formatted fields remain renderer-independent structured parts.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "preserves inert markup and attributes"}]
+    },
+    {
+      "id": "MF2-LOCALE-001",
+      "section": "locale",
+      "requirement": "Formatting contexts require canonicalizable BCP 47 locales and generated applications use bounded locale negotiation.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "formatting context enforces strict locale syntax"}]
+    },
+    {
+      "id": "MF2-LIMIT-001",
+      "section": "limits",
+      "requirement": "Message input, model cardinality, and formatted output have explicit resource limits.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "formatter enforces input and output limits"}]
+    },
+    {
+      "id": "MF2-AUTHORING-001",
+      "section": "authoring",
+      "requirement": "messageProfile selects compatibility or standards authoring and participates in catalog identity and contract hashing.",
+      "status": "passed",
+      "evidence": [
+        {"path": "generator/parser_wbtest.mbt", "contains": "config accepts explicit compatibility and standards profiles"},
+        {"path": "runtime/catalog_test.mbt", "contains": "preserves the standards-mode message profile"}
+      ]
+    },
+    {
+      "id": "MF2-AUTHORING-002",
+      "section": "authoring",
+      "requirement": "Standards-mode generated catalogs reject private functions and undeclared variables before installation.",
+      "status": "passed",
+      "evidence": [{"path": "generator/parser_wbtest.mbt", "contains": "rejects private functions"}]
+    },
+    {
+      "id": "MF2-AUTHORING-003",
+      "section": "migration",
+      "requirement": "Omitted messageProfile and compatibility-only datetime usage emit stable path-aware migration diagnostics.",
+      "status": "passed",
+      "evidence": [{"path": "generator/diagnostic_wbtest.mbt", "contains": "legacy datetime emit path-aware migration warnings"}]
+    },
+    {
+      "id": "MF2-RUNTIME-001",
+      "section": "catalog-runtime",
+      "requirement": "Standards-mode catalogs compile once and use the standalone MF2 resolver/default registry through the generated runtime facade.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/js/formatter_test.mbt", "contains": "standards-mode catalogs format through the generated-runtime path"}]
+    },
+    {
+      "id": "MF2-EXTENSION-001",
+      "section": "extensions",
+      "requirement": "Application-owned namespaced custom functions are outside the Unicode profile and reserved or colliding registrations are rejected.",
+      "status": "passed",
+      "evidence": [{"path": "runtime/mf2_registry_test.mbt", "contains": "custom registry rejects reserved unnamespaced and normalized duplicates"}]
+    }
+  ],
+  "stableDefaultRegistry": [
+    {
+      "function": "string",
+      "status": "passed",
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": []
+    },
+    {
+      "function": "number",
+      "status": "passed",
+      "evidenceAppliesToOptions": true,
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": ["select", "signDisplay", "useGrouping", "minimumIntegerDigits", "minimumFractionDigits", "maximumFractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingIncrement", "roundingMode"]
+    },
+    {
+      "function": "integer",
+      "status": "passed",
+      "evidenceAppliesToOptions": true,
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": ["select", "signDisplay", "useGrouping", "minimumIntegerDigits", "maximumSignificantDigits"]
+    },
+    {
+      "function": "offset",
+      "status": "passed",
+      "evidenceAppliesToOptions": true,
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": ["add", "subtract"]
+    },
+    {
+      "function": "currency",
+      "status": "passed",
+      "evidenceAppliesToOptions": true,
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": ["currency", "currencySign", "currencyDisplay", "useGrouping", "minimumIntegerDigits", "fractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingIncrement", "roundingMode"]
+    },
+    {
+      "function": "percent",
+      "status": "passed",
+      "evidenceAppliesToOptions": true,
+      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
+      "options": ["signDisplay", "useGrouping", "minimumFractionDigits", "maximumFractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingMode"]
+    }
+  ],
+  "draftRegistry": [
+    {"function": "date", "status": "passed", "classification": "draft-extension"},
+    {"function": "time", "status": "passed", "classification": "draft-extension"},
+    {"function": "datetime", "status": "passed", "classification": "draft-extension"},
+    {"function": "unit", "status": "not-applicable", "classification": "deferred-draft", "rationale": "The pinned LDML 48.2 function is draft and is not part of the stable conformance claim."}
+  ]
+}

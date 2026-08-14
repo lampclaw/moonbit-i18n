@@ -7,6 +7,19 @@ pub const CATALOG_VERSION : Int = 2
 pub const CATALOG_PROFILE : String = "lampclaw-mf2-strict-v1+lampclaw-datetime-v1"
 
 ///|
+/// Standards-mode message profile for generated JavaScript applications.
+///
+/// This composes the pinned syntax, resolution, and stable default-function
+/// profiles. Draft date/time functions remain separately documented.
+pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+
+///|
+/// Returns whether a profile can be compiled and installed by this runtime.
+pub fn is_supported_message_profile(profile : String) -> Bool {
+  profile == CATALOG_PROFILE || profile == MF2_STANDARD_MESSAGE_PROFILE
+}
+
+///|
 /// Maximum UTF-8 size accepted for one serialized catalog.
 pub const CATALOG_MAX_SOURCE_BYTES : Int = 16777216
 
@@ -80,12 +93,14 @@ pub fn Catalog::from_generated_entries(
   contract_hash~ : String,
   entries~ : Array[CatalogEntry],
   direction? : String = "ltr",
+  profile? : String = CATALOG_PROFILE,
 ) -> Catalog {
   catalog_from_generated_entries(
     locale_code~,
     contract_hash~,
     entries~,
     direction~,
+    profile~,
     chunk_namespace=None,
   )
 }
@@ -99,12 +114,14 @@ pub fn Catalog::from_generated_chunk_entries(
   contract_hash~ : String,
   entries~ : Array[CatalogEntry],
   direction? : String = "ltr",
+  profile? : String = CATALOG_PROFILE,
 ) -> Catalog {
   catalog_from_generated_entries(
     locale_code~,
     contract_hash~,
     entries~,
     direction~,
+    profile~,
     chunk_namespace=Some(chunk_namespace),
   )
 }
@@ -115,6 +132,7 @@ fn catalog_from_generated_entries(
   contract_hash~ : String,
   entries~ : Array[CatalogEntry],
   direction~ : String,
+  profile~ : String,
   chunk_namespace~ : String?,
 ) -> Catalog {
   let (messages, validation_error) = generated_entries_map(
@@ -128,7 +146,7 @@ fn catalog_from_generated_entries(
   }
   {
     catalog_version: CATALOG_VERSION,
-    profile: CATALOG_PROFILE,
+    profile,
     contract_hash,
     locale_code: match normalize_locale_code(locale_code) {
       Ok(value) => value
@@ -266,6 +284,11 @@ pub fn Catalog::compile_messages(
   if self.entries.length() > CATALOG_MAX_MESSAGES {
     return Err("catalog exceeds the \{CATALOG_MAX_MESSAGES}-message limit")
   }
+  if self.profile != CATALOG_PROFILE {
+    return Err(
+      "compile_messages exposes only the legacy compiled-message model; use I18n installation for profile \{self.profile}",
+    )
+  }
   let compiled : Map[String, CompiledMessage] = Map([])
   for pair in self.entries.iter() {
     let (id, source) = pair
@@ -284,6 +307,130 @@ pub fn Catalog::compile_messages(
     }
   }
   Ok(compiled)
+}
+
+///|
+/// Compiled representation selected by a catalog's declared message profile.
+///
+/// This type is public only because `I18n` is an opaque public runtime handle;
+/// applications install catalogs through `I18n` rather than constructing cache
+/// entries directly.
+pub enum CatalogCompiledMessage {
+  /// A message compiled by the compatibility authoring profile.
+  LegacyCatalogMessage(CompiledMessage)
+  /// A message parsed with the pinned Unicode MF2 data model.
+  StandardCatalogMessage(Mf2MessageModel)
+}
+
+///|
+fn Catalog::compile_runtime_messages(
+  self : Catalog,
+) -> Result[Map[String, CatalogCompiledMessage], String] {
+  match self.validation_error {
+    Some(message) => return Err(message)
+    None => ()
+  }
+  if self.entries.length() > CATALOG_MAX_MESSAGES {
+    return Err("catalog exceeds the \{CATALOG_MAX_MESSAGES}-message limit")
+  }
+  let compiled : Map[String, CatalogCompiledMessage] = Map([])
+  for pair in self.entries.iter() {
+    let (id, source) = pair
+    if id.is_empty() {
+      return Err("catalog message id must not be empty")
+    }
+    if @utf8.encode(source).length() > MF2_MAX_MESSAGE_BYTES {
+      return Err("catalog message exceeds size limit: \{id}")
+    }
+    if self.profile == CATALOG_PROFILE {
+      match compile_mf2_message(source, MessageContract::open()) {
+        Ok(message) => compiled[id] = LegacyCatalogMessage(message)
+        Err(errors) =>
+          return Err(
+            "invalid MF2 message in catalog \{self.locale_code} at \{id}: \{errors[0].message}",
+          )
+      }
+    } else if self.profile == MF2_STANDARD_MESSAGE_PROFILE {
+      match parse_valid_mf2_model(source) {
+        Ok(model) =>
+          match standard_catalog_function_error(model) {
+            Some(message) =>
+              return Err(
+                "invalid standards-mode MF2 message in catalog \{self.locale_code} at \{id}: \{message}",
+              )
+            None => compiled[id] = StandardCatalogMessage(model)
+          }
+        Err(errors) =>
+          return Err(
+            "invalid standards-mode MF2 message in catalog \{self.locale_code} at \{id}: \{errors[0].message}",
+          )
+      }
+    } else {
+      return Err("unsupported catalog profile: \{self.profile}")
+    }
+  }
+  Ok(compiled)
+}
+
+///|
+fn standard_catalog_function_error(model : Mf2MessageModel) -> String? {
+  let expressions : Array[Mf2ModelExpression] = []
+  let patterns : Array[Mf2ModelPattern] = []
+  let declarations = match model {
+    Mf2PatternMessage(declarations, pattern) => {
+      patterns.push(pattern)
+      declarations
+    }
+    Mf2SelectMessage(declarations, _, variants) => {
+      for variant in variants {
+        patterns.push(variant.value)
+      }
+      declarations
+    }
+  }
+  for declaration in declarations {
+    match declaration {
+      Mf2ModelInput(_, expression) | Mf2ModelLocal(_, expression) =>
+        expressions.push(expression)
+    }
+  }
+  for pattern in patterns {
+    for part in pattern.parts {
+      match part {
+        Mf2ModelExpressionPart(expression) => expressions.push(expression)
+        _ => ()
+      }
+    }
+  }
+  for expression in expressions {
+    match expression.function_ref {
+      Some(function_ref) if !standard_catalog_function_name(function_ref.name) =>
+        if function_ref.name == "lampclaw:datetime" {
+          return Some(
+            "private function :lampclaw:datetime is available only in the compatibility profile",
+          )
+        } else {
+          return Some(
+            "function is not in the pinned default registry: :\{function_ref.name}",
+          )
+        }
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+fn standard_catalog_function_name(name : String) -> Bool {
+  name == "string" ||
+  name == "number" ||
+  name == "integer" ||
+  name == "offset" ||
+  name == "currency" ||
+  name == "percent" ||
+  name == "date" ||
+  name == "time" ||
+  name == "datetime"
 }
 
 ///|
@@ -311,7 +458,7 @@ pub fn parse_catalog(source : String) -> Result[Catalog, String] {
     _ => return Err("catalogVersion must be an integer")
   }
   let profile = match obj.get("profile") {
-    Some(String(value)) if value == CATALOG_PROFILE => value
+    Some(String(value)) if is_supported_message_profile(value) => value
     Some(String(value)) => return Err("unsupported catalog profile: \{value}")
     _ => return Err("profile must be a string")
   }

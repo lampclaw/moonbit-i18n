@@ -68,7 +68,7 @@ pub struct I18n {
   /// Namespace chunks keyed by normalized locale and namespace.
   catalog_chunks : Map[String, Catalog]
   /// Effective per-locale messages after whole catalogs and chunks are merged.
-  compiled_catalogs : Map[String, Map[String, CompiledMessage]]
+  compiled_catalogs : Map[String, Map[String, CatalogCompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
   diagnostic_capacity : Int
@@ -122,6 +122,12 @@ pub fn I18n::fallback_locale_code(self : I18n) -> String {
 /// Returns the contract hash required of dynamically installed catalogs.
 pub fn I18n::contract_hash(self : I18n) -> String {
   self.contract_hash
+}
+
+///|
+/// Returns the message profile required of installed catalogs.
+pub fn I18n::profile(self : I18n) -> String {
+  self.profile
 }
 
 ///|
@@ -187,6 +193,10 @@ pub fn I18n::install_generated_catalog(
   if !(catalog.direction == "ltr" || catalog.direction == "rtl") {
     return Err("direction must be ltr or rtl")
   }
+  match self.catalog_direction_conflict(catalog) {
+    Some(message) => return Err(message)
+    None => ()
+  }
   if !self.contract_hash.is_empty() &&
     catalog.contract_hash != self.contract_hash {
     return Err(
@@ -195,7 +205,7 @@ pub fn I18n::install_generated_catalog(
   }
   // Compilation is deliberately completed before either map is mutated so a
   // malformed replacement cannot partially overwrite a working locale.
-  let compiled = match catalog.compile_messages() {
+  let compiled = match catalog.compile_runtime_messages() {
     Ok(value) => value
     Err(message) => return Err(message)
   }
@@ -213,14 +223,46 @@ pub fn I18n::install_generated_catalog(
 }
 
 ///|
+fn I18n::catalog_direction_conflict(
+  self : I18n,
+  candidate : Catalog,
+) -> String? {
+  match candidate.chunk_namespace {
+    Some(_) =>
+      match self.catalogs.get(candidate.locale_code) {
+        Some(existing) if existing.direction != candidate.direction =>
+          return Some(
+            "catalog direction mismatch for \{candidate.locale_code}: expected \{existing.direction}, got \{candidate.direction}",
+          )
+        _ => ()
+      }
+    None => ()
+  }
+  let candidate_key = match candidate.chunk_namespace {
+    Some(value) => Some(chunk_catalog_key(candidate.locale_code, value))
+    None => None
+  }
+  for pair in self.catalog_chunks.iter() {
+    if pair.1.locale_code == candidate.locale_code &&
+      candidate_key != Some(pair.0) &&
+      pair.1.direction != candidate.direction {
+      return Some(
+        "catalog direction mismatch for \{candidate.locale_code}: expected \{pair.1.direction}, got \{candidate.direction}",
+      )
+    }
+  }
+  None
+}
+
+///|
 fn chunk_catalog_key(locale_code : String, chunk_namespace : String) -> String {
   locale_code + "\n" + chunk_namespace
 }
 
 ///|
 fn merge_compiled_messages(
-  destination : Map[String, CompiledMessage],
-  source : Map[String, CompiledMessage],
+  destination : Map[String, CatalogCompiledMessage],
+  source : Map[String, CatalogCompiledMessage],
 ) -> Unit {
   for pair in source.iter() {
     destination[pair.0] = pair.1
@@ -231,14 +273,14 @@ fn merge_compiled_messages(
 fn I18n::merged_catalog_for_install(
   self : I18n,
   candidate : Catalog,
-  candidate_compiled : Map[String, CompiledMessage],
-) -> Map[String, CompiledMessage] {
-  let merged : Map[String, CompiledMessage] = Map([])
+  candidate_compiled : Map[String, CatalogCompiledMessage],
+) -> Map[String, CatalogCompiledMessage] {
+  let merged : Map[String, CatalogCompiledMessage] = Map([])
   match candidate.chunk_namespace {
     Some(candidate_namespace) => {
       match self.catalogs.get(candidate.locale_code) {
         Some(base) =>
-          match base.compile_messages() {
+          match base.compile_runtime_messages() {
             Ok(compiled) => merge_compiled_messages(merged, compiled)
             Err(_) => ()
           }
@@ -251,7 +293,7 @@ fn I18n::merged_catalog_for_install(
       for pair in self.catalog_chunks.iter() {
         if pair.0 != candidate_key &&
           pair.1.locale_code == candidate.locale_code {
-          match pair.1.compile_messages() {
+          match pair.1.compile_runtime_messages() {
             Ok(compiled) => merge_compiled_messages(merged, compiled)
             Err(_) => ()
           }
@@ -263,7 +305,7 @@ fn I18n::merged_catalog_for_install(
       merge_compiled_messages(merged, candidate_compiled)
       for pair in self.catalog_chunks.iter() {
         if pair.1.locale_code == candidate.locale_code {
-          match pair.1.compile_messages() {
+          match pair.1.compile_runtime_messages() {
             Ok(compiled) => merge_compiled_messages(merged, compiled)
             Err(_) => ()
           }
@@ -507,6 +549,143 @@ pub fn I18n::find_catalog_chunk(
 }
 
 ///|
+fn I18n::message_direction(self : I18n, locale_code : String) -> Mf2Direction {
+  let raw = match self.catalogs.get(locale_code) {
+    Some(catalog) => catalog.direction
+    None => {
+      let mut direction = ""
+      for pair in self.catalog_chunks.iter() {
+        if pair.1.locale_code == locale_code {
+          direction = pair.1.direction
+          break
+        }
+      }
+      direction
+    }
+  }
+  match raw {
+    "ltr" => Mf2LeftToRight
+    "rtl" => Mf2RightToLeft
+    _ => Mf2DirectionUnknown
+  }
+}
+
+///|
+fn mf2_translation_context(
+  locale_code : String,
+  direction : Mf2Direction,
+  args : Array[MessageArg],
+) -> Result[Mf2FormattingContext, Array[Mf2Error]] {
+  let inputs = args.map(arg => Mf2Input::new(arg.name, arg.value))
+  match Mf2FormattingContext::new(locale=locale_code, inputs~, direction~) {
+    Ok(value) => Ok(value)
+    Err(error) =>
+      Err([
+        {
+          kind: Mf2FormattingError,
+          code: Mf2FormattingCode,
+          message: error.message,
+          offset: 0,
+        },
+      ])
+  }
+}
+
+///|
+fn format_catalog_text(
+  message : CatalogCompiledMessage,
+  locale_code : String,
+  direction : Mf2Direction,
+  args : Array[MessageArg],
+  formatter : Formatter,
+) -> Result[String, Array[Mf2Error]] {
+  match message {
+    LegacyCatalogMessage(compiled) =>
+      match format_text(compiled, locale_code, args, formatter) {
+        Ok(value) => Ok(value)
+        Err(error) => Err([error])
+      }
+    StandardCatalogMessage(model) => {
+      let context = match
+        mf2_translation_context(locale_code, direction, args) {
+        Ok(value) => value
+        Err(errors) => return Err(errors)
+      }
+      let result = format_mf2_model(
+        model,
+        context,
+        Mf2FunctionRegistry::new(formatter),
+      )
+      if result.errors.is_empty() {
+        Ok(result.value)
+      } else {
+        Err(result.errors)
+      }
+    }
+  }
+}
+
+///|
+fn standard_message_parts(
+  parts : Array[Mf2FormattedPart],
+) -> Array[MessagePart] {
+  // The generated facade keeps its pre-0.8 MessagePart shape for migration
+  // compatibility. Low-level consumers that need expression fields,
+  // attributes, IDs, or direction metadata use Mf2FormatResult directly.
+  let result : Array[MessagePart] = []
+  for part in parts {
+    match part {
+      Mf2FormattedText(value) | Mf2FormattedBidiIsolation(value) =>
+        result.push(Text(value))
+      Mf2FormattedExpressionPart(expression) =>
+        result.push(Text(expression.value))
+      Mf2FormattedMarkupPart(markup) =>
+        match markup.kind {
+          Mf2MarkupOpen => result.push(Open(markup.name, markup.options))
+          Mf2MarkupClose => result.push(Close(markup.name))
+          Mf2MarkupStandalone =>
+            result.push(Standalone(markup.name, markup.options))
+        }
+    }
+  }
+  result
+}
+
+///|
+fn format_catalog_parts(
+  message : CatalogCompiledMessage,
+  locale_code : String,
+  direction : Mf2Direction,
+  args : Array[MessageArg],
+  formatter : Formatter,
+) -> Result[Array[MessagePart], Array[Mf2Error]] {
+  match message {
+    LegacyCatalogMessage(compiled) =>
+      match format_parts(compiled, locale_code, args, formatter) {
+        Ok(value) => Ok(value)
+        Err(error) => Err([error])
+      }
+    StandardCatalogMessage(model) => {
+      let context = match
+        mf2_translation_context(locale_code, direction, args) {
+        Ok(value) => value
+        Err(errors) => return Err(errors)
+      }
+      let result = format_mf2_model(
+        model,
+        context,
+        Mf2FunctionRegistry::new(formatter),
+      )
+      if result.errors.is_empty() {
+        Ok(standard_message_parts(result.parts))
+      } else {
+        Err(result.errors)
+      }
+    }
+  }
+}
+
+///|
 /// Strictly translates one message to text and returns structured failures.
 pub fn Translator::try_t(
   self : Translator,
@@ -520,7 +699,13 @@ pub fn Translator::try_t(
         match messages.get(id) {
           Some(compiled) =>
             match
-              format_text(compiled, self.locale_code, args, self.i18n.formatter) {
+              format_catalog_text(
+                compiled,
+                self.locale_code,
+                self.i18n.message_direction(code),
+                args,
+                self.i18n.formatter,
+              ) {
               Ok(value) => {
                 if code != self.locale_code {
                   self.i18n.record_diagnostic(
@@ -533,16 +718,17 @@ pub fn Translator::try_t(
                 }
                 return Ok(value)
               }
-              Err(error) => {
-                format_errors.push(error)
-                self.i18n.record_diagnostic(
-                  MessageFormatFailedDiagnostic,
-                  self.locale_code,
-                  code,
-                  id,
-                  error.message,
-                )
-              }
+              Err(errors) =>
+                for error in errors {
+                  format_errors.push(error)
+                  self.i18n.record_diagnostic(
+                    MessageFormatFailedDiagnostic,
+                    self.locale_code,
+                    code,
+                    id,
+                    error.message,
+                  )
+                }
             }
           None => ()
         }
@@ -600,9 +786,10 @@ pub fn Translator::try_t_parts(
         match messages.get(id) {
           Some(compiled) =>
             match
-              format_parts(
+              format_catalog_parts(
                 compiled,
                 self.locale_code,
+                self.i18n.message_direction(code),
                 args,
                 self.i18n.formatter,
               ) {
@@ -618,16 +805,17 @@ pub fn Translator::try_t_parts(
                 }
                 return Ok(value)
               }
-              Err(error) => {
-                format_errors.push(error)
-                self.i18n.record_diagnostic(
-                  MessageFormatFailedDiagnostic,
-                  self.locale_code,
-                  code,
-                  id,
-                  error.message,
-                )
-              }
+              Err(errors) =>
+                for error in errors {
+                  format_errors.push(error)
+                  self.i18n.record_diagnostic(
+                    MessageFormatFailedDiagnostic,
+                    self.locale_code,
+                    code,
+                    id,
+                    error.message,
+                  )
+                }
             }
           None => ()
         }

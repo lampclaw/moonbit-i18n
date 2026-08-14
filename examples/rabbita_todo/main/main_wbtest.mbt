@@ -33,9 +33,15 @@ test "generated Todo facade formats and negotiates locales" {
   let zh = i18n.translator(@app_i18n.ZhCN)
   assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.Title)), "Todos")
   assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(1))), "One active")
-  assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))), "3 active")
+  assert_eq(
+    en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))),
+    "\u{2068}3\u{2069} active",
+  )
   assert_eq(zh.t(@app_i18n.TodoUi(@app_i18n.Title)), "Todos")
-  assert_eq(zh.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))), "3 active")
+  assert_eq(
+    zh.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))),
+    "\u{2068}3\u{2069} active",
+  )
   assert_eq(i18n.default_translator().locale(), @app_i18n.EnUS)
   assert_eq(i18n.translator_from_code("zh_cn").locale(), @app_i18n.ZhCN)
   assert_eq(
@@ -63,7 +69,9 @@ test "locale preference resolution uses saved, browser, then default order" {
 ///|
 test "generated facade installs catalogs and exposes app diagnostics" {
   let i18n = @app_i18n.I18n::new()
-  let catalog = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+  let catalog = "{\"catalogVersion\":2,\"profile\":\"" +
+    @app_i18n.MESSAGE_PROFILE +
+    "\",\"contractHash\":\"" +
     @app_i18n.CONTRACT_HASH +
     "\",\"locale\":\"zh-CN\",\"messages\":{\"todo_ui.title\":\"任务\"}}"
   assert_true(i18n.install_catalog_source(@app_i18n.ZhCN, catalog) is Ok(_))
@@ -119,7 +127,9 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   assert_true(invalid.catalog_state is CatalogFailed(@app_i18n.ZhCN, _))
   assert_false(i18n.has_catalog(@app_i18n.ZhCN))
 
-  let todo_source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+  let todo_source = "{\"catalogVersion\":2,\"profile\":\"" +
+    @app_i18n.MESSAGE_PROFILE +
+    "\",\"contractHash\":\"" +
     @app_i18n.CONTRACT_HASH +
     "\",\"locale\":\"zh-CN\",\"namespace\":\"todo_ui\",\"messages\":{\"todo_ui.title\":\"任务\"}}"
   let partial = finish_verified_catalog_load(
@@ -132,7 +142,9 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   )
   assert_eq(partial.locale, @app_i18n.EnUS)
   assert_true(partial.catalog_state is CatalogFailed(@app_i18n.ZhCN, _))
-  let common_source = "{\"catalogVersion\":2,\"profile\":\"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\"contractHash\":\"" +
+  let common_source = "{\"catalogVersion\":2,\"profile\":\"" +
+    @app_i18n.MESSAGE_PROFILE +
+    "\",\"contractHash\":\"" +
     @app_i18n.CONTRACT_HASH +
     "\",\"locale\":\"zh-CN\",\"namespace\":\"common\",\"messages\":{\"common.catalog_retry\":\"重试\"}}"
   let ready = finish_verified_catalog_load(

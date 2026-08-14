@@ -1,0 +1,43 @@
+{
+  "reportVersion": 1,
+  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "reference": {
+    "package": "messageformat",
+    "version": "4.0.0",
+    "runtime": "Node 26.7.0"
+  },
+  "nodeMajor": 26,
+  "totalCases": 24,
+  "exactMatches": [
+    "literal",
+    "variable-string",
+    "quoted-literal",
+    "local-declaration",
+    "exact-selection",
+    "plural-selection",
+    "ordinal-selection",
+    "string-function",
+    "number-en",
+    "integer",
+    "offset-add",
+    "offset-subtract",
+    "option-inheritance",
+    "default-bidi",
+    "markup"
+  ],
+  "semanticErrorMatches": [
+    "unresolved-variable",
+    "bad-number-option"
+  ],
+  "cldrMatches": [
+    "number-de",
+    "currency",
+    "percent",
+    "date",
+    "time",
+    "datetime",
+    "date-zh"
+  ],
+  "cldrTextDifferences": [],
+  "unexplainedSemanticFailures": []
+}

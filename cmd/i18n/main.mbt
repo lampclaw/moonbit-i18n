@@ -1180,7 +1180,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.7.0"
+const CLI_VERSION : String = "0.8.0"
 
 ///|
 fn usage() -> String {
@@ -1188,15 +1188,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 pseudo <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 export-xliff [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-xliff [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-i18next <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.7.0 import-arb <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 pseudo [--message-profile <profile>] <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 export-xliff [--message-profile <profile>] [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-xliff [--message-profile <profile>] [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-i18next [--message-profile <profile>] <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-arb [--message-profile <profile>] <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1254,7 +1254,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.7.0\"\n\n" +
+  "version = \"0.8.0\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1263,6 +1263,7 @@ fn scaffold_moon_mod(module_name : String) -> String {
 fn scaffold_config() -> String {
   (
     #|{
+    #|  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
     #|  "sourceLocale": "en-US",
     #|  "defaultLocale": "en-US",
     #|  "fallbackLocale": "en-US",
@@ -1610,6 +1611,7 @@ async fn generation_manifest(
   catalog_chunks : Array[@generator.CatalogChunkArtifact],
   deployment_manifest : String,
   contract_hash : String,
+  message_profile : String,
 ) -> String raise CliError {
   let root = path_dirname(resolved_path(config_file))
   let inputs : Array[Json] = [
@@ -1666,7 +1668,7 @@ async fn generation_manifest(
     "manifestVersion": Json::number(1.0),
     "generator": Json::string("lampclaw/i18n"),
     "generatorVersion": Json::string(CLI_VERSION),
-    "profile": Json::string(@runtime.CATALOG_PROFILE),
+    "profile": Json::string(message_profile),
     "contractHash": Json::string(contract_hash),
     "inputs": Json::array(inputs),
     "outputs": Json::array(outputs),
@@ -1678,6 +1680,7 @@ async fn generation_manifest(
 async fn run_generate(
   args : Array[String],
   check_mode : Bool,
+  diagnostic_json? : Bool = false,
 ) -> Unit raise CliError {
   let allow_partial = args.contains("--allow-partial")
   let values = without_allow_partial(args)
@@ -1705,6 +1708,7 @@ async fn run_generate(
     artifacts.catalog_chunks,
     artifacts.deployment_manifest,
     artifacts.contract_hash,
+    artifacts.message_profile,
   )
   if check_mode {
     check_file(
@@ -1781,20 +1785,28 @@ async fn run_generate(
       generation_manifest=generated_manifest,
     )
   }
+  write_artifact_diagnostics(artifacts.diagnostics, diagnostic_json)
   println(artifacts.coverage_report)
 }
 
 ///|
-async fn run_coverage(args : Array[String]) -> Unit raise CliError {
+async fn run_coverage(
+  args : Array[String],
+  diagnostic_json? : Bool = false,
+) -> Unit raise CliError {
   if args.length() != 4 {
     cli_fail(usage())
   }
   let artifacts = load_artifacts(args[1], args[2], args[3], false)
+  write_artifact_diagnostics(artifacts.diagnostics, diagnostic_json)
   println(artifacts.coverage_report)
 }
 
 ///|
-async fn run_command(args : Array[String]) -> Unit raise CliError {
+async fn run_command(
+  args : Array[String],
+  diagnostic_json? : Bool = false,
+) -> Unit raise CliError {
   if args.is_empty() {
     cli_fail(usage())
   }
@@ -1802,15 +1814,34 @@ async fn run_command(args : Array[String]) -> Unit raise CliError {
     "--help" | "-h" | "help" => println(usage())
     "--version" | "-V" => println("moon-i18n \{CLI_VERSION}")
     "scaffold" => run_scaffold(args)
-    "generate" => run_generate(args, false)
-    "check" => run_generate(args, true)
-    "coverage" => run_coverage(args)
+    "generate" => run_generate(args, false, diagnostic_json~)
+    "check" => run_generate(args, true, diagnostic_json~)
+    "coverage" => run_coverage(args, diagnostic_json~)
     "pseudo" => run_pseudo(args)
     "export-xliff" => run_export_xliff(args)
     "import-xliff" => run_import_xliff(args)
     "import-i18next" => run_import_i18next(args)
     "import-arb" => run_import_arb(args)
     _ => cli_fail(usage())
+  }
+}
+
+///|
+async fn write_artifact_diagnostics(
+  diagnostics : Array[@generator.Diagnostic],
+  json : Bool,
+) -> Unit raise CliError {
+  for diagnostic in diagnostics {
+    let rendered = if json {
+      diagnostic.to_json_string()
+    } else {
+      diagnostic.to_human_string()
+    }
+    try @stdio.stderr.write(rendered + "\n") catch {
+      error => cli_fail("cannot write i18n diagnostic: \{error}")
+    } noraise {
+      _ => ()
+    }
   }
 }
 
@@ -1878,7 +1909,8 @@ fn is_generated_content(source : String) -> Bool {
 ///|
 async fn main {
   let args = user_args(@env.args())
-  run_command(without_diagnostic_format(args)) catch {
+  let json = diagnostic_json_enabled(args)
+  run_command(without_diagnostic_format(args), diagnostic_json=json) catch {
     CommandFailed(message) => die(render_cli_error(message, args))
   }
 }

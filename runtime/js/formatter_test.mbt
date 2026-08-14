@@ -144,6 +144,71 @@ test "draft date defaults use semantic fields and deterministic UTC" {
 
 ///|
 #cfg(target="js")
+test "standards-mode catalogs format through the generated-runtime path" {
+  let hash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  let runtime = @runtime.I18n::new(
+    fallback_locale_code="en-US",
+    contract_hash=hash,
+    profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    formatter=formatter(),
+  )
+  let catalog = @runtime.Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=hash,
+    profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    entries=[
+      { id: "number", message: "Total {$value :number}" },
+      {
+        id: "date",
+        message: "Updated {$when :date length=medium timeZone=UTC}",
+      },
+      {
+        id: "plural",
+        message: ".input {$count :number} .match $count one {{One item}} * {{{$count} items}}",
+      },
+      { id: "rich", message: "{#strong}Typed{/strong} output" },
+    ],
+  )
+  assert_true(runtime.install_generated_catalog(catalog) is Ok(_))
+  let translator = runtime.translator("en-US")
+  guard translator.try_t("number", [
+      { name: "value", value: @runtime.DoubleValue(1234.5) },
+    ])
+    is Ok(number) else {
+    fail("standards-mode number should format")
+  }
+  assert_true(number.contains("1,234.5"))
+  guard translator.try_t("date", [
+      { name: "when", value: @runtime.InstantMillis(1785974400000L) },
+    ])
+    is Ok(date) else {
+    fail("standards-mode date should format")
+  }
+  assert_true(date.contains("Aug"))
+  assert_eq(
+    translator.try_t("plural", [{ name: "count", value: @runtime.IntValue(1) }]),
+    Ok("One item"),
+  )
+  assert_eq(
+    translator.try_t_parts("rich", []),
+    Ok([
+      @runtime.Open("strong", []),
+      @runtime.Text("Typed"),
+      @runtime.Close("strong"),
+      @runtime.Text(" output"),
+    ]),
+  )
+  let private_catalog = @runtime.Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=hash,
+    profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    entries=[{ id: "private", message: "{$when :lampclaw:datetime}" }],
+  )
+  assert_true(runtime.install_generated_catalog(private_catalog) is Err(_))
+}
+
+///|
+#cfg(target="js")
 test "stable numeric option surface maps to Node 26 Intl semantics" {
   let context = match
     @runtime.Mf2FormattingContext::new(

@@ -33,8 +33,9 @@ JavaScript 异常不会穿过 formatter 边界。
 `format_mf2_model_standalone`，也可以直接使用 `format_mf2_standalone`。它的
 `Mf2FormatResult` 会同时返回 best-effort 文本、不绑定 renderer 的 structured part 与
 已发现的 typed error。`Mf2FormattingContext` 要求严格 BCP 47 locale，以及显式的
-value/message 方向 metadata。在 `0.8.x` 切换 authoring profile 前，catalog-v2 不使用
-该路径；详见
+value/message 方向 metadata。使用 `unicode-mf2-ldml48.2-js-v1` 的 catalog-v2 entry
+会在原子安装期间一次解析为该 model，再通过固定默认 registry 格式化。Compatibility
+catalog 继续使用 `CompiledMessage`；详见
 [`mf2-resolution-formatting.zh-CN.mbt.md`](mf2-resolution-formatting.zh-CN.mbt.md)。
 
 Node 26 JavaScript 上，`@runtime_js.format_mf2` 提供固定 stable 默认 registry 与
@@ -45,10 +46,12 @@ structured `Intl` field。Framework 可以取得 `@runtime_js.mf2_registry()`，
 
 ## Catalog 兼容契约
 
-`0.7.0` 只接受精确的 catalog format version `2` 和 profile
-`lampclaw-mf2-strict-v1+lampclaw-datetime-v1`。`contractHash` 是规范 UTF-8 契约的
-SHA-256；该契约覆盖 profile、消息 ID、参数类型与允许的 markup。只有版本、profile、
-contract hash 和归一化 locale 全部匹配时才会接受 catalog。
+`0.8.0` 接受 catalog format version `2`，profile 可以是 compatibility
+`lampclaw-mf2-strict-v1+lampclaw-datetime-v1`，也可以是 standards authoring
+`unicode-mf2-ldml48.2-js-v1`。一个 `I18n` 实例只要求其中一个精确 profile，不能混合
+catalog。`contractHash` 是规范 UTF-8 契约的 SHA-256；该契约覆盖所选 profile、消息
+ID、参数类型与允许的 markup。只有版本、profile、contract hash 和归一化 locale
+全部匹配时才会接受 catalog。
 
 解析与安装均有硬上限：JSON 源码和内嵌消息数据各 16 MiB、每个 catalog 100,000
 条消息、每条消息 64 KiB、每个编译消息 4,096 个 declaration 和 4,096 个 variant。
@@ -82,12 +85,11 @@ runtime 在有界、去重的 buffer 中记录消息缺失、逐消息 fallback 
 
 ## Profile 边界
 
-稳定 profile 支持 pattern、declaration、matcher、markup parts、`:string`、
-`:number`、`:integer` 与 `:offset`，并用项目扩展 `:lampclaw:datetime` 处理
-`InstantMillis`。完整 CLDR plural/date 行为由 JS formatter 提供。可选 registry
-function、bidi isolation、完整 BCP 47 canonicalization 和任意用户自定义 function
-不属于该 catalog profile，会被明确拒绝。另行命名的 standards profile 在不改变
-catalog 语义的前提下提供 resolution、bidi、严格 BCP 47、stable 默认函数与公开 custom
-registry。
-该名称刻意不宣称完整 Unicode MF2 合规；固定参考快照与兼容矩阵见
+Compatibility profile 保留 pattern、declaration、matcher、legacy markup part、
+`:string`、`:number`、`:integer`、`:offset` 与私有 `:lampclaw:datetime`。Standards
+authoring profile 使用完整固定 model、resolution、bidi、stable 默认 registry，以及
+单独标记的 draft date/time function。生成的 standards catalog 会拒绝所有 private 或
+custom function。底层调用者仍可注册带 namespace 的 custom function，但其行为不属于
+生成 authoring 与 conformance。两个 profile 名称都不提前声明最终 1.0 完整 Unicode
+MF2 契约；固定参考快照与兼容矩阵见
 [`mf2-profile.zh-CN.mbt.md`](mf2-profile.zh-CN.mbt.md)。

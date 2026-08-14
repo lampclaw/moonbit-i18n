@@ -169,9 +169,9 @@ test("formats plural messages while the application state changes", async ({
   await expect(page.locator(".panel-kicker")).toHaveText("One active");
 
   await page.locator("#locale-toggle").click();
-  await expect(page.locator(".panel-kicker")).toHaveText("1 项待办");
+  await expect(page.locator(".panel-kicker")).toHaveText("\u20681\u2069 项待办");
   await page.locator(".status-toggle").click();
-  await expect(page.locator(".panel-kicker")).toHaveText("0 项待办");
+  await expect(page.locator(".panel-kicker")).toHaveText("\u20680\u2069 项待办");
 });
 
 test("executes number, datetime, rich parts, fallback, and diagnostics in JS", async ({

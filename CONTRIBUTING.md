@@ -33,8 +33,12 @@ moon test --frozen --deny-warn --target native
 moon test --frozen --deny-warn --target wasm
 moon test --frozen --deny-warn --target wasm-gc
 moon test --frozen --deny-warn --target js
+npm ci
 node scripts/check-coverage.mjs
 node scripts/check-api-docs.mjs
+node scripts/check-doc-sync.mjs
+node scripts/check-mf2-requirements.mjs
+node scripts/check-mf2-differential.mjs
 node scripts/check-mf2-profile.mjs
 node scripts/check-benchmarks.mjs
 node scripts/package-smoke.mjs
@@ -44,7 +48,6 @@ moon run --frozen --target wasm cmd/i18n -- check \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
-npm ci
 npx playwright install chromium firefox webkit
 npm run test:browser
 ```
@@ -57,6 +60,12 @@ the pull request and changelog.
 Generated files are updated only through `cmd/i18n`; never hand-edit a
 generated facade, catalog, or ownership manifest. Run `moon info` last when a
 public interface changes and commit the resulting `pkg.generated.mbti` files.
+
+Documentation synchronization is mandatory before every release. The English
+and Chinese README, profile, migration, diagnostics, support-policy, and
+roadmap documents plus `CHANGELOG.md` must be updated in the release commit;
+`node scripts/check-doc-sync.mjs` and `node scripts/check-api-docs.mjs` are
+blocking gates, not post-publish cleanup.
 
 After publishing a stable release, push its verified signed tag to dispatch
 the `Registry smoke` workflow with the exact version. It validates `moon add`, pinned `moonx` execution,

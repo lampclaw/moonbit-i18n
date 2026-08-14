@@ -2,14 +2,14 @@
 
 [English](mf2-default-functions.mbt.md)
 
-`0.7.0` 在 syntax 与 resolution profile 之上增加固定 registry profile
+`0.7.0` 在 syntax 与 resolution profile 之上增加、`0.8.0` 将其集成进生成 authoring 的固定 registry profile
 `unicode-mf2-ldml48.2-default-functions-v1`。其参考点是 LDML 48.2 时期的
 Unicode MessageFormat WG commit
 `d115a614079678850aac8b52742360e888b8f027`。
 
 ## 支持范围
 
-| 固定规范中的状态 | Function | `0.7.0` 状态 |
+| 固定规范中的状态 | Function | 当前状态 |
 |---|---|---|
 | Stable 且 required | `:string`、`:number`、`:integer`、`:offset`、`:currency`、`:percent` | 已实现 required operand、option、继承、formatting 与 selection |
 | Draft | `:date`、`:time`、`:datetime` | 因路线图要求而实现，但不计入 stable conformance 声明 |
@@ -115,6 +115,8 @@ currency、7 个 draft date、7 个 draft datetime、13 个 integer、41 个 num
 offset、13 个 percent、9 个 string 与 6 个 draft time。CI 校验精确 source、hash、
 function 规范正文、生成测试与数量。
 
-这仍不是完整 Unicode MF2 声明。Catalog authoring profile 选择、从
-`:lampclaw:datetime` 迁移、requirement-to-test 规范矩阵与独立 differential conformance
-属于 `0.8.x` 的收口工作。
+`0.8.0` 完成计划中的集成：显式 standards-mode generated catalog 使用该 registry，
+私有 datetime 被限制在 compatibility profile，每个 stable function/option 都出现在
+经检查的 requirement matrix 中，并在 Node 26 上相对 `messageformat@4.0.0` 运行
+differential test。这仍不是完整 Unicode MF2 声明，因为 draft function 保持独立，
+最终 1.0 stable 目标与公共契约冻结属于 `0.9.x`。

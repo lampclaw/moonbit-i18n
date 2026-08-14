@@ -7,6 +7,7 @@
     "test:browser": "npm run build:browser && playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1"
+    "@playwright/test": "1.62.1",
+    "messageformat": "4.0.0"
   }
 }

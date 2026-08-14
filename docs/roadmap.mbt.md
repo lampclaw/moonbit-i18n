@@ -309,6 +309,20 @@ All 124 pinned function cases pass with the Node 26 JavaScript provider.
 
 ### `0.8.x` — compatibility and conformance closure
 
+**Status: stable in `0.8.0`.** The aggregate
+`unicode-mf2-ldml48.2-js-v1` profile now connects explicit canonical authoring,
+profile-specific contract hashes, catalog-v2 installation, generated facades,
+and the Node 26 standards runtime. Omitted settings retain compatibility with
+warning `I18N1003`; private datetime remains compatibility-only with dedicated
+migration diagnostics. New scaffolds and the repository-maintained Rabbita
+consumer use standards mode without private functions. A checked matrix maps
+20 scoped normative rows, 6 stable functions, and 40 stable options to tests.
+Twenty-four independent differential cases report no unexplained semantic gap
+on Node 26.7.0, while retaining a separate CLDR-text classification. The
+standards-profile Rabbita build measures 429 KiB raw and 116 KiB gzip; explicit
+448/128 KiB ceilings account for the runtime validator and formatter while
+continuing to fail future unreviewed growth.
+
 - Add an explicit `messageProfile` authoring setting. Existing projects without
   it initially mean strict-v1 and receive a migration diagnostic; it becomes
   required before `1.0.0`.
@@ -323,6 +337,11 @@ All 124 pinned function cases pass with the Node 26 JavaScript provider.
 The exit gate for this range is zero unexplained conformance gaps on
 JavaScript, successful migration of maintained consumers, and no private
 extension required by standards-mode messages.
+
+`0.8.0` meets this scoped gate through the generated scaffold, Rabbita browser
+consumer, pinned upstream suites, machine-readable requirement matrix, and
+independent differential report. This does not pre-empt the `0.9.x` task of
+selecting and freezing the exact final stable target for the 1.0 claim.
 
 ## Long term: `0.9.x` and `1.0.0`
 

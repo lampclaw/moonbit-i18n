@@ -29,6 +29,12 @@ const supportsResolution =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 6);
 const supportsDefaultFunctions =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 7);
+const supportsMessageProfiles =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 8);
+const standardMessageProfile = "unicode-mf2-ldml48.2-js-v1";
+const messageProfileArgs = supportsMessageProfiles
+  ? ["--message-profile", standardMessageProfile]
+  : [];
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -243,6 +249,7 @@ try {
       [
         cli,
         "export-xliff",
+        ...messageProfileArgs,
         "localization/schema.json",
         "en-US",
         "localization/locales/en-US.json",
@@ -257,6 +264,7 @@ try {
       [
         cli,
         "import-xliff",
+        ...messageProfileArgs,
         "--state-output",
         exchangeState,
         "--report-output",
@@ -283,6 +291,7 @@ try {
       [
         cli,
         "import-i18next",
+        ...messageProfileArgs,
         "localization/schema.json",
         "zh-CN",
         "localization/locales/zh-CN.json",
@@ -304,6 +313,7 @@ try {
       [
         cli,
         "import-arb",
+        ...messageProfileArgs,
         "localization/schema.json",
         "zh-CN",
         arb,
@@ -337,13 +347,19 @@ try {
 `
     : "";
   resolutionSmoke = resolutionSmoke + defaultFunctionSmoke;
+  const englishExpected = supportsMessageProfiles
+    ? '"Hello \\u{2068}MoonBit\\u{2069}"'
+    : '"Hello MoonBit"';
+  const chineseExpected = supportsMessageProfiles
+    ? '"你好 \\u{2068}MoonBit\\u{2069}"'
+    : '"你好 MoonBit"';
   writeFileSync(
     join(app, "main", "moon.pkg"),
     `import {\n  "smoke/scaffolded/i18n" @app_i18n,\n${runtimeImport}}\n\nsupported_targets = "js"\n\npkgtype(kind: "executable")\n`,
   );
   writeFileSync(
     join(app, "main", "main.mbt"),
-    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  ${dynamicInstall}\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n${resolutionSmoke}  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
+    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != ${englishExpected} {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  let source = ${JSON.stringify(dynamicCatalog)}\n  ${dynamicInstall}\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != ${chineseExpected} {\n    abort("dynamic Chinese translation failed")\n  }\n${resolutionSmoke}  println("registry smoke: Hello MoonBit / 你好 MoonBit")\n}\n`,
   );
   run("moon", ["fmt"], { cwd: app });
   run("moon", ["check", "--deny-warn", "--target", "js"], { cwd: app });

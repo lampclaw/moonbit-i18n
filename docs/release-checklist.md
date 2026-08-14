@@ -18,6 +18,14 @@ Accepted`, and the version-specific registry success detail all match. It
 rejects every other non-zero status or incomplete response; never treat 255 as
 a general success code.
 
+Documentation synchronization is a hard release gate. Before any dry run or
+real publish, the versioned English and Chinese README, public profile,
+migration guide, diagnostics, support policy, roadmap, API documentation, and
+changelog must describe the code that is actually in the reviewed commit. Run
+`node scripts/check-doc-sync.mjs` and `node scripts/check-api-docs.mjs`; a
+failure blocks the release. The synchronized documents and generated public
+interfaces must be committed and green in CI before `moon publish` is invoked.
+
 Create and locally verify one signed `v$version` tag at the reviewed commit.
 Invoke `moon publish` exactly once. A non-zero or ambiguous result is never an
 authorization to retry: first verify the exact version on mooncakes.io and run
@@ -67,13 +75,18 @@ from the published archive.
 
 - [ ] Set the same release version in `moon.mod`, CLI output, README files,
       example dependency, and `CHANGELOG.md`.
-- [ ] Confirm the documented strict MF2 profile and pinned Unicode snapshot;
-      do not claim full Unicode MF2 conformance.
+- [ ] Confirm the documented compatibility and standards MF2 profiles, pinned
+      Unicode snapshot, normative requirement matrix, and differential report;
+      do not claim behavior beyond the machine-readable conformance evidence.
 - [ ] Confirm `docs/support-policy*.mbt.md` matches the exact CI matrix and
       compatibility behavior exercised by this release.
 - [ ] Review both public roadmap languages. Confirm their current-status and
       milestone statements match the implementation, README, MF2 profile, and
       changelog; planned behavior must not appear as shipped behavior.
+- [ ] Run `node scripts/check-doc-sync.mjs`; both language variants, versioned
+      examples, profile claims, migration diagnostics, roadmap status,
+      changelog, and local documentation links must be synchronized. This is a
+      hard gate and must pass before the dry run or real publish.
 - [ ] Run `node scripts/check-api-docs.mjs`; all exported runtime, generator,
       and formatter items must have non-empty mooncakes.io documentation.
 - [ ] Confirm README metadata, repository, SPDX license, keywords, description,
@@ -106,8 +119,9 @@ from the published archive.
       CI, scripts, local build output, benchmarks, and conformance fixtures must
       not be in the archive.
 - [ ] Confirm runtime, generator, CLI, portable formatter, README, changelog,
-      security policy, license, profile documents, and both public roadmap
-      languages are in the archive. Confirm `AGENTS.md` remains repository-only.
+      security policy, license, profile and profile-migration documents, and
+      both public roadmap languages are in the archive. Confirm `AGENTS.md`
+      remains repository-only.
 - [ ] Extract the archive in a clean directory and run `moon doc` there.
 - [ ] Run `node scripts/package-smoke.mjs` to exercise the actual archive as a
       clean local workspace dependency, generate a bilingual app, run its
@@ -127,7 +141,9 @@ from the published archive.
       verification because that clean directory must install dependencies.
       The helper applies the exact pinned-client acceptance rule above and
       prints the archive checksum. Record its complete output. Do not publish
-      from a dirty or unreviewed worktree.
+      from a dirty or unreviewed worktree. The helper reruns the documentation,
+      API, MF2 requirement, differential, profile, and version-contract gates
+      before it contacts the registry.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
       `v<version>` tag locally. Publish only `lampclaw/i18n` from that tagged
@@ -171,6 +187,13 @@ moon version --all
 mooncake --version
 moon whoami
 version="$(node scripts/version-contract.mjs get)"
+npm ci
+node scripts/check-doc-sync.mjs
+node scripts/check-api-docs.mjs
+node scripts/check-mf2-requirements.mjs
+node scripts/check-mf2-differential.mjs
+node scripts/check-mf2-profile.mjs
+node scripts/version-contract.mjs check
 node scripts/publish-dry-run.mjs
 ~~~
 

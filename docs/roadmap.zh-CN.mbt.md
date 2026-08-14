@@ -248,6 +248,17 @@ JavaScript provider 通过全部 124 个固定 function case。
 
 ### `0.8.x`——兼容与 conformance 收口
 
+**状态：已在 `0.8.0` 稳定。** 聚合 profile
+`unicode-mf2-ldml48.2-js-v1` 现在连接显式 canonical authoring、profile 专属 contract
+hash、catalog-v2 安装、生成 facade 和 Node 26 standards runtime。省略设置会带
+`I18N1003` warning 继续兼容；私有 datetime 只留在 compatibility mode，并有专属迁移
+诊断。新 scaffold 和仓库维护的 Rabbita consumer 已使用不含私有 function 的 standards
+mode。经检查的矩阵把 20 条 scope 内规范 requirement、6 个 stable function 与 40 个
+stable option 映射到测试；24 个独立 differential case 在 Node 26.7.0 上没有无法解释的
+semantic gap，同时保留独立的 CLDR-text 分类。standards-profile Rabbita build 实测
+raw 429 KiB、gzip 116 KiB；显式 448/128 KiB 上限为 runtime validator 与 formatter
+留出空间，同时继续阻止未经审查的后续增长。
+
 - 增加显式 `messageProfile` authoring 配置。现有项目缺少该字段时起初按 strict-v1
   解释并给出迁移诊断；在 `1.0.0` 之前将其变为必填。
 - `:lampclaw:datetime` 只保留在 legacy profile，并提供迁移到标准 `:datetime` 的
@@ -258,6 +269,10 @@ JavaScript provider 通过全部 124 个固定 function case。
 
 这一版本范围的出口门槛是 JavaScript 上不存在无法解释的 conformance 缺口、维护中的
 消费者迁移成功，且标准模式消息不依赖私有扩展。
+
+`0.8.0` 通过生成 scaffold、Rabbita 浏览器 consumer、固定上游 suite、机器可读
+requirement matrix 与独立 differential report 达到这个 scope 内门槛。这不会提前替代
+`0.9.x` 为 1.0 声明选择并冻结精确最终 stable 目标的任务。
 
 ## 长期：`0.9.x` 与 `1.0.0`
 

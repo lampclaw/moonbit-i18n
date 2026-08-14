@@ -34,8 +34,83 @@ test "parse final i18n config" {
     fail("config should parse")
   }
   assert_eq(config.source_locale, "en-US")
+  assert_eq(config.message_profile, @runtime.CATALOG_PROFILE)
+  assert_false(config.message_profile_explicit)
   assert_eq(config.locales[0], { code: "ar", direction: "rtl" })
   assert_eq(config.minimum_coverage, 0.8)
+}
+
+///|
+test "config accepts explicit compatibility and standards profiles" {
+  let standard = "{\n  \"messageProfile\": \"" +
+    @runtime.MF2_STANDARD_MESSAGE_PROFILE +
+    "\"," +
+    config_source[1:].to_owned()
+  guard parse_config(standard) is Ok(config) else {
+    fail("standards profile should parse")
+  }
+  assert_eq(config.message_profile, @runtime.MF2_STANDARD_MESSAGE_PROFILE)
+  assert_true(config.message_profile_explicit)
+  let legacy = standard.replace_all(
+    old=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    new=@runtime.CATALOG_PROFILE,
+  )
+  guard parse_config(legacy) is Ok(legacy_config) else {
+    fail("explicit compatibility profile should parse")
+  }
+  assert_eq(legacy_config.message_profile, @runtime.CATALOG_PROFILE)
+  assert_true(legacy_config.message_profile_explicit)
+  assert_config_error(
+    standard.replace_all(
+      old=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+      new="unknown-profile",
+    ),
+  )
+  assert_config_error(
+    standard.replace_all(
+      old="\"" + @runtime.MF2_STANDARD_MESSAGE_PROFILE + "\"",
+      new="1",
+    ),
+  )
+}
+
+///|
+test "standards profile validates schema contracts and rejects private functions" {
+  guard parse_schema(
+      "{\"messages\":{\"common\":[\"value\"]},\"params\":{\"common.value\":[{\"name\":\"count\",\"type\":\"Int\"}]},\"parts\":{\"common.value\":[\"strong\"]}}",
+    )
+    is Ok(schema) else {
+    fail("schema should parse")
+  }
+  assert_true(
+    parse_locale(
+      "en-US",
+      "{\"common\":{\"value\":\"{#strong}{$count :number}{/strong}\"}}",
+      schema,
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Ok(_),
+  )
+  guard parse_locale(
+      "en-US",
+      "{\"common\":{\"value\":\"{$count :lampclaw:datetime}\"}}",
+      schema,
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Err(private_error) else {
+    fail("private function must not enter standards-mode catalogs")
+  }
+  assert_true(private_error.contains(":lampclaw:datetime"))
+  guard parse_locale(
+      "en-US",
+      "{\"common\":{\"value\":\"{$missing :number}\"}}",
+      schema,
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Err(variable_error) else {
+    fail("unknown standard variable must fail the schema contract")
+  }
+  assert_true(variable_error.contains("not declared in schema params"))
 }
 
 ///|

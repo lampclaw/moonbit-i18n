@@ -2,14 +2,14 @@
 
 [中文](mf2-default-functions.zh-CN.mbt.md)
 
-Version `0.7.0` adds the pinned registry profile
+Version `0.7.0` added, and `0.8.0` integrates into generated authoring, the pinned registry profile
 `unicode-mf2-ldml48.2-default-functions-v1` on top of the syntax and
 resolution profiles. Its reference is Unicode MessageFormat WG commit
 `d115a614079678850aac8b52742360e888b8f027` from the LDML 48.2 era.
 
 ## Supported repertoire
 
-| Status in the pin | Functions | `0.7.0` status |
+| Status in the pin | Functions | Current status |
 |---|---|---|
 | Stable and required | `:string`, `:number`, `:integer`, `:offset`, `:currency`, `:percent` | Implemented, including required operands, options, inheritance, formatting, and selection |
 | Draft | `:date`, `:time`, `:datetime` | Implemented because the roadmap requires them, but excluded from the stable conformance claim |
@@ -123,7 +123,10 @@ provider: 12 currency, 7 draft date, 7 draft datetime, 13 integer, 41 number,
 16 offset, 13 percent, 9 string, and 6 draft time cases. The exact sources,
 hashes, function prose, generated tests, and counts are checked in CI.
 
-This is still not a full Unicode MF2 claim. Catalog authoring profile
-selection, migration away from `:lampclaw:datetime`, a requirement-by-test
-normative matrix, and independent differential conformance remain the `0.8.x`
-closure work.
+Version `0.8.0` completes the planned integration: explicit standards-mode
+generated catalogs use this registry, private datetime is confined to the
+compatibility profile, every stable function/option is present in the checked
+requirement matrix, and Node 26 differential tests compare the behavior with
+`messageformat@4.0.0`. This is still not a full Unicode MF2 claim because
+draft functions remain separate and the final 1.0 stable target/public
+contract freeze belongs to `0.9.x`.

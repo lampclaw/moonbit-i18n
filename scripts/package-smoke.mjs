@@ -19,6 +19,7 @@ const manifest = readFileSync(join(project, "moon.mod"), "utf8");
 const versionMatch = manifest.match(/^version = "([^"]+)"$/mu);
 assert.ok(versionMatch, "moon.mod version is missing");
 const version = versionMatch[1];
+const messageProfile = "unicode-mf2-ldml48.2-js-v1";
 const archive = join(
   project,
   "_build",
@@ -83,6 +84,7 @@ try {
         sourceLocale: "en-US",
         defaultLocale: "en-US",
         fallbackLocale: "en-US",
+        messageProfile,
         embeddedLocales: ["en-US"],
         release: { minimumCoverage: 1 },
         locales: {
@@ -175,6 +177,8 @@ try {
     [
       ...cliPrefix,
       "export-xliff",
+      "--message-profile",
+      messageProfile,
       join(app, "localization", "schema.json"),
       "en-US",
       join(app, "localization", "locales", "en-US.json"),
@@ -189,6 +193,8 @@ try {
     [
       ...cliPrefix,
       "import-xliff",
+      "--message-profile",
+      messageProfile,
       "--state-output",
       exchangeState,
       "--report-output",
@@ -215,6 +221,8 @@ try {
     [
       ...cliPrefix,
       "import-i18next",
+      "--message-profile",
+      messageProfile,
       join(app, "localization", "schema.json"),
       "zh-CN",
       join(app, "localization", "locales", "zh-CN.json"),
@@ -252,7 +260,7 @@ try {
   );
   write(
     "app/cmd/main/main.mbt",
-    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello MoonBit" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    "{not valid JSON",\n  ) is Ok(_) {\n    abort("corrupt chunk was accepted")\n  }\n  let common_source = ${JSON.stringify(dynamicCommon)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    common_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("common chunk rejected: \\{message}")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("partially loaded locale was reported complete")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("dynamic Chinese translation failed")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "Account" {\n    abort("unloaded namespace did not recover through fallback")\n  }\n  let account_source = ${JSON.stringify(dynamicAccount)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogAccount,\n    account_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("account chunk rejected: \\{message}")\n  }\n  if !i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("fully loaded locale was not reported complete")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "账户" {\n    abort("second namespace did not install independently")\n  }\n  let stale = common_source.replace_all(\n    old=@app_i18n.CONTRACT_HASH,\n    new="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",\n  )\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    stale,\n  ) is Ok(_) {\n    abort("incompatible chunk was accepted")\n  }\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 MoonBit" {\n    abort("failed replacement damaged the installed chunk")\n  }\n  println("package smoke: Hello MoonBit / 你好 MoonBit / 账户")\n}\n`,
+    `///|\nfn main {\n  let i18n = @app_i18n.I18n::new()\n  let en = i18n.translator(@app_i18n.EnUS)\n  if en.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "Hello \\u{2068}MoonBit\\u{2069}" {\n    abort("embedded English translation failed")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("dynamic Chinese catalog was unexpectedly embedded")\n  }\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    "{not valid JSON",\n  ) is Ok(_) {\n    abort("corrupt chunk was accepted")\n  }\n  let common_source = ${JSON.stringify(dynamicCommon)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    common_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("common chunk rejected: \\{message}")\n  }\n  if i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("partially loaded locale was reported complete")\n  }\n  let zh = i18n.translator(@app_i18n.ZhCN)\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 \\u{2068}MoonBit\\u{2069}" {\n    abort("dynamic Chinese translation failed")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "Account" {\n    abort("unloaded namespace did not recover through fallback")\n  }\n  let account_source = ${JSON.stringify(dynamicAccount)}\n  match i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogAccount,\n    account_source,\n  ) {\n    Ok(_) => ()\n    Err(message) => abort("account chunk rejected: \\{message}")\n  }\n  if !i18n.has_catalog(@app_i18n.ZhCN) {\n    abort("fully loaded locale was not reported complete")\n  }\n  if zh.t(@app_i18n.Account(@app_i18n.Title)) != "账户" {\n    abort("second namespace did not install independently")\n  }\n  let stale = common_source.replace_all(\n    old=@app_i18n.CONTRACT_HASH,\n    new="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",\n  )\n  if i18n.install_catalog_chunk_source(\n    @app_i18n.ZhCN,\n    @app_i18n.CatalogCommon,\n    stale,\n  ) is Ok(_) {\n    abort("incompatible chunk was accepted")\n  }\n  if zh.t(@app_i18n.Common(@app_i18n.Hello("MoonBit"))) != "你好 \\u{2068}MoonBit\\u{2069}" {\n    abort("failed replacement damaged the installed chunk")\n  }\n  println("package smoke: Hello MoonBit / 你好 MoonBit / 账户")\n}\n`,
   );
   mkdirSync(join(app, "cmd", "mf2"), { recursive: true });
   write(

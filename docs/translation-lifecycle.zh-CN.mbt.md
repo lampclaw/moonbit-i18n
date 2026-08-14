@@ -12,6 +12,7 @@
 
 ~~~bash
 moon-i18n export-xliff \
+  --message-profile unicode-mf2-ldml48.2-js-v1 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr localization/locales/fr.json \
@@ -22,6 +23,7 @@ moon-i18n export-xliff \
 
 ~~~bash
 moon-i18n import-xliff \
+  --message-profile unicode-mf2-ldml48.2-js-v1 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr build/fr.xlf \
@@ -41,6 +43,7 @@ localization/locales/fr.json.xliff-report.json
 
 ~~~bash
 moon-i18n export-xliff \
+  --message-profile unicode-mf2-ldml48.2-js-v1 \
   --state localization/locales/fr.json.xliff-state.json \
   localization/schema.json \
   en-US localization/locales/en-US.json \
@@ -102,10 +105,12 @@ API。
 
 ~~~bash
 moon-i18n import-i18next \
+  --message-profile unicode-mf2-ldml48.2-js-v1 \
   localization/schema.json fr legacy/fr.json \
   localization/locales/fr.json build/fr-i18next-report.json
 
 moon-i18n import-arb \
+  --message-profile unicode-mf2-ldml48.2-js-v1 \
   localization/schema.json fr legacy/app_fr.arb \
   localization/locales/fr.json build/fr-arb-report.json
 ~~~
@@ -120,6 +125,10 @@ ARB importer 接受精确 dotted identity，或在整个 schema 中唯一的 key
 
 PO/POT 迁移被刻意排除。只有完成书面 MF2 映射，并由真实消费者证明目标工作流的损失
 足够低之后，才会考虑加入。
+
+这些独立命令不会读取应用 config。应通过 `--message-profile` 传入应用的精确
+`messageProfile`；省略时采用[迁移指南](message-profile-migration.zh-CN.mbt.md)所述的
+临时兼容 profile 行为。公共 interchange API 提供对应的可选 `message_profile` 参数。
 
 ## 安全与运行限制
 

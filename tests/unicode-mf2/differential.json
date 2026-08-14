@@ -1,0 +1,34 @@
+{
+  "fixtureVersion": 1,
+  "reference": {
+    "package": "messageformat",
+    "version": "4.0.0",
+    "runtime": "Node 26.7.0"
+  },
+  "cases": [
+    {"id": "literal", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "Hello, MoonBit!"},
+    {"id": "variable-string", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "Hello {$name}", "params": {"name": {"type": "string", "value": "Ada"}}},
+    {"id": "quoted-literal", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "Value {|a\\|b|}"},
+    {"id": "local-declaration", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": ".local $value = {|ready|} {{State: {$value}}}"},
+    {"id": "exact-selection", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": ".input {$count :number} .match $count 1 {{exact}} one {{plural}} * {{other}}", "params": {"count": {"type": "int", "value": 1}}},
+    {"id": "plural-selection", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": ".input {$count :number} .match $count one {{One item}} * {{{$count} items}}", "params": {"count": {"type": "int", "value": 2}}},
+    {"id": "ordinal-selection", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": ".input {$rank :number select=ordinal} .match $rank one {{first}} two {{second}} few {{third}} * {{other}}", "params": {"rank": {"type": "int", "value": 3}}},
+    {"id": "string-function", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{$value :string}", "params": {"value": {"type": "bool", "value": true}}},
+    {"id": "number-en", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{1234.5 :number minimumFractionDigits=2}"},
+    {"id": "number-de", "classification": "cldr-text", "locale": "de-DE", "bidiIsolation": "none", "source": "{1234.5 :number minimumFractionDigits=2}"},
+    {"id": "integer", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{4.2 :integer}"},
+    {"id": "offset-add", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{41 :offset add=1}"},
+    {"id": "offset-subtract", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{52 :offset subtract=10}"},
+    {"id": "currency", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{42 :currency currency=EUR}"},
+    {"id": "percent", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{0.42 :percent}"},
+    {"id": "option-inheritance", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": ".local $n = {42 :number signDisplay=always minimumFractionDigits=2} {{{$n :number maximumFractionDigits=3}}}"},
+    {"id": "default-bidi", "classification": "exact", "locale": "en-US", "source": "Hello {$name}", "params": {"name": {"type": "string", "value": "مرحبا"}}},
+    {"id": "markup", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{#strong}Typed{/strong} message"},
+    {"id": "unresolved-variable", "classification": "semantic-error", "locale": "en-US", "bidiIsolation": "none", "source": "Missing {$value}", "expectedError": "resolution"},
+    {"id": "bad-number-option", "classification": "semantic-error", "locale": "en-US", "bidiIsolation": "none", "source": "{1 :number select=$mode}", "params": {"mode": {"type": "string", "value": "exact"}}, "expectedError": "resolution"},
+    {"id": "date", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"},
+    {"id": "time", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :time precision=second timeZone=UTC}"},
+    {"id": "datetime", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :datetime dateLength=medium timePrecision=minute timeZone=UTC}"},
+    {"id": "date-zh", "classification": "cldr-text", "locale": "zh-CN", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"}
+  ]
+}

@@ -178,6 +178,40 @@ test "runtime installs independent chunks and reports namespace readiness" {
 }
 
 ///|
+test "catalog installation rejects conflicting directions within a locale" {
+  let i18n = test_i18n()
+  install_for_test(
+    i18n,
+    runtime_chunk("ar", "common", [
+      { id: "common.hello", message: "مرحبا" },
+    ]),
+  )
+  let conflicting_chunk = Catalog::from_generated_chunk_entries(
+    locale_code="ar",
+    chunk_namespace="account",
+    contract_hash=TEST_CONTRACT_HASH,
+    direction="rtl",
+    entries=[{ id: "account.title", message: "الحساب" }],
+  )
+  assert_true(
+    i18n.install_generated_catalog(conflicting_chunk)
+    is Err("catalog direction mismatch for ar: expected ltr, got rtl"),
+  )
+  let conflicting_whole = Catalog::from_generated_entries(
+    locale_code="ar",
+    contract_hash=TEST_CONTRACT_HASH,
+    direction="rtl",
+    entries=[{ id: "common.hello", message: "مرحبا" }],
+  )
+  assert_true(
+    i18n.install_generated_catalog(conflicting_whole)
+    is Err("catalog direction mismatch for ar: expected ltr, got rtl"),
+  )
+  assert_false(i18n.has_catalog_namespace("ar", "account"))
+  assert_eq(i18n.translator("ar").t("common.hello", []), "مرحبا")
+}
+
+///|
 test "chunk replacement is atomic and rejects incompatible identity" {
   let i18n = test_i18n()
   let valid = runtime_chunk("fr", "common", [
@@ -321,6 +355,7 @@ test "translator searches parent locale catalogs" {
 test "catalog source adapters and metadata accessors are total" {
   let i18n = test_i18n()
   assert_eq(i18n.contract_hash(), TEST_CONTRACT_HASH)
+  assert_eq(i18n.profile(), CATALOG_PROFILE)
   assert_true(i18n.install_catalog_source("not-json") is Err(_))
   assert_true(i18n.install_catalog_source_for("en--US", "{}") is Err(_))
   let source = runtime_catalog("en-US", [{ id: "hello", message: "Hello" }]).to_json_string()

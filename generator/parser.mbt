@@ -13,6 +13,14 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
   guard json is Object(obj) else {
     return Err("i18n config root must be an object")
   }
+  let (message_profile, message_profile_explicit) = match
+    obj.get("messageProfile") {
+    Some(String(value)) if @runtime.is_supported_message_profile(value) =>
+      (value, true)
+    Some(String(value)) => return Err("unsupported messageProfile: \{value}")
+    Some(_) => return Err("messageProfile must be a string")
+    None => (@runtime.CATALOG_PROFILE, false)
+  }
   let source_locale = match normalized_config_string(obj, "sourceLocale") {
     Ok(value) => value
     Err(message) => return Err(message)
@@ -107,6 +115,8 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
     return Err("release.minimumCoverage must be between 0 and 1")
   }
   Ok({
+    message_profile,
+    message_profile_explicit,
     source_locale,
     default_locale,
     fallback_locale,
@@ -262,6 +272,7 @@ pub fn parse_locale(
   locale_code : String,
   source : String,
   schema : Schema,
+  message_profile? : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleResource, String] {
   if @utf8.encode(source).length() > @runtime.CATALOG_MAX_SOURCE_BYTES {
     return Err("locale source exceeds the input size limit")
@@ -310,20 +321,39 @@ pub fn parse_locale(
       if text.trim().is_empty() {
         continue
       }
-      let params = schema_entry.params.map(param => @runtime.MessageParamSpec::{
-        name: param.name,
-        typ: param.typ,
-      })
-      let contract = @runtime.MessageContract::new(
-        params,
-        allowed_tags=schema_allowed_tags(schema, message_id(schema_entry)),
-      )
-      match @runtime.compile_mf2_message(text, contract) {
-        Ok(_) => entries.push({ ..schema_entry, text, })
-        Err(errors) =>
-          return Err(
-            "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
-          )
+      if message_profile == @runtime.CATALOG_PROFILE {
+        let params = schema_entry.params.map(param => @runtime.MessageParamSpec::{
+          name: param.name,
+          typ: param.typ,
+        })
+        let contract = @runtime.MessageContract::new(
+          params,
+          allowed_tags=schema_allowed_tags(schema, message_id(schema_entry)),
+        )
+        match @runtime.compile_mf2_message(text, contract) {
+          Ok(_) => entries.push({ ..schema_entry, text, })
+          Err(errors) =>
+            return Err(
+              "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
+            )
+        }
+      } else if message_profile == @runtime.MF2_STANDARD_MESSAGE_PROFILE {
+        let model = match @runtime.parse_valid_mf2_model(text) {
+          Ok(value) => value
+          Err(errors) =>
+            return Err(
+              "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
+            )
+        }
+        match validate_standard_message_contract(model, schema, schema_entry) {
+          Ok(_) => entries.push({ ..schema_entry, text, })
+          Err(message) =>
+            return Err(
+              "invalid MF2 message: \{locale}.\{group}.\{key}: \{message}",
+            )
+        }
+      } else {
+        return Err("unsupported messageProfile: \{message_profile}")
       }
     }
   }
@@ -331,6 +361,138 @@ pub fn parse_locale(
     message_id(left).lexical_compare(message_id(right))
   })
   Ok({ locale, entries })
+}
+
+///|
+fn validate_standard_message_contract(
+  model : @runtime.Mf2MessageModel,
+  schema : Schema,
+  schema_entry : Entry,
+) -> Result[Unit, String] {
+  let parameter_names = schema_entry.params.map(param => param.name)
+  let local_names : Array[String] = []
+  let expressions : Array[@runtime.Mf2ModelExpression] = []
+  let markups : Array[@runtime.Mf2ModelMarkup] = []
+  let patterns : Array[@runtime.Mf2ModelPattern] = []
+  let declarations = match model {
+    @runtime.Mf2PatternMessage(declarations, pattern) => {
+      patterns.push(pattern)
+      declarations
+    }
+    @runtime.Mf2SelectMessage(declarations, _, variants) => {
+      for variant in variants {
+        patterns.push(variant.value)
+      }
+      declarations
+    }
+  }
+  for declaration in declarations {
+    match declaration {
+      @runtime.Mf2ModelInput(name, expression) => {
+        if !parameter_names.contains(name) {
+          return Err(
+            "input variable is not declared in schema params: $\{name}",
+          )
+        }
+        expressions.push(expression)
+      }
+      @runtime.Mf2ModelLocal(name, expression) => {
+        local_names.push(name)
+        expressions.push(expression)
+      }
+    }
+  }
+  for pattern in patterns {
+    for part in pattern.parts {
+      match part {
+        @runtime.Mf2ModelExpressionPart(expression) =>
+          expressions.push(expression)
+        @runtime.Mf2ModelMarkupPart(markup) => markups.push(markup)
+        @runtime.Mf2ModelText(_) => ()
+      }
+    }
+  }
+  for expression in expressions {
+    match
+      validate_standard_value(expression.arg, parameter_names, local_names) {
+      Ok(_) => ()
+      Err(message) => return Err(message)
+    }
+    match expression.function_ref {
+      Some(function_ref) => {
+        if function_ref.name == "lampclaw:datetime" {
+          return Err(
+            "private function :lampclaw:datetime is not allowed by the standards profile; migrate to :datetime, :date, or :time",
+          )
+        }
+        if !standard_function_name(function_ref.name) {
+          return Err(
+            "function is not in the pinned default registry: :\{function_ref.name}",
+          )
+        }
+        for option in function_ref.options {
+          match
+            validate_standard_value(
+              Some(option.value),
+              parameter_names,
+              local_names,
+            ) {
+            Ok(_) => ()
+            Err(message) => return Err(message)
+          }
+        }
+      }
+      None => ()
+    }
+  }
+  let allowed_tags = schema_allowed_tags(schema, message_id(schema_entry))
+  for markup in markups {
+    if !allowed_tags.contains(markup.name) {
+      return Err("markup is not declared in schema parts: \{markup.name}")
+    }
+    for option in markup.options {
+      match
+        validate_standard_value(
+          Some(option.value),
+          parameter_names,
+          local_names,
+        ) {
+        Ok(_) => ()
+        Err(message) => return Err(message)
+      }
+    }
+  }
+  Ok(())
+}
+
+///|
+fn validate_standard_value(
+  value : @runtime.Mf2ModelValue?,
+  parameter_names : Array[String],
+  local_names : Array[String],
+) -> Result[Unit, String] {
+  match value {
+    Some(@runtime.Mf2ModelVariable(name)) =>
+      if parameter_names.contains(name) || local_names.contains(name) {
+        Ok(())
+      } else {
+        Err("variable is not declared in schema params: $\{name}")
+      }
+    _ => Ok(())
+  }
+}
+
+///|
+fn standard_function_name(name : String) -> Bool {
+  name == "string" ||
+  name == "number" ||
+  name == "integer" ||
+  name == "offset" ||
+  name == "currency" ||
+  name == "percent" ||
+  name == "date" ||
+  name == "time" ||
+  name == "datetime"
 }
 
 ///|

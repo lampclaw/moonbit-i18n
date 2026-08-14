@@ -10,6 +10,11 @@ message。
 `byteOffset` 是从 0 开始的 UTF-8 偏移。parser 无法安全缩小位置时会报告整个有界
 source，而不会伪造精度。
 
+从 `0.8.0` 开始，成功的 `generate`、`check` 和 `coverage` 也可能向 stderr 写入迁移
+warning。它们保持退出状态为 0，也不改变生成输出。JSON mode 对每个 warning 输出一个
+完整 diagnostic object；consumer 应把 stderr 当作 JSON value 序列，而不是一个外层
+array。
+
 ## 稳定错误码
 
 | Code | 含义 |
@@ -17,10 +22,13 @@ source，而不会伪造精度。
 | `I18N0001` | CLI 用法、文件系统、所有权或事务失败 |
 | `I18N1001` | config JSON 非法 |
 | `I18N1002` | config 值或关系非法 |
+| `I18N1003` | Warning：省略 `messageProfile`，暂时默认 compatibility mode |
 | `I18N2001` | schema JSON 非法 |
 | `I18N2002` | schema 值或生成名称契约非法 |
 | `I18N3001` | message 语法或 message contract 非法 |
 | `I18N3002` | locale 资源或 locale 关系非法 |
+| `I18N3003` | Warning：compatibility message 使用私有 `:lampclaw:datetime` |
+| `I18N3004` | standards-mode message 包含私有 `:lampclaw:datetime` |
 | `I18N4001` | 未达到发布覆盖率要求 |
 | `I18N5001` | 其他确定性生成失败 |
 | `I18N9001` | 超出已配置资源限制 |

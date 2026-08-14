@@ -19,6 +19,27 @@ test "catalog v2 round trips through JSON" {
 }
 
 ///|
+test "catalog v2 preserves the standards-mode message profile" {
+  let catalog = Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_STANDARD_MESSAGE_PROFILE,
+    entries=[{ id: "count", message: "{$count :number}" }],
+  )
+  guard parse_catalog(catalog.to_json_string()) is Ok(parsed) else {
+    fail("expected a valid standards-mode catalog")
+  }
+  assert_eq(parsed.profile(), MF2_STANDARD_MESSAGE_PROFILE)
+  assert_true(is_supported_message_profile(parsed.profile()))
+  assert_true(
+    parsed.compile_messages()
+    is Err(
+      "compile_messages exposes only the legacy compiled-message model; use I18n installation for profile unicode-mf2-ldml48.2-js-v1"
+    ),
+  )
+}
+
+///|
 test "catalog v2 namespace chunks round trip and enforce membership" {
   let chunk = Catalog::from_generated_chunk_entries(
     locale_code="zh-CN",

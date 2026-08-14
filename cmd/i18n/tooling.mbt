@@ -1,16 +1,35 @@
 ///|
 async fn run_pseudo(args : Array[String]) -> Unit raise CliError {
-  if args.length() != 6 {
+  let values : Array[String] = [args[0]]
+  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut profile_seen = false
+  let mut cursor = 1
+  while cursor < args.length() {
+    if args[cursor] == "--message-profile" {
+      if profile_seen || cursor + 1 >= args.length() {
+        cli_fail(usage())
+      }
+      message_profile = args[cursor + 1]
+      profile_seen = true
+      cursor = cursor + 2
+    } else {
+      values.push(args[cursor])
+      cursor = cursor + 1
+    }
+  }
+  if values.length() != 6 ||
+    !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
   match
     @generator.pseudo_locale(
-      read_file_limited(args[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
-      args[2],
-      read_file_limited(args[3], @runtime.CATALOG_MAX_SOURCE_BYTES),
-      args[4],
+      read_file_limited(values[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
+      values[2],
+      read_file_limited(values[3], @runtime.CATALOG_MAX_SOURCE_BYTES),
+      values[4],
+      message_profile~,
     ) {
-    Ok(value) => write_file(args[5], text_file_content(value))
+    Ok(value) => write_file(values[5], text_file_content(value))
     Err(message) => cli_fail(message)
   }
 }
@@ -19,6 +38,8 @@ async fn run_pseudo(args : Array[String]) -> Unit raise CliError {
 async fn run_export_xliff(args : Array[String]) -> Unit raise CliError {
   let values : Array[String] = [args[0]]
   let mut state_path : String? = None
+  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
     if args[cursor] == "--state" {
@@ -27,12 +48,20 @@ async fn run_export_xliff(args : Array[String]) -> Unit raise CliError {
       }
       state_path = Some(args[cursor + 1])
       cursor = cursor + 2
+    } else if args[cursor] == "--message-profile" {
+      if profile_seen || cursor + 1 >= args.length() {
+        cli_fail(usage())
+      }
+      message_profile = args[cursor + 1]
+      profile_seen = true
+      cursor = cursor + 2
     } else {
       values.push(args[cursor])
       cursor = cursor + 1
     }
   }
-  if values.length() != 7 {
+  if values.length() != 7 ||
+    !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
   let target = if values[5] == "-" {
@@ -53,6 +82,7 @@ async fn run_export_xliff(args : Array[String]) -> Unit raise CliError {
       values[4],
       target,
       state,
+      message_profile~,
     ) {
     Ok(value) => write_file(values[6], value)
     Err(message) => cli_fail(message)
@@ -65,12 +95,15 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
   let mut state_output : String? = None
   let mut report_output : String? = None
   let mut migrations_path : String? = None
+  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
     let option = args[cursor]
     if option == "--state-output" ||
       option == "--report-output" ||
-      option == "--id-migrations" {
+      option == "--id-migrations" ||
+      option == "--message-profile" {
       if cursor + 1 >= args.length() {
         cli_fail(usage())
       }
@@ -85,11 +118,17 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
           cli_fail(usage())
         }
         report_output = Some(value)
-      } else {
+      } else if option == "--id-migrations" {
         if migrations_path is Some(_) {
           cli_fail(usage())
         }
         migrations_path = Some(value)
+      } else {
+        if profile_seen {
+          cli_fail(usage())
+        }
+        message_profile = value
+        profile_seen = true
       }
       cursor = cursor + 2
     } else {
@@ -97,7 +136,8 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 7 {
+  if values.length() != 7 ||
+    !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
   let resolved_state_output = state_output.unwrap_or(
@@ -124,6 +164,7 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
       values[4],
       read_file_limited(values[5], @generator.I18N_MAX_TOTAL_LOCALE_BYTES),
       migrations,
+      message_profile~,
     ) {
     Ok(result) => {
       write_file(values[6], text_file_content(result.locale_source))
@@ -139,21 +180,40 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
 
 ///|
 async fn run_import_i18next(args : Array[String]) -> Unit raise CliError {
-  if args.length() != 6 {
+  let values : Array[String] = [args[0]]
+  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut profile_seen = false
+  let mut cursor = 1
+  while cursor < args.length() {
+    if args[cursor] == "--message-profile" {
+      if profile_seen || cursor + 1 >= args.length() {
+        cli_fail(usage())
+      }
+      message_profile = args[cursor + 1]
+      profile_seen = true
+      cursor = cursor + 2
+    } else {
+      values.push(args[cursor])
+      cursor = cursor + 1
+    }
+  }
+  if values.length() != 6 ||
+    !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
-  if args[4] == args[5] {
+  if values[4] == values[5] {
     cli_fail("migration locale and report outputs must be distinct paths")
   }
   match
     @generator.import_i18next_json(
-      read_file_limited(args[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
-      args[2],
-      read_file_limited(args[3], @generator.I18N_MAX_TOTAL_LOCALE_BYTES),
+      read_file_limited(values[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
+      values[2],
+      read_file_limited(values[3], @generator.I18N_MAX_TOTAL_LOCALE_BYTES),
+      message_profile~,
     ) {
     Ok(result) => {
-      write_file(args[4], text_file_content(result.locale_source))
-      write_file(args[5], text_file_content(result.report))
+      write_file(values[4], text_file_content(result.locale_source))
+      write_file(values[5], text_file_content(result.report))
     }
     Err(message) => cli_fail(message)
   }
@@ -161,21 +221,40 @@ async fn run_import_i18next(args : Array[String]) -> Unit raise CliError {
 
 ///|
 async fn run_import_arb(args : Array[String]) -> Unit raise CliError {
-  if args.length() != 6 {
+  let values : Array[String] = [args[0]]
+  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut profile_seen = false
+  let mut cursor = 1
+  while cursor < args.length() {
+    if args[cursor] == "--message-profile" {
+      if profile_seen || cursor + 1 >= args.length() {
+        cli_fail(usage())
+      }
+      message_profile = args[cursor + 1]
+      profile_seen = true
+      cursor = cursor + 2
+    } else {
+      values.push(args[cursor])
+      cursor = cursor + 1
+    }
+  }
+  if values.length() != 6 ||
+    !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
-  if args[4] == args[5] {
+  if values[4] == values[5] {
     cli_fail("migration locale and report outputs must be distinct paths")
   }
   match
     @generator.import_flutter_arb(
-      read_file_limited(args[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
-      args[2],
-      read_file_limited(args[3], @generator.I18N_MAX_TOTAL_LOCALE_BYTES),
+      read_file_limited(values[1], @runtime.CATALOG_MAX_SOURCE_BYTES),
+      values[2],
+      read_file_limited(values[3], @generator.I18N_MAX_TOTAL_LOCALE_BYTES),
+      message_profile~,
     ) {
     Ok(result) => {
-      write_file(args[4], text_file_content(result.locale_source))
-      write_file(args[5], text_file_content(result.report))
+      write_file(values[4], text_file_content(result.locale_source))
+      write_file(values[5], text_file_content(result.report))
     }
     Err(message) => cli_fail(message)
   }
