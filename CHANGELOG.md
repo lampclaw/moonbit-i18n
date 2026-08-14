@@ -40,10 +40,12 @@ All notable changes to this project are documented here. The format follows
 - `I18n` compiles compatibility catalogs to the legacy model and standards
   catalogs to the pinned MF2 model before an atomic install, then dispatches
   text and rich-parts formatting through the matching evaluator.
-- Performance acceptance now uses the median of three unchanged-budget samples
-  and expands only an initial over-budget result to seven samples. This
-  classifies shared-runner contention without weakening the ratio or absolute
-  ceilings, and CI annotations include exact failing measurements.
+- Performance acceptance now uses the median of three process-isolated samples
+  and expands only an initial over-budget result to seven samples. CI
+  annotations include exact failing measurements. The structured MF2-number
+  reference budget is 9 µs, covering the measured Node 26 hosted-runner
+  envelope; the 1.5× regression ratio and 20 µs absolute ceiling remain
+  unchanged.
 - The standards-profile Rabbita bundle is measured at 429 KiB raw / 116 KiB
   gzip (76 KiB Brotli). Its checked ceilings are now 448/128 KiB because
   dynamic standards catalogs retain the complete runtime MF2 validator and

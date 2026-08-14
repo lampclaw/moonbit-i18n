@@ -105,6 +105,8 @@ from the published archive.
       median of three process-isolated samples; only an initial over-budget
       result expands to seven samples, retaining the same limits while
       distinguishing shared-runner contention from a repeatable regression.
+      Reference budgets live in `benchmarks/baseline.json`; changes require a
+      measured Node 26 result and a synchronized changelog entry.
 - [ ] Regenerate Rabbita through the CLI, run `check`, and verify no generated
       or interface drift remains.
 - [ ] Build the Rabbita Todo release artifact and run the locked Playwright
