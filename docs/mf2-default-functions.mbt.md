@@ -2,18 +2,22 @@
 
 [中文](mf2-default-functions.zh-CN.mbt.md)
 
-Version `0.7.0` added, and `0.8.0` integrates into generated authoring, the pinned registry profile
-`unicode-mf2-ldml48.2-default-functions-v1` on top of the syntax and
-resolution profiles. Its reference is Unicode MessageFormat WG commit
-`d115a614079678850aac8b52742360e888b8f027` from the LDML 48.2 era.
+Version `0.7.0` added, `0.8.0` integrated, and `0.9.0` freezes the pinned
+registry profile `unicode-mf2-ldml48.2-default-functions-v1` on top of the
+syntax and resolution profiles. Its normative reference is official tag
+`LDML48.2`, commit `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`.
 
 ## Supported repertoire
 
 | Status in the pin | Functions | Current status |
 |---|---|---|
 | Stable and required | `:string`, `:number`, `:integer`, `:offset`, `:currency`, `:percent` | Implemented, including required operands, options, inheritance, formatting, and selection |
-| Draft | `:date`, `:time`, `:datetime` | Implemented because the roadmap requires them, but excluded from the stable conformance claim |
+| Draft | `:date`, `:time`, `:datetime` | Implemented only in `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`; excluded from stable v2 |
 | Draft and recommended | `:unit` | Deferred; resolves as an unknown function |
+
+Stable generated authoring uses `unicode-mf2-ldml48.2-js-v2`; it rejects the
+three Draft date/time functions. Applications that deliberately require those
+functions must select the separately versioned experimental datetime profile.
 
 The JavaScript provider uses Node 26 `Intl.NumberFormat`,
 `Intl.PluralRules`, and `Intl.DateTimeFormat`. It preserves host
@@ -61,7 +65,9 @@ Use `@runtime_js.mf2_registry()` when an application needs to add custom
 functions before calling `@runtime.format_mf2`. `format_mf2_standalone` uses
 the portable default registry and therefore does not provide CLDR output.
 
-Numeric resolved values retain the applicable semantic options. A later
+Numeric resolved values retain the applicable semantic options and inherit the
+formatting context direction, preventing unnecessary isolation around
+same-direction formatted values. A later
 `:number`, `:integer`, `:offset`, `:currency`, or `:percent` expression applies
 the pinned inheritance and discard rules. Numeric selectors try exact keys
 before CLDR cardinal or ordinal categories. A non-literal `select` option is a
@@ -118,15 +124,15 @@ usable value.
 
 ## Evidence and boundary
 
-All 124 vendored upstream function cases pass on the Node 26 JavaScript
-provider: 12 currency, 7 draft date, 7 draft datetime, 13 integer, 41 number,
-16 offset, 13 percent, 9 string, and 6 draft time cases. The exact sources,
-hashes, function prose, generated tests, and counts are checked in CI.
+All 104 stable vendored function cases pass on the Node 26 JavaScript provider:
+12 currency, 13 integer, 41 number, 16 offset, 13 percent, and 9 string. The
+experimental profile separately passes 20 Draft cases: 7 date, 7 datetime, and
+6 time. The exact sources, hashes, function prose, generated tests, and counts
+are checked in CI and repeated in Chromium, Firefox, and WebKit.
 
-Version `0.8.0` completes the planned integration: explicit standards-mode
-generated catalogs use this registry, private datetime is confined to the
-compatibility profile, every stable function/option is present in the checked
-requirement matrix, and Node 26 differential tests compare the behavior with
-`messageformat@4.0.0`. This is still not a full Unicode MF2 claim because
-draft functions remain separate and the final 1.0 stable target/public
-contract freeze belongs to `0.9.x`.
+Version `0.9.0` completes the conformance-candidate integration: stable v2
+cannot accidentally author Draft functions, private datetime is confined to
+the compatibility profile, all 6 stable functions and 40 stable options appear
+in the 77-row anchored requirement matrix, and 20 stable differential cases
+are separated from 4 experimental date/time cases. Draft and custom functions,
+and non-JavaScript CLDR output, remain outside the stable claim.

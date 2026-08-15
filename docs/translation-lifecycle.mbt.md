@@ -13,7 +13,7 @@ Export a target locale for a translation system:
 
 ~~~bash
 moon-i18n export-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr localization/locales/fr.json \
@@ -24,7 +24,7 @@ After translation, import the XLIFF document:
 
 ~~~bash
 moon-i18n import-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr build/fr.xlf \
@@ -46,7 +46,7 @@ and translator context:
 
 ~~~bash
 moon-i18n export-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   --state localization/locales/fr.json.xliff-state.json \
   localization/schema.json \
   en-US localization/locales/en-US.json \
@@ -114,12 +114,12 @@ The one-way migration commands always require a separate report output:
 
 ~~~bash
 moon-i18n import-i18next \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json fr legacy/fr.json \
   localization/locales/fr.json build/fr-i18next-report.json
 
 moon-i18n import-arb \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json fr legacy/app_fr.arb \
   localization/locales/fr.json build/fr-arb-report.json
 ~~~
@@ -139,10 +139,12 @@ written MF2 mapping and a real consumer demonstrate a sufficiently low-loss
 workflow.
 
 These standalone commands do not read the application config. Pass the
-application's exact `messageProfile` with `--message-profile`; omitting it is
-the temporary compatibility-profile behavior described in the
-[migration guide](message-profile-migration.mbt.md). The public interchange
-APIs expose the corresponding optional `message_profile` parameter.
+application's exact `messageProfile` with `--message-profile`; omitting it is a
+CLI usage error in `0.9.0`. Use the separately named experimental datetime
+profile when exchanged messages contain Draft date/time functions. The public
+interchange APIs retain an optional `message_profile` parameter for source
+compatibility; new API callers should pass it explicitly. See the
+[migration guide](message-profile-migration.mbt.md).
 
 ## Security and operational limits
 

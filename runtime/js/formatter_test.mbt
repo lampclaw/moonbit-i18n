@@ -159,15 +159,12 @@ test "standards-mode catalogs format through the generated-runtime path" {
     entries=[
       { id: "number", message: "Total {$value :number}" },
       {
-        id: "date",
-        message: "Updated {$when :date length=medium timeZone=UTC}",
-      },
-      {
         id: "plural",
         message: ".input {$count :number} .match $count one {{One item}} * {{{$count} items}}",
       },
       { id: "rich", message: "{#strong}Typed{/strong} output" },
     ],
+    direction="ltr",
   )
   assert_true(runtime.install_generated_catalog(catalog) is Ok(_))
   let translator = runtime.translator("en-US")
@@ -178,11 +175,32 @@ test "standards-mode catalogs format through the generated-runtime path" {
     fail("standards-mode number should format")
   }
   assert_true(number.contains("1,234.5"))
-  guard translator.try_t("date", [
+  let experimental = @runtime.I18n::new(
+    fallback_locale_code="en-US",
+    contract_hash=hash,
+    profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+    formatter=formatter(),
+  )
+  let date_catalog = @runtime.Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=hash,
+    profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+    direction="ltr",
+    entries=[
+      {
+        id: "date",
+        message: "Updated {$when :date length=medium timeZone=UTC}",
+      },
+    ],
+  )
+  assert_true(experimental.install_generated_catalog(date_catalog) is Ok(_))
+  guard experimental
+    .translator("en-US")
+    .try_t("date", [
       { name: "when", value: @runtime.InstantMillis(1785974400000L) },
     ])
     is Ok(date) else {
-    fail("standards-mode date should format")
+    fail("experimental standards-mode date should format")
   }
   assert_true(date.contains("Aug"))
   assert_eq(
@@ -205,6 +223,26 @@ test "standards-mode catalogs format through the generated-runtime path" {
     entries=[{ id: "private", message: "{$when :lampclaw:datetime}" }],
   )
   assert_true(runtime.install_generated_catalog(private_catalog) is Err(_))
+}
+
+///|
+#cfg(target="js")
+test "locale-formatted values use the formatter context direction" {
+  let context = match
+    @runtime.Mf2FormattingContext::new(
+      locale="en-US",
+      direction=@runtime.Mf2LeftToRight,
+    ) {
+    Ok(value) => value
+    Err(error) => abort(error.message)
+  }
+  let result = @runtime.format_mf2(
+    "{1 :number}",
+    context,
+    @runtime.Mf2FunctionRegistry::new(formatter()),
+  )
+  assert_eq(result.value, "1")
+  assert_eq(result.errors, [])
 }
 
 ///|

@@ -152,7 +152,7 @@ test "pseudo locale validates the standards message profile" {
       "en-US",
       source,
       "en-XA",
-      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+      message_profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     )
     is Ok(pseudo) else {
     fail("standards-profile pseudo locale should succeed")

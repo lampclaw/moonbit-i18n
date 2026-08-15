@@ -31,7 +31,11 @@ const supportsDefaultFunctions =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 7);
 const supportsMessageProfiles =
   versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 8);
-const standardMessageProfile = "unicode-mf2-ldml48.2-js-v1";
+const supportsStableV2 =
+  versionParts[0] > 0 || (versionParts[0] === 0 && versionParts[1] >= 9);
+const standardMessageProfile = supportsStableV2
+  ? "unicode-mf2-ldml48.2-js-v2"
+  : "unicode-mf2-ldml48.2-js-v1";
 const messageProfileArgs = supportsMessageProfiles
   ? ["--message-profile", standardMessageProfile]
   : [];

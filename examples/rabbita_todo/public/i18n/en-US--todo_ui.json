@@ -1,7 +1,7 @@
 {
   "catalogVersion": 2,
-  "profile": "unicode-mf2-ldml48.2-js-v1",
-  "contractHash": "060e11b3bb7f0da1849d22d5394d705bf1f1a7dae0c2549532ae0ab6586a0683",
+  "profile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
+  "contractHash": "495efa8700e48f48d81eba174107fd96a67590568ab4289105d73ec2edc0ab47",
   "locale": "en-US",
   "direction": "ltr",
   "messages": {

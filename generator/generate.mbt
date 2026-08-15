@@ -380,11 +380,11 @@ fn generation_warnings(
   sources : Array[LocaleSource],
 ) -> Array[Diagnostic] {
   let diagnostics : Array[Diagnostic] = []
-  if !config.message_profile_explicit {
+  if config.message_profile == @runtime.MF2_LEGACY_STANDARD_MESSAGE_PROFILE {
     diagnostics.push({
-      code: "I18N1003",
+      code: "I18N1004",
       severity: Warning,
-      message: "messageProfile is omitted; compatibility mode is temporary and an explicit messageProfile will be required before 1.0",
+      message: "messageProfile unicode-mf2-ldml48.2-js-v1 includes Draft date/time behavior; migrate to unicode-mf2-ldml48.2-js-v2 or the explicit experimental datetime extension",
       path: "<config>",
       span: full_source_span(config_source),
     })

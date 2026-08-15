@@ -75,7 +75,6 @@ priv struct Mf2NumericOperand {
   value : Double
   inherited : Array[FormatOption]
   producer : String?
-  direction : Mf2Direction
 }
 
 ///|
@@ -119,7 +118,6 @@ fn mf2_unwrap_numeric_operand(
     value: number,
     inherited: operand.metadata.copy(),
     producer: operand.function_name,
-    direction: operand.direction,
   })
 }
 
@@ -256,7 +254,10 @@ fn mf2_resolve_number_function(
       },
       match_key,
       better_than,
-      direction: numeric.direction,
+      // Locale formatters produce text in the formatting context's base
+      // direction; the operand's direction describes its source value, not
+      // the formatted number.
+      direction: context.direction,
       isolate: false,
       id: None,
       options: [],
@@ -377,7 +378,7 @@ fn mf2_resolve_offset_function(
       } else {
         None
       },
-      direction: numeric.direction,
+      direction: context.direction,
       isolate: false,
       id: None,
       options: [],
@@ -447,7 +448,7 @@ fn mf2_resolve_currency_function(
       },
       match_key: None,
       better_than: None,
-      direction: numeric.direction,
+      direction: context.direction,
       isolate: false,
       id: None,
       options: [],
@@ -896,7 +897,7 @@ fn mf2_resolve_datetime_function(
       },
       match_key: None,
       better_than: None,
-      direction: operand.direction,
+      direction: context.direction,
       isolate: false,
       id: None,
       options: [],

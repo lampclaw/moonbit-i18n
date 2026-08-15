@@ -1180,7 +1180,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.8.0"
+const CLI_VERSION : String = "0.9.0"
 
 ///|
 fn usage() -> String {
@@ -1188,15 +1188,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 pseudo [--message-profile <profile>] <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 export-xliff [--message-profile <profile>] [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-xliff [--message-profile <profile>] [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-i18next [--message-profile <profile>] <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.8.0 import-arb [--message-profile <profile>] <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 pseudo --message-profile <profile> <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 export-xliff --message-profile <profile> [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 import-xliff --message-profile <profile> [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 import-i18next --message-profile <profile> <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.0 import-arb --message-profile <profile> <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1254,7 +1254,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.8.0\"\n\n" +
+  "version = \"0.9.0\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1263,7 +1263,7 @@ fn scaffold_moon_mod(module_name : String) -> String {
 fn scaffold_config() -> String {
   (
     #|{
-    #|  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+    #|  "messageProfile": "unicode-mf2-ldml48.2-js-v2",
     #|  "sourceLocale": "en-US",
     #|  "defaultLocale": "en-US",
     #|  "fallbackLocale": "en-US",

@@ -12,14 +12,14 @@ import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.8.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.0 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.8.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.0 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -30,9 +30,12 @@ moonx lampclaw/i18n/cmd/i18n@0.8.0 check \
 Both locales currently report `28/28 (100%)`. The generator owns the complete
 `i18n/` package and catalog directory through ownership manifests. Both
 directories are replaced together by a recoverable transaction; `check` is the
-read-only CI drift gate. This example explicitly authors against
-`unicode-mf2-ldml48.2-js-v1`; generated catalogs carry that profile identity,
-and the runtime rejects catalogs produced for a different profile.
+read-only CI drift gate. Because its browser contract intentionally exercises
+the Draft `:date` function, this example explicitly authors against
+`unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`; generated catalogs carry
+that profile identity, and the runtime rejects catalogs produced for a
+different profile. Applications without date/time functions should use stable
+`unicode-mf2-ldml48.2-js-v2` instead.
 
 ## Run
 

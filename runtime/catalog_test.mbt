@@ -34,9 +34,54 @@ test "catalog v2 preserves the standards-mode message profile" {
   assert_true(
     parsed.compile_messages()
     is Err(
-      "compile_messages exposes only the legacy compiled-message model; use I18n installation for profile unicode-mf2-ldml48.2-js-v1"
+      "compile_messages exposes only the legacy compiled-message model; use I18n installation for profile unicode-mf2-ldml48.2-js-v2"
     ),
   )
+}
+
+///|
+test "stable and experimental profiles keep Draft datetime separate" {
+  let stable = Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_STANDARD_MESSAGE_PROFILE,
+    entries=[{ id: "updated", message: "{|2006-01-02| :date}" }],
+  )
+  let stable_runtime = I18n::new(
+    fallback_locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_STANDARD_MESSAGE_PROFILE,
+  )
+  guard stable_runtime.install_generated_catalog(stable) is Err(stable_error) else {
+    fail("stable profile must reject Draft datetime")
+  }
+  assert_true(stable_error.contains("not in the pinned default registry"))
+  let experimental = Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+    entries=[{ id: "updated", message: "{|2006-01-02| :date}" }],
+  )
+  let experimental_runtime = I18n::new(
+    fallback_locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+  )
+  assert_true(
+    experimental_runtime.install_generated_catalog(experimental) is Ok(_),
+  )
+  let legacy = Catalog::from_generated_entries(
+    locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_LEGACY_STANDARD_MESSAGE_PROFILE,
+    entries=[{ id: "updated", message: "{|2006-01-02| :date}" }],
+  )
+  let legacy_runtime = I18n::new(
+    fallback_locale_code="en-US",
+    contract_hash=TEST_CONTRACT_HASH,
+    profile=MF2_LEGACY_STANDARD_MESSAGE_PROFILE,
+  )
+  assert_true(legacy_runtime.install_generated_catalog(legacy) is Ok(_))
 }
 
 ///|

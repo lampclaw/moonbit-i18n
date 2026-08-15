@@ -7,16 +7,44 @@ pub const CATALOG_VERSION : Int = 2
 pub const CATALOG_PROFILE : String = "lampclaw-mf2-strict-v1+lampclaw-datetime-v1"
 
 ///|
-/// Standards-mode message profile for generated JavaScript applications.
+/// Stable standards-mode profile for generated JavaScript applications.
 ///
 /// This composes the pinned syntax, resolution, and stable default-function
-/// profiles. Draft date/time functions remain separately documented.
-pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+/// profiles. Draft functions are deliberately excluded.
+pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v2"
+
+///|
+/// Legacy `0.8.x` standards profile retained for catalog migration.
+///
+/// This profile also accepted the then-Draft date/time functions. New
+/// authoring should select either the stable v2 profile or the explicitly
+/// experimental datetime extension.
+pub const MF2_LEGACY_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+
+///|
+/// Stable MF2 plus the separately versioned Draft date/time extension.
+pub const MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1"
 
 ///|
 /// Returns whether a profile can be compiled and installed by this runtime.
 pub fn is_supported_message_profile(profile : String) -> Bool {
-  profile == CATALOG_PROFILE || profile == MF2_STANDARD_MESSAGE_PROFILE
+  profile == CATALOG_PROFILE ||
+  profile == MF2_STANDARD_MESSAGE_PROFILE ||
+  profile == MF2_LEGACY_STANDARD_MESSAGE_PROFILE ||
+  profile == MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE
+}
+
+///|
+fn is_standard_message_profile(profile : String) -> Bool {
+  profile == MF2_STANDARD_MESSAGE_PROFILE ||
+  profile == MF2_LEGACY_STANDARD_MESSAGE_PROFILE ||
+  profile == MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE
+}
+
+///|
+fn message_profile_allows_draft_datetime(profile : String) -> Bool {
+  profile == MF2_LEGACY_STANDARD_MESSAGE_PROFILE ||
+  profile == MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE
 }
 
 ///|
@@ -350,10 +378,14 @@ fn Catalog::compile_runtime_messages(
             "invalid MF2 message in catalog \{self.locale_code} at \{id}: \{errors[0].message}",
           )
       }
-    } else if self.profile == MF2_STANDARD_MESSAGE_PROFILE {
+    } else if is_standard_message_profile(self.profile) {
       match parse_valid_mf2_model(source) {
         Ok(model) =>
-          match standard_catalog_function_error(model) {
+          match
+            standard_catalog_function_error(
+              model,
+              message_profile_allows_draft_datetime(self.profile),
+            ) {
             Some(message) =>
               return Err(
                 "invalid standards-mode MF2 message in catalog \{self.locale_code} at \{id}: \{message}",
@@ -373,7 +405,10 @@ fn Catalog::compile_runtime_messages(
 }
 
 ///|
-fn standard_catalog_function_error(model : Mf2MessageModel) -> String? {
+fn standard_catalog_function_error(
+  model : Mf2MessageModel,
+  allow_draft_datetime : Bool,
+) -> String? {
   let expressions : Array[Mf2ModelExpression] = []
   let patterns : Array[Mf2ModelPattern] = []
   let declarations = match model {
@@ -404,7 +439,10 @@ fn standard_catalog_function_error(model : Mf2MessageModel) -> String? {
   }
   for expression in expressions {
     match expression.function_ref {
-      Some(function_ref) if !standard_catalog_function_name(function_ref.name) =>
+      Some(function_ref) if !standard_catalog_function_name(
+          function_ref.name,
+          allow_draft_datetime,
+        ) =>
         if function_ref.name == "lampclaw:datetime" {
           return Some(
             "private function :lampclaw:datetime is available only in the compatibility profile",
@@ -421,16 +459,21 @@ fn standard_catalog_function_error(model : Mf2MessageModel) -> String? {
 }
 
 ///|
-fn standard_catalog_function_name(name : String) -> Bool {
-  name == "string" ||
-  name == "number" ||
-  name == "integer" ||
-  name == "offset" ||
-  name == "currency" ||
-  name == "percent" ||
-  name == "date" ||
-  name == "time" ||
-  name == "datetime"
+fn standard_catalog_function_name(
+  name : String,
+  allow_draft_datetime : Bool,
+) -> Bool {
+  let stable = name == "string" ||
+    name == "number" ||
+    name == "integer" ||
+    name == "offset" ||
+    name == "currency" ||
+    name == "percent"
+  stable ||
+  (
+    allow_draft_datetime &&
+    (name == "date" || name == "time" || name == "datetime")
+  )
 }
 
 ///|

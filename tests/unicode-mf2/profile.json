@@ -1,19 +1,25 @@
 {
   "upstreamRepository": "https://github.com/unicode-org/message-format-wg",
-  "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
+  "upstreamTag": "LDML48.2",
+  "upstreamCommit": "7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331",
+  "standardsFreeze": "tests/unicode-mf2/standards.json",
   "catalogProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
-  "standardMessageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "standardMessageProfile": "unicode-mf2-ldml48.2-js-v2",
+  "legacyStandardMessageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "experimentalDatetimeMessageProfile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   "authoringProfiles": {
     "compatibility": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
-    "standards": "unicode-mf2-ldml48.2-js-v1"
+    "standards": "unicode-mf2-ldml48.2-js-v2",
+    "legacyStandards": "unicode-mf2-ldml48.2-js-v1",
+    "experimentalDatetime": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1"
   },
   "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
   "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
   "defaultFunctionProfile": "unicode-mf2-ldml48.2-default-functions-v1",
-  "conformanceClaim": "unicode-mf2-syntax-data-model-resolution-and-stable-default-functions-js",
+  "conformanceClaim": "unicode-mf2-ldml48.2-stable-js-release-candidate",
   "requirementMatrix": {
     "path": "tests/unicode-mf2/requirements.json",
-    "normativeRows": 20,
+    "normativeRows": 77,
     "stableFunctions": 6,
     "stableOptions": 40,
     "unexplainedGaps": 0
@@ -22,7 +28,18 @@
     "path": "tests/unicode-mf2/differential-report.json",
     "reference": "messageformat@4.0.0",
     "cases": 24,
+    "stableCases": 20,
+    "experimentalDatetimeCases": 4,
     "unexplainedSemanticFailures": 0
+  },
+  "browserConformance": {
+    "engines": ["chromium", "firefox", "webkit"],
+    "syntaxAndDataModelCases": 270,
+    "resolutionCases": 67,
+    "stableDefaultFunctionCases": 104,
+    "experimentalDatetimeCases": 20,
+    "differentialCases": 24,
+    "applicationScenarios": 6
   },
   "syntaxFixtureCounts": {
     "wellFormed": 114,
@@ -46,6 +63,8 @@
     "percent": 13,
     "string": 9,
     "timeDraft": 6,
+    "stableTotal": 104,
+    "experimentalDatetimeTotal": 20,
     "total": 124
   },
   "stableDefaultFunctions": [
@@ -94,10 +113,11 @@
     "stable-string-number-integer-offset-currency-percent-functions",
     "stable-required-option-validation-and-inheritance",
     "exact-plural-and-ordinal-number-selection",
-    "structured-number-and-datetime-parts",
-    "node-26-intl-number-date-and-plural-provider",
+    "structured-stable-number-parts",
+    "node-26-intl-number-and-plural-provider",
     "portable-namespaced-custom-function-registry",
-    "draft-date-time-datetime-extension"
+    "stable-profile-rejects-draft-functions",
+    "experimental-datetime-profile-owns-date-time-parts"
   ],
   "defaultFunctionProfileDeferredFeatures": [
     "draft-unit-function",
@@ -115,8 +135,11 @@
     "lampclaw-instant-millis-datetime-extension",
     "explicit-message-profile-authoring",
     "standards-mode-generated-catalogs",
-    "machine-readable-normative-requirement-matrix",
-    "independent-node-26-differential-conformance"
+    "machine-readable-anchored-normative-requirement-matrix",
+    "independent-node-26-differential-conformance",
+    "chromium-firefox-webkit-upstream-conformance",
+    "separately-named-experimental-datetime-profile",
+    "explicit-message-profile-required"
   ],
   "compatibilityProfileRejectedFeatures": [
     "unicode-mf2-error-recovery-and-fallback-values",

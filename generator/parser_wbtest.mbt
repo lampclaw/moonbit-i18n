@@ -1,6 +1,7 @@
 ///|
 let config_source =
   #|{
+  #|  "messageProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   #|  "sourceLocale": "en_US",
   #|  "defaultLocale": "zh-CN",
   #|  "fallbackLocale": "en-US",
@@ -35,17 +36,17 @@ test "parse final i18n config" {
   }
   assert_eq(config.source_locale, "en-US")
   assert_eq(config.message_profile, @runtime.CATALOG_PROFILE)
-  assert_false(config.message_profile_explicit)
+  assert_true(config.message_profile_explicit)
   assert_eq(config.locales[0], { code: "ar", direction: "rtl" })
   assert_eq(config.minimum_coverage, 0.8)
 }
 
 ///|
 test "config accepts explicit compatibility and standards profiles" {
-  let standard = "{\n  \"messageProfile\": \"" +
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE +
-    "\"," +
-    config_source[1:].to_owned()
+  let standard = config_source.replace_all(
+    old=@runtime.CATALOG_PROFILE,
+    new=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+  )
   guard parse_config(standard) is Ok(config) else {
     fail("standards profile should parse")
   }
@@ -72,6 +73,18 @@ test "config accepts explicit compatibility and standards profiles" {
       new="1",
     ),
   )
+}
+
+///|
+test "config requires an explicit message profile" {
+  let omitted = config_source.replace_all(
+    old="  \"messageProfile\": \"lampclaw-mf2-strict-v1+lampclaw-datetime-v1\",\n",
+    new="",
+  )
+  guard parse_config(omitted) is Err(message) else {
+    fail("omitted messageProfile must fail")
+  }
+  assert_true(message.contains("messageProfile is required"))
 }
 
 ///|
@@ -114,6 +127,36 @@ test "standards profile validates schema contracts and rejects private functions
 }
 
 ///|
+test "stable profile rejects Draft datetime and experimental profile accepts it" {
+  guard parse_schema(
+      "{\"messages\":{\"common\":[\"updated\"]},\"params\":{\"common.updated\":[{\"name\":\"when\",\"type\":\"InstantMillis\"}]}}",
+    )
+    is Ok(schema) else {
+    fail("schema should parse")
+  }
+  let source = "{\"common\":{\"updated\":\"Updated {$when :date length=medium timeZone=UTC}\"}}"
+  guard parse_locale(
+      "en-US",
+      source,
+      schema,
+      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    )
+    is Err(message) else {
+    fail("stable profile must reject Draft datetime")
+  }
+  assert_true(message.contains("experimental-datetime-v1"))
+  assert_true(
+    parse_locale(
+      "en-US",
+      source,
+      schema,
+      message_profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+    )
+    is Ok(_),
+  )
+}
+
+///|
 test "config rejects locale codes that cannot form MoonBit variants" {
   let source = config_source
     .replace_all(old="\"en_US\"", new="\"123\"")
@@ -128,6 +171,7 @@ test "config rejects locale codes that cannot form MoonBit variants" {
 test "config rejects duplicate normalized locale codes" {
   let source =
     #|{
+    #|  "messageProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
     #|  "sourceLocale": "en-US",
     #|  "defaultLocale": "en-US",
     #|  "fallbackLocale": "en-US",
@@ -354,7 +398,7 @@ fn assert_schema_error(source : String) -> Unit raise {
 ///|
 test "config parser rejects malformed fields and invalid release policy" {
   let valid =
-    #|{"sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":[],"locales":{"en-US":{}}}
+    #|{"messageProfile":"lampclaw-mf2-strict-v1+lampclaw-datetime-v1","sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":[],"locales":{"en-US":{}}}
   assert_config_error("not-json")
   assert_config_error("[]")
   assert_config_error("{}")

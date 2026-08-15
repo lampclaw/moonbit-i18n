@@ -1666,12 +1666,12 @@ fn validate_migrated_message(
       Ok(_) => Ok(())
       Err(errors) => Err(errors[0].message)
     }
-  } else if message_profile == @runtime.MF2_STANDARD_MESSAGE_PROFILE {
+  } else if is_standard_authoring_profile(message_profile) {
     let model = match @runtime.parse_valid_mf2_model(message) {
       Ok(value) => value
       Err(errors) => return Err(errors[0].message)
     }
-    validate_standard_message_contract(model, schema, entry)
+    validate_standard_message_contract(model, schema, entry, message_profile)
   } else {
     Err("unsupported messageProfile: \{message_profile}")
   }

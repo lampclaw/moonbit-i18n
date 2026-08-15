@@ -2,8 +2,8 @@
   "manifestVersion": 1,
   "generator": "lampclaw/i18n",
   "catalogVersion": 2,
-  "profile": "unicode-mf2-ldml48.2-js-v1",
-  "contractHash": "060e11b3bb7f0da1849d22d5394d705bf1f1a7dae0c2549532ae0ab6586a0683",
+  "profile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
+  "contractHash": "495efa8700e48f48d81eba174107fd96a67590568ab4289105d73ec2edc0ab47",
   "fallbackLocale": "en-US",
   "embeddedLocales": [
     "en-US"
@@ -18,8 +18,8 @@
       "locale": "en-US",
       "namespace": "common",
       "path": "en-US--common.json",
-      "sha256": "cd279985f0a3dc835e65a2b83f32bf7d9f077dba03ccbc96dd1554085a92765a",
-      "bytes": 485,
+      "sha256": "f56cd6d1182bc32a4edfeb9c91629fc181a181e19ed5c5672ffd20e6e6f7c369",
+      "bytes": 510,
       "messageCount": 5,
       "direction": "ltr",
       "embeddedLocale": true
@@ -28,8 +28,8 @@
       "locale": "en-US",
       "namespace": "contract",
       "path": "en-US--contract.json",
-      "sha256": "1c2a6b7b82b1f57ced6742e580fe28737d6d2f91e2e482b8f73f70cc03413881",
-      "bytes": 464,
+      "sha256": "96de178faf841ca6da9abff1e803961e4f80446d1cad42962715e35a8db273ac",
+      "bytes": 489,
       "messageCount": 3,
       "direction": "ltr",
       "embeddedLocale": true
@@ -38,8 +38,8 @@
       "locale": "en-US",
       "namespace": "todo_ui",
       "path": "en-US--todo_ui.json",
-      "sha256": "09de8d78d808d5565d5245799e7b62221f86f17a61320efa7b444f85de91ea10",
-      "bytes": 1044,
+      "sha256": "0a8a09451b22945bac2e29a7a326ec50a4f66ba38fed4a30898dd4bb014ad798",
+      "bytes": 1069,
       "messageCount": 20,
       "direction": "ltr",
       "embeddedLocale": true
@@ -48,8 +48,8 @@
       "locale": "zh-CN",
       "namespace": "common",
       "path": "zh-CN--common.json",
-      "sha256": "20cdcbdda37bad0de6fc15435b581b1cb5906baf23e4b8ba118cac9f58a1295a",
-      "bytes": 480,
+      "sha256": "a598b211a8fb0cf3e458d59b311491893d78282c86d458c1b3f209d02dd95400",
+      "bytes": 505,
       "messageCount": 5,
       "direction": "ltr",
       "embeddedLocale": false
@@ -58,8 +58,8 @@
       "locale": "zh-CN",
       "namespace": "contract",
       "path": "zh-CN--contract.json",
-      "sha256": "7bdc98a72a1c6877d0d7aa69a4495315e0005c5c7fd4e2e8c337aea6f104bec7",
-      "bytes": 470,
+      "sha256": "0c36b8ae3235095ab199e1d50cefc749cdba238f302b7c239970a825368e5542",
+      "bytes": 495,
       "messageCount": 3,
       "direction": "ltr",
       "embeddedLocale": false
@@ -68,8 +68,8 @@
       "locale": "zh-CN",
       "namespace": "todo_ui",
       "path": "zh-CN--todo_ui.json",
-      "sha256": "9345507f7a9f33d94e597a3d8cf63d0bfe0339bf373834689dbc88e4ec89f49e",
-      "bytes": 1083,
+      "sha256": "fb8b0dd68d47de51fdc29a7fe29b099c82bbee8418e298946f2226825650d670",
+      "bytes": 1108,
       "messageCount": 20,
       "direction": "ltr",
       "embeddedLocale": false

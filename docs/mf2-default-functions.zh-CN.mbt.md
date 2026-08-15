@@ -2,18 +2,20 @@
 
 [English](mf2-default-functions.mbt.md)
 
-`0.7.0` 在 syntax 与 resolution profile 之上增加、`0.8.0` 将其集成进生成 authoring 的固定 registry profile
-`unicode-mf2-ldml48.2-default-functions-v1`。其参考点是 LDML 48.2 时期的
-Unicode MessageFormat WG commit
-`d115a614079678850aac8b52742360e888b8f027`。
+`0.7.0` 增加、`0.8.0` 集成、`0.9.0` 冻结了 syntax 与 resolution profile 之上的
+registry profile `unicode-mf2-ldml48.2-default-functions-v1`。其规范参考点是正式 tag
+`LDML48.2`，commit `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`。
 
 ## 支持范围
 
 | 固定规范中的状态 | Function | 当前状态 |
 |---|---|---|
 | Stable 且 required | `:string`、`:number`、`:integer`、`:offset`、`:currency`、`:percent` | 已实现 required operand、option、继承、formatting 与 selection |
-| Draft | `:date`、`:time`、`:datetime` | 因路线图要求而实现，但不计入 stable conformance 声明 |
+| Draft | `:date`、`:time`、`:datetime` | 只在 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` 中实现；不属于 stable v2 |
 | Draft 且 recommended | `:unit` | 暂缓，解析为 unknown function |
+
+稳定生成 authoring 使用 `unicode-mf2-ldml48.2-js-v2`，会拒绝三个 Draft date/time
+function。明确需要它们的应用必须选择独立版本化的 experimental datetime profile。
 
 JavaScript provider 使用 Node 26 的 `Intl.NumberFormat`、`Intl.PluralRules`
 与 `Intl.DateTimeFormat`，并把宿主 `formatToParts()` 字段保存在
@@ -59,7 +61,8 @@ for error in result.errors {
 `@runtime.format_mf2`。`format_mf2_standalone` 使用 portable 默认 registry，因此不提供
 CLDR 输出。
 
-Numeric resolved value 会保留适用的语义 option；后续 `:number`、`:integer`、
+Numeric resolved value 会保留适用的语义 option，并继承 formatting context direction，
+避免对同方向格式化值添加不必要的 isolation；后续 `:number`、`:integer`、
 `:offset`、`:currency` 或 `:percent` expression 按固定规范执行继承和丢弃规则。
 Numeric selector 先匹配 exact key，再匹配 CLDR cardinal/ordinal category。非 literal
 `select` 是 non-fatal bad option：formatting 继续可用，selection 按规范禁用。
@@ -110,13 +113,14 @@ typed `Mf2FunctionFailure` 报错，也可随可用 value 返回 non-fatal issue
 
 ## 证据与边界
 
-Node 26 JavaScript provider 通过全部 124 个 vendored 上游 function case：12 个
-currency、7 个 draft date、7 个 draft datetime、13 个 integer、41 个 number、16 个
-offset、13 个 percent、9 个 string 与 6 个 draft time。CI 校验精确 source、hash、
-function 规范正文、生成测试与数量。
+Node 26 JavaScript provider 通过全部 104 个 stable vendored function case：12 个
+currency、13 个 integer、41 个 number、16 个 offset、13 个 percent 与 9 个 string。
+Experimental profile 另行通过 20 个 Draft case：7 个 date、7 个 datetime、6 个 time。
+CI 校验精确 source、hash、function 规范正文与数量，并在 Chromium、Firefox、WebKit
+重复运行。
 
-`0.8.0` 完成计划中的集成：显式 standards-mode generated catalog 使用该 registry，
-私有 datetime 被限制在 compatibility profile，每个 stable function/option 都出现在
-经检查的 requirement matrix 中，并在 Node 26 上相对 `messageformat@4.0.0` 运行
-differential test。这仍不是完整 Unicode MF2 声明，因为 draft function 保持独立，
-最终 1.0 stable 目标与公共契约冻结属于 `0.9.x`。
+`0.9.0` 完成 conformance-candidate 集成：stable v2 不会意外 author Draft function；
+私有 datetime 限制在 compatibility profile；77 行 anchored requirement matrix 覆盖全部
+6 个 stable function 和 40 个 stable option；20 个 stable differential case 与 4 个
+experimental date/time case 分开统计。Draft/custom function 与非 JavaScript CLDR 输出
+仍不计入稳定声明。

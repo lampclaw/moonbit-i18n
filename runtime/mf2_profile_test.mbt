@@ -1,12 +1,21 @@
 ///|
-const MF2_REFERENCE_COMMIT : String = "d115a614079678850aac8b52742360e888b8f027"
+const MF2_REFERENCE_COMMIT : String = "7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331"
 
 ///|
 test "legacy catalog and pinned standalone profile identities are deliberate" {
   assert_eq(CATALOG_PROFILE, "lampclaw-mf2-strict-v1+lampclaw-datetime-v1")
-  assert_eq(MF2_STANDARD_MESSAGE_PROFILE, "unicode-mf2-ldml48.2-js-v1")
+  assert_eq(MF2_STANDARD_MESSAGE_PROFILE, "unicode-mf2-ldml48.2-js-v2")
+  assert_eq(MF2_LEGACY_STANDARD_MESSAGE_PROFILE, "unicode-mf2-ldml48.2-js-v1")
+  assert_eq(
+    MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
+    "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
+  )
   assert_true(is_supported_message_profile(CATALOG_PROFILE))
   assert_true(is_supported_message_profile(MF2_STANDARD_MESSAGE_PROFILE))
+  assert_true(is_supported_message_profile(MF2_LEGACY_STANDARD_MESSAGE_PROFILE))
+  assert_true(
+    is_supported_message_profile(MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE),
+  )
   assert_eq(MF2_SYNTAX_PROFILE, "unicode-mf2-ldml48.2-syntax-v1")
   assert_eq(MF2_RESOLUTION_PROFILE, "unicode-mf2-ldml48.2-resolution-v1")
   assert_eq(

@@ -274,19 +274,30 @@ raw 429 KiB、gzip 116 KiB；显式 448/128 KiB 上限为 runtime validator 与 
 requirement matrix 与独立 differential report 达到这个 scope 内门槛。这不会提前替代
 `0.9.x` 为 1.0 声明选择并冻结精确最终 stable 目标的任务。
 
-## 长期：`0.9.x` 与 `1.0.0`
+## Conformance candidate：`0.9.x`
 
 ### `0.9.x`——conformance release candidate
 
-- 在阶段开始时固定所选的最新稳定 Unicode MF2/LDML 与 CLDR 精确版本。draft 功能
-  继续作为单独命名的 experimental extension。
-- 在 `1.0.0` release-candidate 周期内冻结这一目标，而不是跟随持续变化的上游 draft。
-- 每条规范性要求必须标记为 `passed`、带公开理由的 `not applicable`，或明确的发布
-  blocker。
-- 在所支持的 Node.js、Chromium、Firefox 与 WebKit 矩阵上运行上游 fixture、项目
-  regression test 和 differential test。
-- 冻结 1.0 的公共 runtime、generator、authoring、catalog、registry 和生成 facade
-  契约，并完成消费者迁移。
+**状态：已在 `0.9.0` 稳定。** Conformance-candidate 门槛以以下边界落地：
+
+- 正式 Unicode MessageFormat WG `LDML48.2` commit
+  `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`、CLDR 48.2、CLDR JSON 48.2.0、
+  IANA registry 2026-08-08 与 Node 26.7.0 host policy；
+- stable `unicode-mf2-ldml48.2-js-v2`、单独命名的 experimental datetime、带 warning
+  的 legacy v1，以及显式 compatibility profile；省略字段产生 `I18N1003`，不再推断
+  默认值；
+- 77 条逐项关联规范 anchor 的 requirement，每条都为 `passed` 或有公开理由的
+  `not-applicable`，blocker 为零；
+- 在 Node.js、Chromium、Firefox、WebKit 上运行上游 syntax/data-model、resolution、
+  stable/experimental function 与 differential suite；
+- 1.0 候选公共 runtime、generator、authoring、catalog、registry、CLI、diagnostic、
+  manifest 与生成 facade 契约冻结在 `docs/contracts/1.0-candidate.json`。
+
+维护中的 Rabbita 应用因有意使用 Draft function 而选择 experimental datetime profile；
+不使用 Draft function 的稳定 consumer 迁移到 v2。发布门槛还要求三个独立 consumer 精确
+固定 `0.9.0`，并通过 generation、JavaScript build 与应用检查。
+
+## 长期：`1.0.0`
 
 ### `1.0.0` 中“完整 MF2”的定义
 

@@ -121,17 +121,17 @@ network access.
 
 ## Conformance and limits
 
-The pin remains Unicode MessageFormat WG commit
-`d115a614079678850aac8b52742360e888b8f027`. In addition to the 270 syntax and
+The pin is official Unicode MessageFormat WG tag `LDML48.2`, commit
+`7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`. In addition to the 270 syntax and
 data-model cases from `0.5.0`, all 67 pinned fallback, pattern-selection, bidi,
 and Unicode-option cases pass on Native, JavaScript, Wasm, and Wasm-GC using
 the test suite's specified conformance functions.
 
 These cases continue to prove the named resolution-core profile. Version
-`0.7.0` separately adds all 124 pinned default-function cases on Node 26,
-stable required functions, structured host fields, and the public registry.
-Catalog profile selection, a normative matrix, and independent differential
-testing remain outside the claim.
+`0.9.0` additionally separates 104 stable from 20 experimental function cases,
+maps resolution behavior into the 77-row anchored normative matrix, runs the
+same evidence in Chromium, Firefox, and WebKit, and includes it in the stable
+v2 JavaScript conformance-candidate claim.
 
 Contexts accept at most 64 inputs. Source and formatted output are each
 limited to 64 KiB, and the existing declaration, selector, variant, option,

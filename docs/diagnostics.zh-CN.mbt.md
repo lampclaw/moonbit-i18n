@@ -2,53 +2,54 @@
 
 [English](diagnostics.mbt.md)
 
-`0.2.0` 引入 diagnostic contract version `1`。人类可读输出用于终端；在命令名后
-添加 `--diagnostic-format=json` 可选择 JSON。集成必须按 `code` 分支，不能解析英文
-message。
+Diagnostic contract version `1` 在整个 `0.x` 保持稳定。人类可读输出用于终端；在命令名
+后添加 `--diagnostic-format=json` 可选择机器可读输出。集成必须按 `code` 分支，不能解析
+英文 message。
 
 每条诊断包含 severity、调用者可见的源路径和半开 span。line/column 从 1 开始，
-`byteOffset` 是从 0 开始的 UTF-8 偏移。parser 无法安全缩小位置时会报告整个有界
-source，而不会伪造精度。
+`byteOffset` 是从 0 开始的 UTF-8 偏移。Parser 无法安全缩小位置时会报告整个有界 source，
+不会伪造精度。
 
-从 `0.8.0` 开始，成功的 `generate`、`check` 和 `coverage` 也可能向 stderr 写入迁移
-warning。它们保持退出状态为 0，也不改变生成输出。JSON mode 对每个 warning 输出一个
-完整 diagnostic object；consumer 应把 stderr 当作 JSON value 序列，而不是一个外层
-array。
+成功命令也可能向 stderr 写入迁移 warning；它们保持退出状态为 0，且不改变生成输出。
+JSON mode 对每个 warning 输出一个完整 diagnostic object；consumer 应把 stderr 当作 JSON
+value 序列，而不是一个外层 array。
 
-## 稳定错误码
+## 稳定 code
 
-| Code | 含义 |
-|---|---|
-| `I18N0001` | CLI 用法、文件系统、所有权或事务失败 |
-| `I18N1001` | config JSON 非法 |
-| `I18N1002` | config 值或关系非法 |
-| `I18N1003` | Warning：省略 `messageProfile`，暂时默认 compatibility mode |
-| `I18N2001` | schema JSON 非法 |
-| `I18N2002` | schema 值或生成名称契约非法 |
-| `I18N3001` | message 语法或 message contract 非法 |
-| `I18N3002` | locale 资源或 locale 关系非法 |
-| `I18N3003` | Warning：compatibility message 使用私有 `:lampclaw:datetime` |
-| `I18N3004` | standards-mode message 包含私有 `:lampclaw:datetime` |
-| `I18N4001` | 未达到发布覆盖率要求 |
-| `I18N5001` | 其他确定性生成失败 |
-| `I18N9001` | 超出已配置资源限制 |
+| Code | Severity | 含义 |
+|---|---|---|
+| `I18N0001` | Error | CLI 用法、文件系统、所有权或事务失败 |
+| `I18N1001` | Error | config JSON 非法 |
+| `I18N1002` | Error | config 值或关系非法 |
+| `I18N1003` | Error | 省略必填 `messageProfile` |
+| `I18N1004` | Warning | 选择 legacy standards profile v1；应迁移到 stable v2 或显式 datetime extension |
+| `I18N2001` | Error | schema JSON 非法 |
+| `I18N2002` | Error | schema 值或生成名称契约非法 |
+| `I18N3001` | Error | message 语法或 message contract 非法 |
+| `I18N3002` | Error | locale 资源或 locale 关系非法 |
+| `I18N3003` | Warning | compatibility message 使用私有 `:lampclaw:datetime` |
+| `I18N3004` | Error | standards-mode message 包含私有 `:lampclaw:datetime` |
+| `I18N4001` | Error | 未达到发布覆盖率要求 |
+| `I18N5001` | Error | 其他确定性生成失败 |
+| `I18N9001` | Error | 超出已配置资源限制 |
 
-在 `0.x` 期间 code 只增不改。severity 和 span 精度可以在不改变 code 的情况下收紧；
-语义重新分配必须使用新 code。`generator.generate_with_diagnostics` 在内存中公开同一
-结构化契约；现有返回 string error 的 generator 函数保留为兼容适配层。
+在 `0.x` 期间 code 只增不改。只有当旧操作在新规则下本来也不可能成功时，severity 才能
+像 `0.9.0` 的 `I18N1003` 收紧那样变化；语义重新分配必须使用新 code。
+`generator.generate_with_diagnostics` 在内存中公开同一结构化契约；现有返回 string error
+的 generator function 保留为兼容适配层。
 
 ## JSON 结构
 
 ~~~json
 {
   "diagnosticVersion": 1,
-  "code": "I18N3001",
+  "code": "I18N1003",
   "severity": "error",
-  "message": "invalid MF2 message: zh-CN.common.hello: unknown variable: name",
-  "path": "localization/locales/zh-CN.json",
+  "message": "messageProfile is required; choose an explicit authoring profile",
+  "path": "localization/config.json",
   "span": {
     "start": { "byteOffset": 0, "line": 1, "column": 1 },
-    "end": { "byteOffset": 42, "line": 2, "column": 1 }
+    "end": { "byteOffset": 128, "line": 8, "column": 1 }
   }
 }
 ~~~

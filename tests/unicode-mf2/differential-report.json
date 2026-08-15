@@ -1,13 +1,48 @@
 {
-  "reportVersion": 1,
-  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "reportVersion": 2,
+  "messageProfile": "unicode-mf2-ldml48.2-js-v2",
+  "experimentalDatetimeProfile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   "reference": {
     "package": "messageformat",
     "version": "4.0.0",
     "runtime": "Node 26.7.0"
   },
-  "nodeMajor": 26,
+  "host": {
+    "node": "26.7.0",
+    "icu": "78.3",
+    "cldr": "48.0",
+    "unicode": "17.0",
+    "timeZoneData": "2026c"
+  },
   "totalCases": 24,
+  "stableCases": [
+    "literal",
+    "variable-string",
+    "quoted-literal",
+    "local-declaration",
+    "exact-selection",
+    "plural-selection",
+    "ordinal-selection",
+    "string-function",
+    "number-en",
+    "number-de",
+    "integer",
+    "offset-add",
+    "offset-subtract",
+    "currency",
+    "percent",
+    "option-inheritance",
+    "default-bidi",
+    "markup",
+    "unresolved-variable",
+    "bad-number-option"
+  ],
+  "experimentalDatetimeCases": [
+    "date",
+    "time",
+    "datetime",
+    "date-zh"
+  ],
   "exactMatches": [
     "literal",
     "variable-string",
