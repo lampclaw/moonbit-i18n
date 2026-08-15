@@ -38,6 +38,7 @@ const releaseGates = [
   ["node", ["scripts/check-mf2-requirements.mjs"]],
   ["node", ["scripts/check-mf2-differential.mjs"]],
   ["node", ["scripts/check-mf2-profile.mjs"]],
+  ["node", ["scripts/check-contract-snapshot.mjs"]],
   ["node", ["scripts/version-contract.mjs", "check"]],
 ];
 for (const [command, args] of releaseGates) {

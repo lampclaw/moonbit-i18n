@@ -6,6 +6,61 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-15
+
+### Added
+
+- An immutable standards freeze for official Unicode MessageFormat WG tag
+  `LDML48.2`, CLDR 48.2, CLDR JSON 48.2.0, the 2026-08-08 IANA Language
+  Subtag Registry, and the Node 26.7.0 `Intl` host policy.
+- A 77-row one-to-one anchored normative requirement matrix covering syntax,
+  data model, resolution, selection, fallback, bidi, errors, stable default
+  functions, and all 40 stable options. Every row is passed or has a public
+  not-applicable rationale; blockers and unexplained gaps are zero.
+- A real browser conformance harness that executes the MoonBit parser,
+  resolver, formatter, upstream fixtures, and differential cases in Chromium,
+  Firefox, and WebKit instead of only testing the example UI.
+- A published `docs/contracts/1.0-candidate.json` snapshot locking public
+  MoonBit interface hashes, the generated facade template, profile names,
+  catalog/diagnostic/manifest versions, CLI commands, diagnostic codes, and
+  the Node/browser support matrix.
+
+### Changed
+
+- Stable authoring now uses `unicode-mf2-ldml48.2-js-v2`, containing the six
+  stable functions and rejecting Draft date/time behavior. Draft `:date`,
+  `:time`, and `:datetime` moved behind the separately named
+  `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` profile.
+- Omitting `messageProfile` is now error `I18N1003`. Legacy standards v1 is a
+  warned migration bridge with `I18N1004`; explicit compatibility authoring
+  remains available.
+- Standalone pseudo-locale, XLIFF, i18next, and ARB CLI commands now require
+  `--message-profile`, eliminating an implicit semantics choice outside an
+  application config.
+- Differential evidence is split into 20 stable and 4 experimental datetime
+  cases. Upstream function evidence is split into 104 stable and 20
+  experimental cases; both sets remain executable, but only stable v2 belongs
+  to the conformance-candidate claim.
+- Rabbita explicitly selects the experimental datetime profile because its
+  browser contract intentionally exercises Draft date formatting. Applications
+  without those functions use stable v2.
+
+### Fixed
+
+- Stable numeric, offset, currency, percent, and date/time resolved values now
+  inherit the formatting-context direction. This removes unnecessary FSI/PDI
+  isolation around same-direction values while preserving normative isolation
+  when directions differ or are unknown.
+
+### Security
+
+- Stable generated catalogs reject Draft, private, and unknown functions
+  before installation. Every profile remains part of the catalog contract
+  hash, so stable, experimental, legacy, and compatibility catalogs cannot be
+  mixed accidentally.
+- Browser conformance runs retain host `Intl` fingerprints, keeping CLDR/ICU
+  data differences visible and separate from semantic failures.
+
 ## [0.8.0] - 2026-08-14
 
 ### Added
@@ -363,7 +418,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...v0.6.0

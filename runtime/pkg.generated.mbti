@@ -20,6 +20,10 @@ pub const CATALOG_VERSION : Int = 2
 
 pub const MF2_DEFAULT_REGISTRY_PROFILE : String = "unicode-mf2-ldml48.2-default-functions-v1"
 
+pub const MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1"
+
+pub const MF2_LEGACY_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+
 pub const MF2_MAX_ARGUMENTS : Int = 64
 
 pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
@@ -42,7 +46,7 @@ pub const MF2_MAX_VARIANTS : Int = 4096
 
 pub const MF2_RESOLUTION_PROFILE : String = "unicode-mf2-ldml48.2-resolution-v1"
 
-pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
+pub const MF2_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v2"
 
 pub const MF2_SYNTAX_PROFILE : String = "unicode-mf2-ldml48.2-syntax-v1"
 

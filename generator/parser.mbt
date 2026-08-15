@@ -19,7 +19,10 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
       (value, true)
     Some(String(value)) => return Err("unsupported messageProfile: \{value}")
     Some(_) => return Err("messageProfile must be a string")
-    None => (@runtime.CATALOG_PROFILE, false)
+    None =>
+      return Err(
+        "messageProfile is required; choose unicode-mf2-ldml48.2-js-v2, unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1, or an explicit legacy profile",
+      )
   }
   let source_locale = match normalized_config_string(obj, "sourceLocale") {
     Ok(value) => value
@@ -337,7 +340,7 @@ pub fn parse_locale(
               "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
             )
         }
-      } else if message_profile == @runtime.MF2_STANDARD_MESSAGE_PROFILE {
+      } else if is_standard_authoring_profile(message_profile) {
         let model = match @runtime.parse_valid_mf2_model(text) {
           Ok(value) => value
           Err(errors) =>
@@ -345,7 +348,10 @@ pub fn parse_locale(
               "invalid MF2 message: \{locale}.\{group}.\{key}: \{errors[0].message}",
             )
         }
-        match validate_standard_message_contract(model, schema, schema_entry) {
+        match
+          validate_standard_message_contract(
+            model, schema, schema_entry, message_profile,
+          ) {
           Ok(_) => entries.push({ ..schema_entry, text, })
           Err(message) =>
             return Err(
@@ -368,6 +374,7 @@ fn validate_standard_message_contract(
   model : @runtime.Mf2MessageModel,
   schema : Schema,
   schema_entry : Entry,
+  message_profile : String,
 ) -> Result[Unit, String] {
   let parameter_names = schema_entry.params.map(param => param.name)
   let local_names : Array[String] = []
@@ -425,7 +432,17 @@ fn validate_standard_message_contract(
             "private function :lampclaw:datetime is not allowed by the standards profile; migrate to :datetime, :date, or :time",
           )
         }
-        if !standard_function_name(function_ref.name) {
+        if !standard_function_name(
+            function_ref.name,
+            message_profile_allows_draft_datetime(message_profile),
+          ) {
+          if function_ref.name == "date" ||
+            function_ref.name == "time" ||
+            function_ref.name == "datetime" {
+            return Err(
+              "draft function :\{function_ref.name} requires messageProfile \{@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE}",
+            )
+          }
           return Err(
             "function is not in the pinned default registry: :\{function_ref.name}",
           )
@@ -483,16 +500,31 @@ fn validate_standard_value(
 }
 
 ///|
-fn standard_function_name(name : String) -> Bool {
-  name == "string" ||
-  name == "number" ||
-  name == "integer" ||
-  name == "offset" ||
-  name == "currency" ||
-  name == "percent" ||
-  name == "date" ||
-  name == "time" ||
-  name == "datetime"
+fn is_standard_authoring_profile(profile : String) -> Bool {
+  profile == @runtime.MF2_STANDARD_MESSAGE_PROFILE ||
+  profile == @runtime.MF2_LEGACY_STANDARD_MESSAGE_PROFILE ||
+  profile == @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE
+}
+
+///|
+fn message_profile_allows_draft_datetime(profile : String) -> Bool {
+  profile == @runtime.MF2_LEGACY_STANDARD_MESSAGE_PROFILE ||
+  profile == @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE
+}
+
+///|
+fn standard_function_name(name : String, allow_draft_datetime : Bool) -> Bool {
+  let stable = name == "string" ||
+    name == "number" ||
+    name == "integer" ||
+    name == "offset" ||
+    name == "currency" ||
+    name == "percent"
+  stable ||
+  (
+    allow_draft_datetime &&
+    (name == "date" || name == "time" || name == "datetime")
+  )
 }
 
 ///|

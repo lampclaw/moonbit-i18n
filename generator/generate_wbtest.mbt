@@ -1,6 +1,7 @@
 ///|
 let generation_config =
   #|{
+  #|  "messageProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1",
   #|  "sourceLocale": "en-US",
   #|  "defaultLocale": "zh-CN",
   #|  "fallbackLocale": "en-US",
@@ -36,7 +37,7 @@ test "generate catalog artifacts and coverage report" {
   }
   assert_eq(artifacts.contract_hash.length(), 64)
   assert_eq(artifacts.message_profile, @runtime.CATALOG_PROFILE)
-  assert_eq(artifacts.diagnostics.map(value => value.code), ["I18N1003"])
+  assert_eq(artifacts.diagnostics, [])
   assert_true(artifacts.package_manifest.contains("supported_targets = \"js\""))
   assert_eq(artifacts.catalogs.length(), 2)
   assert_true(artifacts.catalogs[0].1.contains("\"catalogVersion\": 2"))
@@ -77,10 +78,10 @@ test "generate catalog artifacts and coverage report" {
 
 ///|
 test "standards profile propagates through every generated artifact" {
-  let config = "{\n  \"messageProfile\": \"" +
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE +
-    "\"," +
-    generation_config[1:].to_owned()
+  let config = generation_config.replace_all(
+    old=@runtime.CATALOG_PROFILE,
+    new=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+  )
   guard generate(config, schema_source, [
       { code: "en-US", source: en_generation_source },
       { code: "zh-CN", source: zh_generation_source },

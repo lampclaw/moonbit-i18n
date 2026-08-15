@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.8.0` ships one module containing the runtime, generator, a portable
+MoonBit. `0.9.0` ships one module containing the runtime, generator, a portable
 `moonx` CLI, and standalone pinned Unicode MF2 syntax/data-model, resolution,
 stable default-function, and public registry APIs.
 Generated application facades currently target JavaScript and use the host's
@@ -16,20 +16,19 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.8.0` closes the roadmap's first Unicode MF2 integration phase. New
-scaffolds and the maintained browser application use the explicit
-`unicode-mf2-ldml48.2-js-v1` message profile end to end: authoring validation,
-contract hashing, embedded and dynamic catalog-v2 data, generated facades, and
-Node 26 formatting all share that identity. Existing configs without
-`messageProfile` remain compatible with strict-v1 and receive a migration
-warning; the private `:lampclaw:datetime` function cannot enter standards-mode
-catalogs.
+`0.9.0` is the roadmap's Unicode MF2 conformance candidate for JavaScript. New
+scaffolds use the explicit stable `unicode-mf2-ldml48.2-js-v2` profile end to
+end. Draft `:date`, `:time`, and `:datetime` require the separately named
+`unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` profile. Omitted
+`messageProfile` is error `I18N1003`; legacy standards v1 remains a warned
+migration bridge.
 
-This release also publishes a machine-readable normative requirement matrix
-and independent `messageformat@4.0.0` differential evidence. It is not a
-prototype, but it deliberately stops short of the `1.0.0` complete Unicode
-MessageFormat 2 claim while the final stable-version freeze and public-contract
-review remain on the roadmap. The public
+The release freezes official Unicode LDML 48.2 sources, a 77-row anchored
+normative matrix, independent `messageformat@4.0.0` differential evidence,
+and real Chromium, Firefox, and WebKit conformance runs. The public interfaces,
+generated template, CLI, and wire contracts are recorded as a 1.0 candidate.
+It deliberately stops short of claiming Draft functions or project-owned CLDR
+formatting on every backend. The public
 [product roadmap](docs/roadmap.mbt.md) defines the version-gated path from the
 current Web profile through authoring and delivery improvements to full MF2 on
 the JavaScript backend. The
@@ -44,24 +43,24 @@ compatibility commitments are listed in the
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.8.0
+moon add lampclaw/i18n@0.9.0
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.8.0 --help
+moonx lampclaw/i18n/cmd/i18n@0.9.0 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.8.0` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.9.0` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.8.0`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.9.0`; it is named `moon-i18n`.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.8.0 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.9.0 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -134,7 +133,7 @@ release coverage gate:
 
 ~~~json
 {
-  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "messageProfile": "unicode-mf2-ldml48.2-js-v2",
   "sourceLocale": "en-US",
   "defaultLocale": "zh-CN",
   "fallbackLocale": "en-US",
@@ -156,14 +155,14 @@ independently.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.8.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.0 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.8.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.0 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -253,8 +252,8 @@ locale-commit policy remain application-owned; see the
 The CLI also exposes `coverage`, `pseudo`, state-aware `export-xliff` and
 `import-xliff`, plus one-way `import-i18next` and `import-arb` migration.
 Because those standalone commands do not read the application config, pass its
-exact profile as `--message-profile unicode-mf2-ldml48.2-js-v1`; omission keeps
-the temporary compatibility default.
+exact profile as `--message-profile unicode-mf2-ldml48.2-js-v2`; omission is a
+CLI usage error.
 XLIFF 2.1 import verifies source content and both locale identities, rejects
 unsafe XML and inline XML inside MF2 fields, and returns versioned lifecycle
 state and a loss report. Translator notes, reviewed/final state, supported
@@ -262,19 +261,19 @@ metadata, explicit ID renames, and removals are covered by the documented
 [translation lifecycle contract](docs/translation-lifecycle.mbt.md).
 
 New applications should explicitly select
-`unicode-mf2-ldml48.2-js-v1`. It composes the pinned complete syntax/data-model,
+`unicode-mf2-ldml48.2-js-v2`. It composes the pinned complete syntax/data-model,
 resolution, bidi, stable default registry, and Node 26 JavaScript provider for
 generated applications. The stable function repertoire is `:string`,
-`:number`, `:integer`, `:offset`, `:currency`, and `:percent`; implemented
-`:date`, `:time`, and `:datetime` remain marked Draft in the pinned upstream
-specification.
+`:number`, `:integer`, `:offset`, `:currency`, and `:percent`. Implemented
+`:date`, `:time`, and `:datetime` remain Draft and are accepted only by the
+explicit experimental datetime profile.
 
 The compatibility profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` remains readable for existing
 projects. It preserves the private `:lampclaw:datetime` function only in that
-profile. Omitted `messageProfile` currently means compatibility mode with
-warning `I18N1003`; explicit compatibility use is allowed during the pre-1.0
-migration window. The step-by-step path is in the
+profile. Omitted `messageProfile` is error `I18N1003`; the old standards v1
+profile emits `I18N1004`. Explicit compatibility use remains available during
+the pre-1.0 migration window. The step-by-step path is in the
 [message-profile migration guide](docs/message-profile-migration.mbt.md).
 Exact accepted/deferred features and the pinned upstream snapshot are in
 [`docs/mf2-profile.mbt.md`](docs/mf2-profile.mbt.md).
@@ -288,9 +287,10 @@ pinned upstream syntax and data-model fixture. The separate
 `format_mf2_model_standalone`; it returns best-effort text, structured parts,
 and typed errors. `unicode-mf2-ldml48.2-default-functions-v1` adds the stable
 required registry, Node 26 `Intl` adapter, and public namespaced custom
-registry. The machine-readable requirement matrix covers 20 scoped normative
+registry. The machine-readable requirement matrix covers 77 anchored normative
 rows plus all 6 stable functions and 40 stable options; the independent suite
-currently records 24 cases with no unexplained semantic failures. See the
+records 20 stable and 4 experimental cases with no unexplained semantic
+failures. The same upstream suites run in Chromium, Firefox, and WebKit. See the
 [syntax and interchange guide](docs/mf2-syntax-data-model.mbt.md).
 
 Resolution, bidi, safe structured output, and strict locale boundaries are
@@ -307,7 +307,7 @@ message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.8.0/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.9.0/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

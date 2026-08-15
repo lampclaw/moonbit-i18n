@@ -108,6 +108,7 @@ jobs:
           node scripts/check-mf2-requirements.mjs
           node scripts/check-mf2-differential.mjs
           node scripts/check-mf2-profile.mjs
+          node scripts/check-contract-snapshot.mjs
           node scripts/version-contract.mjs check
 
       - name: Performance budgets
@@ -187,6 +188,7 @@ jobs:
           printf '%s\n' "$package_list" | grep -q '^docs/translation-lifecycle.zh-CN.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.mbt.md$'
           printf '%s\n' "$package_list" | grep -q '^docs/web-delivery.zh-CN.mbt.md$'
+          printf '%s\n' "$package_list" | grep -q '^docs/contracts/1.0-candidate.json$'
 
       - name: Generated and interface drift
         run: |

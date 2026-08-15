@@ -102,7 +102,9 @@ fn full_source_span(source : String) -> SourceSpan {
 
 ///|
 fn diagnostic_code(message : String) -> String {
-  if message.contains("limit") || message.contains("exceed") {
+  if message.contains("messageProfile is required") {
+    "I18N1003"
+  } else if message.contains("limit") || message.contains("exceed") {
     "I18N9001"
   } else if message.contains("invalid i18n config JSON") {
     "I18N1001"
@@ -189,7 +191,8 @@ pub fn generate_with_diagnostics(
     Ok(artifacts) => {
       let diagnostics : Array[Diagnostic] = []
       for diagnostic in artifacts.diagnostics {
-        let path = if diagnostic.code == "I18N1003" {
+        let path = if diagnostic.code == "I18N1003" ||
+          diagnostic.code == "I18N1004" {
           config_path
         } else {
           let separator = if locale_directory.has_suffix("/") ||

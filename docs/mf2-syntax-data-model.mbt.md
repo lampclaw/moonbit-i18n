@@ -3,10 +3,11 @@
 [中文](mf2-syntax-data-model.zh-CN.mbt.md)
 
 `0.5.0` adds the standalone profile
-`unicode-mf2-ldml48.2-syntax-v1`, pinned to Unicode MessageFormat WG commit
-`d115a614079678850aac8b52742360e888b8f027`. It is intended for tooling,
-editors, converters, and future standards-mode authoring. It is separate from
-the strict-v1 catalog formatter used by generated applications.
+`unicode-mf2-ldml48.2-syntax-v1`, now frozen to official Unicode
+MessageFormat WG tag `LDML48.2`, commit
+`7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`. It is intended for tooling,
+editors, converters, and standards-mode authoring. It remains separate from
+the strict-v1 compatibility catalog compiler.
 
 ## Concepts
 
@@ -100,7 +101,9 @@ This API does not resolve declarations, select variants, format values,
 isolate bidirectional text, or invoke a function registry. It does not change
 the meaning of existing locale JSON or catalog-v2 files. Applications should
 continue using their generated facade until an explicit standards-mode
-authoring profile is introduced in `0.8.x`.
+authoring profile is introduced in `0.8.x`. That integration is now shipped;
+`0.9.0` freezes this same model behind stable v2 and the explicitly separate
+experimental datetime profile.
 
 Version `0.6.0` adds those target-independent resolution, selection, fallback,
 structured-output, and bidi semantics through the separate

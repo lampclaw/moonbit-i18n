@@ -343,21 +343,33 @@ consumer, pinned upstream suites, machine-readable requirement matrix, and
 independent differential report. This does not pre-empt the `0.9.x` task of
 selecting and freezing the exact final stable target for the 1.0 claim.
 
-## Long term: `0.9.x` and `1.0.0`
+## Conformance candidate: `0.9.x`
 
 ### `0.9.x` — conformance release candidate
 
-- Pin the exact latest stable Unicode MF2/LDML and CLDR versions selected at
-  the start of the phase. Draft features remain separately named
-  experimental extensions.
-- Freeze that target through the `1.0.0` release-candidate cycle instead of
-  following moving upstream drafts.
-- Require every normative item to be `passed`, `not applicable` with a public
-  rationale, or an explicit release blocker.
-- Run upstream fixtures, project regression tests, and differential tests on
-  the supported Node.js, Chromium, Firefox, and WebKit matrix.
-- Freeze the 1.0 public runtime, generator, authoring, catalog, registry, and
-  generated-facade contracts and complete consumer migrations.
+**Status: stable in `0.9.0`.** The conformance-candidate gate is implemented
+with these frozen boundaries:
+
+- official Unicode MessageFormat WG `LDML48.2` commit
+  `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`, CLDR 48.2, CLDR JSON
+  48.2.0, IANA registry 2026-08-08, and Node 26.7.0 host policy;
+- stable `unicode-mf2-ldml48.2-js-v2`, separately named experimental datetime,
+  warned legacy v1, and explicit compatibility profiles; omission is
+  `I18N1003` instead of an inferred default;
+- 77 individually anchored normative rows, each `passed` or publicly justified
+  `not-applicable`, with zero blockers;
+- upstream syntax/data-model, resolution, stable/experimental function, and
+  differential suites on Node.js, Chromium, Firefox, and WebKit; and
+- the 1.0 candidate public runtime, generator, authoring, catalog, registry,
+  CLI, diagnostics, manifest, and generated-facade contracts frozen in
+  `docs/contracts/1.0-candidate.json`.
+
+The maintained Rabbita application deliberately selects the experimental
+datetime profile; stable consumers without Draft functions migrate to v2. The
+release gate also requires three independent consumers to pin exact `0.9.0`
+and pass generation, JavaScript build, and application checks.
+
+## Long term: `1.0.0`
 
 ### Definition of “full MF2” for `1.0.0`
 

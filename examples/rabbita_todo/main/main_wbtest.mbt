@@ -33,15 +33,9 @@ test "generated Todo facade formats and negotiates locales" {
   let zh = i18n.translator(@app_i18n.ZhCN)
   assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.Title)), "Todos")
   assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(1))), "One active")
-  assert_eq(
-    en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))),
-    "\u{2068}3\u{2069} active",
-  )
+  assert_eq(en.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))), "3 active")
   assert_eq(zh.t(@app_i18n.TodoUi(@app_i18n.Title)), "Todos")
-  assert_eq(
-    zh.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))),
-    "\u{2068}3\u{2069} active",
-  )
+  assert_eq(zh.t(@app_i18n.TodoUi(@app_i18n.ActiveCount(3))), "3 active")
   assert_eq(i18n.default_translator().locale(), @app_i18n.EnUS)
   assert_eq(i18n.translator_from_code("zh_cn").locale(), @app_i18n.ZhCN)
   assert_eq(

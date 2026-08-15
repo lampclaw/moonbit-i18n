@@ -19,7 +19,7 @@ const manifest = readFileSync(join(project, "moon.mod"), "utf8");
 const versionMatch = manifest.match(/^version = "([^"]+)"$/mu);
 assert.ok(versionMatch, "moon.mod version is missing");
 const version = versionMatch[1];
-const messageProfile = "unicode-mf2-ldml48.2-js-v1";
+const messageProfile = "unicode-mf2-ldml48.2-js-v2";
 const archive = join(
   project,
   "_build",

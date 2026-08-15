@@ -1,7 +1,7 @@
 ///|
 async fn run_pseudo(args : Array[String]) -> Unit raise CliError {
   let values : Array[String] = [args[0]]
-  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut message_profile = ""
   let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
@@ -17,7 +17,8 @@ async fn run_pseudo(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 6 ||
+  if !profile_seen ||
+    values.length() != 6 ||
     !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
@@ -38,7 +39,7 @@ async fn run_pseudo(args : Array[String]) -> Unit raise CliError {
 async fn run_export_xliff(args : Array[String]) -> Unit raise CliError {
   let values : Array[String] = [args[0]]
   let mut state_path : String? = None
-  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut message_profile = ""
   let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
@@ -60,7 +61,8 @@ async fn run_export_xliff(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 7 ||
+  if !profile_seen ||
+    values.length() != 7 ||
     !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
@@ -95,7 +97,7 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
   let mut state_output : String? = None
   let mut report_output : String? = None
   let mut migrations_path : String? = None
-  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut message_profile = ""
   let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
@@ -136,7 +138,8 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 7 ||
+  if !profile_seen ||
+    values.length() != 7 ||
     !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
@@ -181,7 +184,7 @@ async fn run_import_xliff(args : Array[String]) -> Unit raise CliError {
 ///|
 async fn run_import_i18next(args : Array[String]) -> Unit raise CliError {
   let values : Array[String] = [args[0]]
-  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut message_profile = ""
   let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
@@ -197,7 +200,8 @@ async fn run_import_i18next(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 6 ||
+  if !profile_seen ||
+    values.length() != 6 ||
     !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }
@@ -222,7 +226,7 @@ async fn run_import_i18next(args : Array[String]) -> Unit raise CliError {
 ///|
 async fn run_import_arb(args : Array[String]) -> Unit raise CliError {
   let values : Array[String] = [args[0]]
-  let mut message_profile = @runtime.CATALOG_PROFILE
+  let mut message_profile = ""
   let mut profile_seen = false
   let mut cursor = 1
   while cursor < args.length() {
@@ -238,7 +242,8 @@ async fn run_import_arb(args : Array[String]) -> Unit raise CliError {
       cursor = cursor + 1
     }
   }
-  if values.length() != 6 ||
+  if !profile_seen ||
+    values.length() != 6 ||
     !@runtime.is_supported_message_profile(message_profile) {
     cli_fail(usage())
   }

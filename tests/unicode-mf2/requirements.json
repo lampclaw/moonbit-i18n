@@ -1,209 +1,152 @@
 {
-  "matrixVersion": 1,
-  "messageProfile": "unicode-mf2-ldml48.2-js-v1",
+  "matrixVersion": 2,
+  "coverageModel": "normative-section-and-algorithm",
+  "messageProfile": "unicode-mf2-ldml48.2-js-v2",
+  "experimentalDatetimeProfile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   "syntaxProfile": "unicode-mf2-ldml48.2-syntax-v1",
   "resolutionProfile": "unicode-mf2-ldml48.2-resolution-v1",
   "defaultFunctionProfile": "unicode-mf2-ldml48.2-default-functions-v1",
-  "upstreamCommit": "d115a614079678850aac8b52742360e888b8f027",
+  "upstreamTag": "LDML48.2",
+  "upstreamCommit": "7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331",
   "statusVocabulary": ["passed", "not-applicable", "blocked"],
+  "evidenceGroups": {
+    "policy": [
+      {"path": "docs/mf2-profile.mbt.md", "contains": "## Conformance statement"},
+      {"path": "scripts/check-mf2-requirements.mjs", "contains": "blocked requirement"}
+    ],
+    "syntax": [
+      {"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned well-formed syntax fixtures"},
+      {"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned syntax-error fixtures"}
+    ],
+    "syntax-model": [
+      {"path": "runtime/mf2_syntax_test.mbt", "contains": "well-formed and valid MF2 are distinct"},
+      {"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned data-model-error fixtures"}
+    ],
+    "data-model": [
+      {"path": "runtime/mf2_syntax_test.mbt", "contains": "syntax serialization is deterministic"},
+      {"path": "runtime/mf2_syntax_test.mbt", "contains": "interchange JSON is deterministic"}
+    ],
+    "resolution": [
+      {"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}
+    ],
+    "fallback-errors": [
+      {"path": "runtime/mf2_format_test.mbt", "contains": "emits runtime fallback values and errors"},
+      {"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}
+    ],
+    "bidi-parts": [
+      {"path": "runtime/mf2_format_test.mbt", "contains": "formats literals with default bidi isolation"},
+      {"path": "runtime/mf2_format_test.mbt", "contains": "preserves inert markup and attributes"}
+    ],
+    "default-functions": [
+      {"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}
+    ],
+    "registry": [
+      {"path": "runtime/mf2_registry_test.mbt", "contains": "custom registry rejects reserved unnamespaced and normalized duplicates"}
+    ],
+    "security": [
+      {"path": "runtime/mf2_format_test.mbt", "contains": "formatter enforces input and output limits"},
+      {"path": "runtime/mf2_format_test.mbt", "contains": "u:dir on markup is reported but never executed"}
+    ]
+  },
   "requirements": [
-    {
-      "id": "MF2-SYNTAX-001",
-      "section": "syntax",
-      "requirement": "The complete pinned message grammar accepts every vendored well-formed fixture.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned well-formed syntax fixtures"}]
-    },
-    {
-      "id": "MF2-SYNTAX-002",
-      "section": "syntax",
-      "requirement": "Malformed grammar is distinguished from data-model invalidity.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "well-formed and valid MF2 are distinct"}]
-    },
-    {
-      "id": "MF2-SYNTAX-003",
-      "section": "syntax",
-      "requirement": "Declarations, matchers, expressions, options, attributes, markup, quoted patterns, and literals are represented by the pinned data model.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "retains expressions attributes and markup"}]
-    },
-    {
-      "id": "MF2-SYNTAX-004",
-      "section": "syntax",
-      "requirement": "Names and variant keys use Unicode NFC equivalence and reject collisions.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_syntax_test.mbt", "contains": "compare as if normalized to NFC"}]
-    },
-    {
-      "id": "MF2-MODEL-001",
-      "section": "data-model",
-      "requirement": "All vendored data-model-error fixtures produce a stable data-model failure.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_upstream_syntax_wbtest.mbt", "contains": "Unicode MF2 pinned data-model-error fixtures"}]
-    },
-    {
-      "id": "MF2-MODEL-002",
-      "section": "data-model",
-      "requirement": "Functional syntax and JSON interchange serialization are deterministic and round-trip the normative model.",
-      "status": "passed",
-      "evidence": [
-        {"path": "runtime/mf2_syntax_test.mbt", "contains": "syntax serialization is deterministic"},
-        {"path": "runtime/mf2_syntax_test.mbt", "contains": "interchange JSON is deterministic"}
-      ]
-    },
-    {
-      "id": "MF2-RESOLVE-001",
-      "section": "resolution",
-      "requirement": "Declarations resolve in source order at most once and variable/option references preserve typed failures.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
-    },
-    {
-      "id": "MF2-RESOLVE-002",
-      "section": "resolution",
-      "requirement": "Multi-selector pattern ranking, exact keys, plural keys, and wildcard fallback follow the pinned algorithm.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
-    },
-    {
-      "id": "MF2-RESOLVE-003",
-      "section": "fallback",
-      "requirement": "Expression and message fallback values are emitted together with structured errors.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "emits runtime fallback values and errors"}]
-    },
-    {
-      "id": "MF2-ERROR-001",
-      "section": "errors",
-      "requirement": "Syntax, data-model, resolution, formatting, bad-operand, bad-option, unknown-function, and limit failures remain machine-classifiable.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_upstream_format_wbtest.mbt", "contains": "Unicode MF2 pinned resolution formatting fixtures"}]
-    },
-    {
-      "id": "MF2-BIDI-001",
-      "section": "bidi",
-      "requirement": "Default formatting applies normative Unicode isolation and offers an explicit no-isolation strategy.",
-      "status": "passed",
-      "evidence": [
-        {"path": "runtime/mf2_format_test.mbt", "contains": "formats literals with default bidi isolation"},
-        {"path": "runtime/mf2_format_test.mbt", "contains": "no-isolation strategy is explicit"}
-      ]
-    },
-    {
-      "id": "MF2-UNIVERSAL-001",
-      "section": "universal-options",
-      "requirement": "u:dir and u:id are resolved as universal options without executing renderer behavior.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "u:dir on markup is reported but never executed"}]
-    },
-    {
-      "id": "MF2-MARKUP-001",
-      "section": "markup",
-      "requirement": "Markup, attributes, and formatted fields remain renderer-independent structured parts.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "preserves inert markup and attributes"}]
-    },
-    {
-      "id": "MF2-LOCALE-001",
-      "section": "locale",
-      "requirement": "Formatting contexts require canonicalizable BCP 47 locales and generated applications use bounded locale negotiation.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "formatting context enforces strict locale syntax"}]
-    },
-    {
-      "id": "MF2-LIMIT-001",
-      "section": "limits",
-      "requirement": "Message input, model cardinality, and formatted output have explicit resource limits.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_format_test.mbt", "contains": "formatter enforces input and output limits"}]
-    },
-    {
-      "id": "MF2-AUTHORING-001",
-      "section": "authoring",
-      "requirement": "messageProfile selects compatibility or standards authoring and participates in catalog identity and contract hashing.",
-      "status": "passed",
-      "evidence": [
-        {"path": "generator/parser_wbtest.mbt", "contains": "config accepts explicit compatibility and standards profiles"},
-        {"path": "runtime/catalog_test.mbt", "contains": "preserves the standards-mode message profile"}
-      ]
-    },
-    {
-      "id": "MF2-AUTHORING-002",
-      "section": "authoring",
-      "requirement": "Standards-mode generated catalogs reject private functions and undeclared variables before installation.",
-      "status": "passed",
-      "evidence": [{"path": "generator/parser_wbtest.mbt", "contains": "rejects private functions"}]
-    },
-    {
-      "id": "MF2-AUTHORING-003",
-      "section": "migration",
-      "requirement": "Omitted messageProfile and compatibility-only datetime usage emit stable path-aware migration diagnostics.",
-      "status": "passed",
-      "evidence": [{"path": "generator/diagnostic_wbtest.mbt", "contains": "legacy datetime emit path-aware migration warnings"}]
-    },
-    {
-      "id": "MF2-RUNTIME-001",
-      "section": "catalog-runtime",
-      "requirement": "Standards-mode catalogs compile once and use the standalone MF2 resolver/default registry through the generated runtime facade.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/js/formatter_test.mbt", "contains": "standards-mode catalogs format through the generated-runtime path"}]
-    },
-    {
-      "id": "MF2-EXTENSION-001",
-      "section": "extensions",
-      "requirement": "Application-owned namespaced custom functions are outside the Unicode profile and reserved or colliding registrations are rejected.",
-      "status": "passed",
-      "evidence": [{"path": "runtime/mf2_registry_test.mbt", "contains": "custom registry rejects reserved unnamespaced and normalized duplicates"}]
-    }
+    {"id":"MF2-POLICY-001","section":"conformance","requirement":"The release identifies the exact stable specification and limits its conformance statement to tested behavior.","status":"passed","source":{"path":"spec/intro.md","anchor":"### Conformance"},"evidenceGroups":["policy"]},
+    {"id":"MF2-POLICY-002","section":"stability","requirement":"Stable functions and options retain their specified meaning while Draft functions remain outside the frozen claim.","status":"passed","source":{"path":"spec/intro.md","anchor":"### Stability Policy"},"evidenceGroups":["policy"]},
+
+    {"id":"MF2-SYNTAX-001","section":"syntax","requirement":"Well-formed syntax and valid data models are checked as distinct layers.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Well-formed vs. Valid Messages"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-002","section":"syntax","requirement":"Simple and complex messages follow the complete pinned message grammar.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### The Message"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-003","section":"syntax","requirement":"Input and local declarations obey binding, ordering, and uniqueness constraints.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Declarations"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-004","section":"syntax","requirement":"Patterns preserve their complete ordered sequence of text and placeholders.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Pattern"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-005","section":"syntax","requirement":"Quoted patterns preserve the pinned delimiters, escaping, and empty-pattern behavior.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Quoted Pattern"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-006","section":"syntax","requirement":"Text preserves significant whitespace and required escape semantics.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Text"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-007","section":"syntax","requirement":"Matchers require selectors, unique variants, and a complete fallback variant.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Matcher"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-008","section":"syntax","requirement":"Selector syntax and annotation requirements are represented without approximation.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Selector"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-009","section":"syntax","requirement":"Variant key cardinality, uniqueness, normalization, and fallback rules are validated.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Variant"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-010","section":"syntax","requirement":"Expressions preserve operands, annotations, options, attributes, and their delimiters.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Expressions"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-011","section":"syntax","requirement":"Operand forms distinguish variables, literals, and absent operands according to the grammar.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Operand"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-012","section":"syntax","requirement":"Markup open, close, and standalone forms retain names, options, and attributes.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Markup"},"evidenceGroups":["syntax","bidi-parts"]},
+    {"id":"MF2-SYNTAX-013","section":"syntax","requirement":"Attributes retain identifiers and optional literal values in the data model.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Attributes"},"evidenceGroups":["syntax","data-model"]},
+    {"id":"MF2-SYNTAX-014","section":"syntax","requirement":"Quoted and unquoted literals are semantically equivalent and obey escape restrictions.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Literals"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-015","section":"syntax","requirement":"Names and identifiers compare using the required Unicode NFC-equivalent semantics.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Names and Identifiers"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-SYNTAX-016","section":"syntax","requirement":"Escape sequences accept and serialize only the forms defined by the pinned grammar.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Escape Sequences"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-017","section":"syntax","requirement":"Whitespace classes and significant whitespace positions follow the pinned syntax.","status":"passed","source":{"path":"spec/syntax.md","anchor":"#### Whitespace"},"evidenceGroups":["syntax"]},
+    {"id":"MF2-SYNTAX-018","section":"syntax","requirement":"The parser covers the immutable complete ABNF selected by the release.","status":"passed","source":{"path":"spec/syntax.md","anchor":"### Complete ABNF"},"evidenceGroups":["syntax"]},
+
+    {"id":"MF2-MODEL-001","section":"data-model","requirement":"The interchange message model preserves pattern and select message variants.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Message Model"},"evidenceGroups":["syntax-model","data-model"]},
+    {"id":"MF2-MODEL-002","section":"data-model","requirement":"Pattern parts preserve text, expressions, and markup in source order.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Pattern Model"},"evidenceGroups":["data-model"]},
+    {"id":"MF2-MODEL-003","section":"data-model","requirement":"Expression models preserve operands, function references, options, and attributes.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Expression Model"},"evidenceGroups":["data-model"]},
+    {"id":"MF2-MODEL-004","section":"data-model","requirement":"Markup models preserve kind, name, options, and attributes without renderer execution.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Markup Model"},"evidenceGroups":["data-model","bidi-parts"]},
+    {"id":"MF2-MODEL-005","section":"data-model","requirement":"Attribute models retain names and optional literal values deterministically.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Attribute Model"},"evidenceGroups":["data-model"]},
+    {"id":"MF2-MODEL-006","section":"data-model","requirement":"Unknown model extensions are not silently interpreted as standard behavior.","status":"passed","source":{"path":"spec/data-model/README.md","anchor":"### Model Extensions"},"evidenceGroups":["data-model","policy"]},
+
+    {"id":"MF2-FORMAT-001","section":"formatting-context","requirement":"Formatting uses explicit locale, direction, time-zone, variable, and function context.","status":"passed","source":{"path":"spec/formatting.md","anchor":"### Formatting Context"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-002","section":"resolved-values","requirement":"Resolved values retain formatting, selection, direction, options, and fallback metadata.","status":"passed","source":{"path":"spec/formatting.md","anchor":"### Resolved Values"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-003","section":"resolution","requirement":"Expression resolution is source ordered and preserves typed failure behavior.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Expression Resolution"},"evidenceGroups":["resolution","fallback-errors"]},
+    {"id":"MF2-FORMAT-004","section":"resolution","requirement":"Markup resolution produces inert structured output rather than renderer side effects.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Markup Resolution"},"evidenceGroups":["resolution","bidi-parts"]},
+    {"id":"MF2-FORMAT-005","section":"resolution","requirement":"Option resolution retains literal versus variable origin and reports failures.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Option Resolution"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-006","section":"fallback","requirement":"Fallback resolution produces specified fallback values together with structured errors.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Fallback Resolution"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-FORMAT-007","section":"selection","requirement":"Pattern selection follows the complete multi-selector algorithm and source ordering.","status":"passed","source":{"path":"spec/formatting.md","anchor":"### Pattern Selection"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-008","section":"selection","requirement":"Selectors are resolved once and their failures participate in best-effort selection.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Resolve Selectors"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-009","section":"selection","requirement":"Variant comparison applies selector preferences consistently across all keys.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Compare Variants"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-010","section":"selection","requirement":"Selector matching handles catch-all, exact, and function-defined matching semantics.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### SelectorsMatch"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-011","section":"selection","requirement":"Selector preference comparison preserves function-defined key ordering.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### SelectorsCompare"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-012","section":"selection","requirement":"Variant keys are normalized before comparison according to their value class.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### NormalizeKey"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-FORMAT-013","section":"formatting","requirement":"The selected pattern formats parts in order and preserves structured outputs.","status":"passed","source":{"path":"spec/formatting.md","anchor":"### Formatting of the Selected Pattern"},"evidenceGroups":["resolution","bidi-parts"]},
+    {"id":"MF2-FORMAT-014","section":"fallback","requirement":"Fallback values are formatted with their required source representation.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Formatting Fallback Values"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-FORMAT-015","section":"bidi","requirement":"Default formatting applies Unicode bidi isolation with an explicit no-isolation strategy.","status":"passed","source":{"path":"spec/formatting.md","anchor":"#### Handling Bidirectional Text"},"evidenceGroups":["bidi-parts"]},
+
+    {"id":"MF2-ERROR-001","section":"errors","requirement":"Formatting continues best-effort where specified while every error remains observable.","status":"passed","source":{"path":"spec/errors.md","anchor":"### Error Handling"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-002","section":"errors","requirement":"Syntax errors remain distinguishable from data-model and runtime errors.","status":"passed","source":{"path":"spec/errors.md","anchor":"### Syntax Errors"},"evidenceGroups":["syntax","syntax-model"]},
+    {"id":"MF2-ERROR-003","section":"errors","requirement":"Variant key count mismatches produce the specified data-model error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Variant Key Mismatch"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-004","section":"errors","requirement":"A matcher without an all-catch-all variant produces the specified data-model error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Missing Fallback Variant"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-005","section":"errors","requirement":"Unannotated matcher selectors produce the specified data-model error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Missing Selector Annotation"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-006","section":"errors","requirement":"Duplicate variable declarations are detected using NFC-equivalent names.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Duplicate Declaration"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-007","section":"errors","requirement":"Duplicate function option names produce the specified data-model error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Duplicate Option Name"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-008","section":"errors","requirement":"Duplicate normalized variant key tuples produce the specified data-model error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Duplicate Variant"},"evidenceGroups":["syntax-model"]},
+    {"id":"MF2-ERROR-009","section":"errors","requirement":"Unresolved variables produce a typed resolution error and fallback behavior.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Unresolved Variable"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-010","section":"errors","requirement":"Unknown functions produce a typed resolution error and fallback behavior.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Unknown Function"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-011","section":"errors","requirement":"Selectors without a usable selection operation produce a typed bad-selector error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Bad Selector"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-012","section":"errors","requirement":"Message-function failures remain typed and participate in best-effort formatting.","status":"passed","source":{"path":"spec/errors.md","anchor":"### Message Function Errors"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-013","section":"errors","requirement":"Invalid or missing operands produce a typed bad-operand error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Bad Operand"},"evidenceGroups":["fallback-errors","default-functions"]},
+    {"id":"MF2-ERROR-014","section":"errors","requirement":"Invalid option names or values produce a typed bad-option error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Bad Option"},"evidenceGroups":["fallback-errors","default-functions"]},
+    {"id":"MF2-ERROR-015","section":"errors","requirement":"Invalid selector keys produce a typed bad-variant-key error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Bad Variant Key"},"evidenceGroups":["fallback-errors"]},
+    {"id":"MF2-ERROR-016","section":"errors","requirement":"Unavailable host operations produce an explicit unsupported-operation error.","status":"passed","source":{"path":"spec/errors.md","anchor":"#### Unsupported Operation"},"evidenceGroups":["fallback-errors","default-functions"]},
+
+    {"id":"MF2-UNIVERSAL-001","section":"universal-options","requirement":"Unicode namespace options are resolved independently of function-specific options.","status":"passed","source":{"path":"spec/u-namespace.md","anchor":"### Unicode Namespace Options"},"evidenceGroups":["resolution","bidi-parts"]},
+    {"id":"MF2-UNIVERSAL-002","section":"universal-options","requirement":"The u:id option requires an eligible literal or resolved string value.","status":"passed","source":{"path":"spec/u-namespace.md","anchor":"#### `u:id`"},"evidenceGroups":["resolution"]},
+    {"id":"MF2-UNIVERSAL-003","section":"universal-options","requirement":"The u:dir option validates its literal values and controls direction metadata.","status":"passed","source":{"path":"spec/u-namespace.md","anchor":"#### `u:dir`"},"evidenceGroups":["resolution","bidi-parts"]},
+
+    {"id":"MF2-FUNCTION-001","section":"default-functions","requirement":"Every stable required default function and required option is accepted.","status":"passed","source":{"path":"spec/functions/README.md","anchor":"## Default Functions"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-002","section":"default-functions","requirement":"Function and option acceptance preserves the specified error boundary.","status":"passed","source":{"path":"spec/functions/README.md","anchor":"To **_<dfn>accept</dfn>_** a function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-003","section":"extensions","requirement":"Application-defined functions require namespaces and remain outside the standard claim.","status":"passed","source":{"path":"spec/functions/README.md","anchor":"register and use user-defined _functions_"},"evidenceGroups":["registry","policy"]},
+    {"id":"MF2-FUNCTION-004","section":"string","requirement":"The stable string function implements required operand, formatting, and selection behavior.","status":"passed","source":{"path":"spec/functions/string.md","anchor":"#### The `:string` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-005","section":"number","requirement":"The stable number function implements every required option and selection behavior.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### The `:number` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-006","section":"integer","requirement":"The stable integer function implements every required option and rounding behavior.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### The `:integer` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-007","section":"offset","requirement":"The stable offset function implements required add and subtract semantics.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### The `:offset` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-008","section":"currency","requirement":"The stable currency function implements every required option and currency operand rule.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### The `:currency` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-009","section":"percent","requirement":"The stable percent function implements every required option and scaling behavior.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### The `:percent` function"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-010","section":"numeric-operands","requirement":"Numeric functions accept and validate the pinned numeric operand repertoire.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### Numeric Operands"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-011","section":"digit-options","requirement":"Digit-size option inheritance, bounds, conflicts, and rounding are implemented.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### Digit Size Options"},"evidenceGroups":["default-functions"]},
+    {"id":"MF2-FUNCTION-012","section":"number-selection","requirement":"Exact, plural, and ordinal number selection follows the pinned algorithm.","status":"passed","source":{"path":"spec/functions/number.md","anchor":"#### Number Selection"},"evidenceGroups":["default-functions"]},
+
+    {"id":"MF2-DRAFT-001","section":"draft-unit","requirement":"The Draft unit function is deliberately excluded from the stable v2 profile.","status":"not-applicable","source":{"path":"spec/functions/number.md","anchor":"#### The `:unit` function"},"rationale":"LDML 48.2 marks :unit as Draft, so it is not part of the stable conformance target frozen for the v2 profile."},
+    {"id":"MF2-DRAFT-002","section":"draft-datetime","requirement":"The Draft datetime function is available only through the named experimental extension.","status":"not-applicable","source":{"path":"spec/functions/datetime.md","anchor":"#### The `:datetime` function"},"rationale":"LDML 48.2 marks date/time functions as Draft; the implementation is tested under experimental-datetime-v1 and excluded from the stable claim."},
+    {"id":"MF2-DRAFT-003","section":"draft-date","requirement":"The Draft date function is available only through the named experimental extension.","status":"not-applicable","source":{"path":"spec/functions/datetime.md","anchor":"#### The `:date` function"},"rationale":"LDML 48.2 marks date/time functions as Draft; the implementation is tested under experimental-datetime-v1 and excluded from the stable claim."},
+    {"id":"MF2-DRAFT-004","section":"draft-time","requirement":"The Draft time function is available only through the named experimental extension.","status":"not-applicable","source":{"path":"spec/functions/datetime.md","anchor":"#### The `:time` function"},"rationale":"LDML 48.2 marks date/time functions as Draft; the implementation is tested under experimental-datetime-v1 and excluded from the stable claim."},
+
+    {"id":"MF2-SECURITY-001","section":"security","requirement":"Inputs and outputs are bounded and markup, functions, and controls are not implicitly executed by renderers.","status":"passed","source":{"path":"spec/appendices.md","anchor":"### Security Considerations"},"evidenceGroups":["security","registry"]}
   ],
   "stableDefaultRegistry": [
-    {
-      "function": "string",
-      "status": "passed",
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": []
-    },
-    {
-      "function": "number",
-      "status": "passed",
-      "evidenceAppliesToOptions": true,
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": ["select", "signDisplay", "useGrouping", "minimumIntegerDigits", "minimumFractionDigits", "maximumFractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingIncrement", "roundingMode"]
-    },
-    {
-      "function": "integer",
-      "status": "passed",
-      "evidenceAppliesToOptions": true,
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": ["select", "signDisplay", "useGrouping", "minimumIntegerDigits", "maximumSignificantDigits"]
-    },
-    {
-      "function": "offset",
-      "status": "passed",
-      "evidenceAppliesToOptions": true,
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": ["add", "subtract"]
-    },
-    {
-      "function": "currency",
-      "status": "passed",
-      "evidenceAppliesToOptions": true,
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": ["currency", "currencySign", "currencyDisplay", "useGrouping", "minimumIntegerDigits", "fractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingIncrement", "roundingMode"]
-    },
-    {
-      "function": "percent",
-      "status": "passed",
-      "evidenceAppliesToOptions": true,
-      "evidence": [{"path": "runtime/js/mf2_upstream_functions_test.mbt", "contains": "Unicode MF2 pinned default-function fixtures"}],
-      "options": ["signDisplay", "useGrouping", "minimumFractionDigits", "maximumFractionDigits", "minimumSignificantDigits", "maximumSignificantDigits", "trailingZeroDisplay", "roundingPriority", "roundingMode"]
-    }
+    {"function":"string","status":"passed","evidenceGroups":["default-functions"],"options":[]},
+    {"function":"number","status":"passed","evidenceGroups":["default-functions"],"evidenceAppliesToOptions":true,"options":["select","signDisplay","useGrouping","minimumIntegerDigits","minimumFractionDigits","maximumFractionDigits","minimumSignificantDigits","maximumSignificantDigits","trailingZeroDisplay","roundingPriority","roundingIncrement","roundingMode"]},
+    {"function":"integer","status":"passed","evidenceGroups":["default-functions"],"evidenceAppliesToOptions":true,"options":["select","signDisplay","useGrouping","minimumIntegerDigits","maximumSignificantDigits"]},
+    {"function":"offset","status":"passed","evidenceGroups":["default-functions"],"evidenceAppliesToOptions":true,"options":["add","subtract"]},
+    {"function":"currency","status":"passed","evidenceGroups":["default-functions"],"evidenceAppliesToOptions":true,"options":["currency","currencySign","currencyDisplay","useGrouping","minimumIntegerDigits","fractionDigits","minimumSignificantDigits","maximumSignificantDigits","trailingZeroDisplay","roundingPriority","roundingIncrement","roundingMode"]},
+    {"function":"percent","status":"passed","evidenceGroups":["default-functions"],"evidenceAppliesToOptions":true,"options":["signDisplay","useGrouping","minimumFractionDigits","maximumFractionDigits","minimumSignificantDigits","maximumSignificantDigits","trailingZeroDisplay","roundingPriority","roundingMode"]}
   ],
   "draftRegistry": [
-    {"function": "date", "status": "passed", "classification": "draft-extension"},
-    {"function": "time", "status": "passed", "classification": "draft-extension"},
-    {"function": "datetime", "status": "passed", "classification": "draft-extension"},
-    {"function": "unit", "status": "not-applicable", "classification": "deferred-draft", "rationale": "The pinned LDML 48.2 function is draft and is not part of the stable conformance claim."}
+    {"function":"date","status":"not-applicable","classification":"experimental-datetime-v1","rationale":"Draft in LDML 48.2; implemented only by the named experimental profile."},
+    {"function":"time","status":"not-applicable","classification":"experimental-datetime-v1","rationale":"Draft in LDML 48.2; implemented only by the named experimental profile."},
+    {"function":"datetime","status":"not-applicable","classification":"experimental-datetime-v1","rationale":"Draft in LDML 48.2; implemented only by the named experimental profile."},
+    {"function":"unit","status":"not-applicable","classification":"deferred-draft","rationale":"Draft in LDML 48.2 and not implemented by the selected stable or experimental profiles."}
   ]
 }

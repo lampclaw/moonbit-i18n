@@ -76,7 +76,7 @@ test "XLIFF lifecycle validates standards-profile functions" {
       source,
       "fr",
       Some(target),
-      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+      message_profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     )
     is Ok(xliff) else {
     fail("standards-profile XLIFF export should succeed")
@@ -87,7 +87,7 @@ test "XLIFF lifecycle validates standards-profile functions" {
       source,
       "fr",
       xliff,
-      message_profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
+      message_profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     )
     is Ok(imported) else {
     fail("standards-profile XLIFF import should succeed")

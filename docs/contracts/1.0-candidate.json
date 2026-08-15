@@ -1,0 +1,72 @@
+{
+  "snapshotVersion": 1,
+  "candidateRelease": "0.9.0",
+  "module": {
+    "name": "lampclaw/i18n",
+    "layout": "single-mooncakes-module"
+  },
+  "publicInterfaces": {
+    "runtime/pkg.generated.mbti": "72953381eb7165c5902029089c8769796294bf71aed3da6cc62b300b9e94b9a6",
+    "runtime/js/pkg.generated.mbti": "2b02a16d373f668624bfdcbfd8ccf30604015b6f26651f1ddf4bbad36fdb027f",
+    "generator/pkg.generated.mbti": "91e847781035acd3305669bb765b70fcdf0e6c78d271f14f5b7685b4fc7b52fe"
+  },
+  "generatorTemplate": {
+    "path": "generator/codegen.mbt",
+    "sha256": "a8730de62288f8f069d2f9b16be65fa7c0555812f293112819ea11669e94a013"
+  },
+  "authoring": {
+    "messageProfileRequired": true,
+    "stableMessageProfile": "unicode-mf2-ldml48.2-js-v2",
+    "legacyMessageProfile": "unicode-mf2-ldml48.2-js-v1",
+    "experimentalDatetimeMessageProfile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
+    "compatibilityMessageProfile": "lampclaw-mf2-strict-v1+lampclaw-datetime-v1"
+  },
+  "wireContracts": {
+    "catalogVersion": 2,
+    "diagnosticVersion": 1,
+    "generationManifestVersion": 1,
+    "deploymentManifestVersion": 1,
+    "ownershipManifestVersion": 2
+  },
+  "cli": {
+    "binary": "moon-i18n",
+    "commands": [
+      "scaffold",
+      "generate",
+      "check",
+      "coverage",
+      "pseudo",
+      "export-xliff",
+      "import-xliff",
+      "import-i18next",
+      "import-arb"
+    ],
+    "standaloneCommandsRequireMessageProfile": [
+      "pseudo",
+      "export-xliff",
+      "import-xliff",
+      "import-i18next",
+      "import-arb"
+    ]
+  },
+  "diagnosticCodes": [
+    "I18N0001",
+    "I18N1001",
+    "I18N1002",
+    "I18N1003",
+    "I18N1004",
+    "I18N2001",
+    "I18N2002",
+    "I18N3001",
+    "I18N3002",
+    "I18N3003",
+    "I18N3004",
+    "I18N4001",
+    "I18N5001",
+    "I18N9001"
+  ],
+  "supportedHost": {
+    "node": "26.7.0",
+    "browserEngines": ["chromium", "firefox", "webkit"]
+  }
+}

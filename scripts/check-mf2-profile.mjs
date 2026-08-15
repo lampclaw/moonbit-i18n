@@ -7,19 +7,56 @@ const read = path => readFile(new URL(path, root), "utf8");
 const pin = (await read("tests/unicode-mf2/PINNED_COMMIT")).trim();
 const matrix = JSON.parse(await read("tests/unicode-mf2/profile.json"));
 const requirements = JSON.parse(await read("tests/unicode-mf2/requirements.json"));
+const standards = JSON.parse(await read("tests/unicode-mf2/standards.json"));
 const differential = JSON.parse(
   await read("tests/unicode-mf2/differential-report.json"),
 );
+
 assert.match(pin, /^[0-9a-f]{40}$/u);
+assert.equal(pin, "7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331");
+assert.equal(matrix.upstreamTag, "LDML48.2");
 assert.equal(matrix.upstreamCommit, pin);
+assert.equal(matrix.standardsFreeze, "tests/unicode-mf2/standards.json");
+assert.deepEqual(standards.messageFormat, {
+  standard: "Unicode LDML Part 9: MessageFormat",
+  ldmlVersion: "48.2",
+  reportRevision: 78,
+  report: "https://www.unicode.org/reports/tr35/tr35-78/tr35-messageFormat.html",
+  repository: "https://github.com/unicode-org/message-format-wg",
+  tag: "LDML48.2",
+  commit: pin,
+});
+assert.equal(standards.cldr.version, "48.2");
+assert.equal(standards.cldr.tag, "release-48-2");
+assert.equal(standards.cldr.commit, "11299982335beb974c1c63c45265184e759c0f41");
+assert.equal(standards.cldrJson.version, "48.2.0");
+assert.equal(standards.javascriptHost.node, "26.7.0");
+
 assert.equal(
   matrix.conformanceClaim,
-  "unicode-mf2-syntax-data-model-resolution-and-stable-default-functions-js",
+  "unicode-mf2-ldml48.2-stable-js-release-candidate",
 );
-assert.equal(matrix.standardMessageProfile, "unicode-mf2-ldml48.2-js-v1");
+assert.equal(matrix.standardMessageProfile, "unicode-mf2-ldml48.2-js-v2");
+assert.equal(matrix.legacyStandardMessageProfile, "unicode-mf2-ldml48.2-js-v1");
+assert.equal(
+  matrix.experimentalDatetimeMessageProfile,
+  "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
+);
 assert.equal(matrix.authoringProfiles.compatibility, matrix.catalogProfile);
 assert.equal(matrix.authoringProfiles.standards, matrix.standardMessageProfile);
+assert.equal(
+  matrix.authoringProfiles.legacyStandards,
+  matrix.legacyStandardMessageProfile,
+);
+assert.equal(
+  matrix.authoringProfiles.experimentalDatetime,
+  matrix.experimentalDatetimeMessageProfile,
+);
 assert.equal(requirements.messageProfile, matrix.standardMessageProfile);
+assert.equal(
+  requirements.experimentalDatetimeProfile,
+  matrix.experimentalDatetimeMessageProfile,
+);
 assert.deepEqual(matrix.requirementMatrix, {
   path: "tests/unicode-mf2/requirements.json",
   normativeRows: requirements.requirements.length,
@@ -30,10 +67,24 @@ assert.deepEqual(matrix.requirementMatrix, {
   ),
   unexplainedGaps: 0,
 });
+
 assert.equal(differential.messageProfile, matrix.standardMessageProfile);
+assert.equal(
+  differential.experimentalDatetimeProfile,
+  matrix.experimentalDatetimeMessageProfile,
+);
 assert.equal(matrix.differential.cases, differential.totalCases);
+assert.equal(matrix.differential.stableCases, differential.stableCases.length);
+assert.equal(
+  matrix.differential.experimentalDatetimeCases,
+  differential.experimentalDatetimeCases.length,
+);
 assert.equal(matrix.differential.unexplainedSemanticFailures, 0);
 assert.deepEqual(differential.unexplainedSemanticFailures, []);
+assert.equal(differential.host.node, "26.7.0");
+assert.equal(differential.stableCases.length, 20);
+assert.equal(differential.experimentalDatetimeCases.length, 4);
+
 assert.deepEqual(matrix.stableDefaultFunctions, [
   "string",
   "number",
@@ -55,6 +106,10 @@ const syntaxCounts = {
   dataModelCases: JSON.parse(syntaxFixtures[2]).tests.length,
 };
 assert.deepEqual(matrix.syntaxFixtureCounts, syntaxCounts);
+assert.equal(
+  matrix.browserConformance.syntaxAndDataModelCases,
+  Object.values(syntaxCounts).reduce((sum, value) => sum + value, 0),
+);
 
 const resolutionNames = ["fallback", "pattern-selection", "bidi", "u-options"];
 const resolutionFixtures = await Promise.all(
@@ -73,17 +128,10 @@ resolutionCounts.total = Object.values(resolutionCounts).reduce(
   0,
 );
 assert.deepEqual(matrix.resolutionFixtureCounts, resolutionCounts);
+assert.equal(matrix.browserConformance.resolutionCases, resolutionCounts.total);
 
 const functionNames = [
-  "currency",
-  "date",
-  "datetime",
-  "integer",
-  "number",
-  "offset",
-  "percent",
-  "string",
-  "time",
+  "currency", "date", "datetime", "integer", "number", "offset", "percent", "string", "time",
 ];
 const functionFixtures = await Promise.all(
   functionNames.map(name =>
@@ -101,11 +149,24 @@ const functionCounts = {
   string: JSON.parse(functionFixtures[7]).tests.length,
   timeDraft: JSON.parse(functionFixtures[8]).tests.length,
 };
-functionCounts.total = Object.values(functionCounts).reduce(
-  (sum, value) => sum + value,
-  0,
-);
+functionCounts.stableTotal = [
+  "currency", "integer", "number", "offset", "percent", "string",
+].reduce((sum, name) => sum + functionCounts[name], 0);
+functionCounts.experimentalDatetimeTotal =
+  functionCounts.dateDraft + functionCounts.datetimeDraft + functionCounts.timeDraft;
+functionCounts.total =
+  functionCounts.stableTotal + functionCounts.experimentalDatetimeTotal;
 assert.deepEqual(matrix.defaultFunctionFixtureCounts, functionCounts);
+assert.equal(
+  matrix.browserConformance.stableDefaultFunctionCases,
+  functionCounts.stableTotal,
+);
+assert.equal(
+  matrix.browserConformance.experimentalDatetimeCases,
+  functionCounts.experimentalDatetimeTotal,
+);
+assert.equal(matrix.browserConformance.differentialCases, differential.totalCases);
+assert.deepEqual(matrix.browserConformance.engines, ["chromium", "firefox", "webkit"]);
 
 const sources = Object.fromEntries(
   await Promise.all(
@@ -131,25 +192,21 @@ const sources = Object.fromEntries(
       "docs/mf2-default-functions.mbt.md",
       "docs/mf2-default-functions.zh-CN.mbt.md",
       "examples/rabbita_todo/localization/config.json",
+      "tests/browser/mf2-conformance.spec.mjs",
+      "tests/mf2-browser/main.mbt",
     ].map(async path => [path, await read(path)]),
   ),
 );
 
-for (const path of [
-  "runtime/catalog.mbt",
-  "runtime/mf2_profile_test.mbt",
-  "docs/mf2-profile.mbt.md",
-  "docs/mf2-profile.zh-CN.mbt.md",
+for (const profile of [
+  matrix.catalogProfile,
+  matrix.standardMessageProfile,
+  matrix.legacyStandardMessageProfile,
+  matrix.experimentalDatetimeMessageProfile,
 ]) {
-  assert.ok(sources[path].includes(matrix.catalogProfile), path);
-}
-for (const path of [
-  "runtime/catalog.mbt",
-  "docs/mf2-profile.mbt.md",
-  "docs/mf2-profile.zh-CN.mbt.md",
-  "examples/rabbita_todo/localization/config.json",
-]) {
-  assert.ok(sources[path].includes(matrix.standardMessageProfile), path);
+  assert.ok(sources["runtime/catalog.mbt"].includes(profile), profile);
+  assert.ok(sources["docs/mf2-profile.mbt.md"].includes(profile), profile);
+  assert.ok(sources["docs/mf2-profile.zh-CN.mbt.md"].includes(profile), profile);
 }
 assert.ok(
   sources["generator/parser.mbt"].includes("@runtime.MF2_STANDARD_MESSAGE_PROFILE"),
@@ -159,35 +216,12 @@ assert.ok(
   sources["generator/generate.mbt"].includes("profile=config.message_profile"),
   "generator/generate.mbt: selected profile must propagate into generated catalogs",
 );
-for (const path of [
-  "runtime/mf2_syntax.mbt",
-  "runtime/mf2_profile_test.mbt",
-  "docs/mf2-profile.mbt.md",
-  "docs/mf2-profile.zh-CN.mbt.md",
-  "docs/mf2-syntax-data-model.mbt.md",
-  "docs/mf2-syntax-data-model.zh-CN.mbt.md",
+for (const [profileName, paths] of [
+  [matrix.syntaxProfile, ["runtime/mf2_syntax.mbt", "docs/mf2-syntax-data-model.mbt.md", "docs/mf2-syntax-data-model.zh-CN.mbt.md"]],
+  [matrix.resolutionProfile, ["runtime/mf2_format.mbt", "docs/mf2-resolution-formatting.mbt.md", "docs/mf2-resolution-formatting.zh-CN.mbt.md"]],
+  [matrix.defaultFunctionProfile, ["runtime/mf2_registry.mbt", "docs/mf2-default-functions.mbt.md", "docs/mf2-default-functions.zh-CN.mbt.md"]],
 ]) {
-  assert.ok(sources[path].includes(matrix.syntaxProfile), path);
-}
-for (const path of [
-  "runtime/mf2_format.mbt",
-  "runtime/mf2_profile_test.mbt",
-  "docs/mf2-profile.mbt.md",
-  "docs/mf2-profile.zh-CN.mbt.md",
-  "docs/mf2-resolution-formatting.mbt.md",
-  "docs/mf2-resolution-formatting.zh-CN.mbt.md",
-]) {
-  assert.ok(sources[path].includes(matrix.resolutionProfile), path);
-}
-for (const path of [
-  "runtime/mf2_registry.mbt",
-  "runtime/mf2_profile_test.mbt",
-  "docs/mf2-profile.mbt.md",
-  "docs/mf2-profile.zh-CN.mbt.md",
-  "docs/mf2-default-functions.mbt.md",
-  "docs/mf2-default-functions.zh-CN.mbt.md",
-]) {
-  assert.ok(sources[path].includes(matrix.defaultFunctionProfile), path);
+  for (const path of paths) assert.ok(sources[path].includes(profileName), path);
 }
 for (const path of [
   "runtime/mf2_profile_test.mbt",
@@ -205,7 +239,15 @@ for (const path of [
 ]) {
   assert.ok(sources[path].includes(pin), path);
 }
-
+assert.ok(
+  sources["examples/rabbita_todo/localization/config.json"].includes(
+    matrix.experimentalDatetimeMessageProfile,
+  ),
+  "Rabbita must explicitly select experimental datetime",
+);
+for (const token of ["270", "67", "104", "20", "24"]) {
+  assert.ok(sources["tests/browser/mf2-conformance.spec.mjs"].includes(token));
+}
 assert.match(sources["runtime/mf2_default_functions.mbt"], /"currency"/u);
 assert.match(sources["runtime/mf2_default_functions.mbt"], /"datetime"/u);
 assert.match(sources["runtime/js/formatter.mbt"], /Intl\.NumberFormat/u);
@@ -213,13 +255,9 @@ assert.match(sources["runtime/js/formatter.mbt"], /Intl\.PluralRules/u);
 assert.match(sources["runtime/js/formatter.mbt"], /Intl\.DateTimeFormat/u);
 
 process.stdout.write(
-    `MF2 catalog profile synchronized: ${matrix.catalogProfile}\n` +
-    `MF2 standards authoring profile synchronized: ${matrix.standardMessageProfile}\n` +
-    `MF2 syntax profile synchronized: ${matrix.syntaxProfile}\n` +
-    `MF2 resolution profile synchronized: ${matrix.resolutionProfile}\n` +
-    `MF2 default registry synchronized: ${matrix.defaultFunctionProfile}\n` +
-    `Pinned upstream commit: ${pin}\n` +
-    `Pinned syntax/data-model fixtures: ${Object.values(syntaxCounts).reduce((a, b) => a + b, 0)} cases\n` +
-    `Pinned resolution fixtures: ${resolutionCounts.total} cases\n` +
-    `Pinned default-function fixtures: ${functionCounts.total} cases\n`,
+  `MF2 stable profile synchronized: ${matrix.standardMessageProfile}\n` +
+    `MF2 experimental datetime profile synchronized: ${matrix.experimentalDatetimeMessageProfile}\n` +
+    `Pinned stable upstream: ${matrix.upstreamTag} (${pin})\n` +
+    `Anchored normative requirements: ${requirements.requirements.length}; blockers: 0\n` +
+    `Browser conformance: ${matrix.browserConformance.engines.join(", ")}\n`,
 );

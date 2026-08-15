@@ -102,15 +102,16 @@ registry 日期和 SHA-256 通过 `BCP47_REGISTRY_DATE` 与
 
 ## Conformance 与限制
 
-固定点仍为 Unicode MessageFormat WG commit
-`d115a614079678850aac8b52742360e888b8f027`。除了 `0.5.0` 的 270 个 syntax/data-model
+固定点是 Unicode MessageFormat WG 正式 tag `LDML48.2`、commit
+`7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`。除了 `0.5.0` 的 270 个 syntax/data-model
 用例，固定上游的 67 个 fallback、pattern-selection、bidi 与 Unicode-option 用例也使用
 测试套件指定的 conformance function，在 Native、JavaScript、Wasm 与 Wasm-GC 全部
 通过。
 
-这些用例继续证明具名 resolution-core profile。`0.7.0` 另行增加 Node 26 上全部 124
-个固定 default-function case、stable required function、structured host field 与公开
-registry。Catalog profile 选择、规范 matrix 与独立 differential test 仍不在声明中。
+这些用例继续证明具名 resolution-core profile。`0.9.0` 进一步把 104 个 stable 与 20 个
+experimental function case 分开，将 resolution 行为映射到 77 行 anchored normative
+matrix，在 Chromium、Firefox、WebKit 重复运行相同证据，并纳入 stable v2 JavaScript
+conformance-candidate 声明。
 
 context 最多接受 64 个 input；source 与格式化输出分别限制为 64 KiB；原有 declaration、
 selector、variant、option 与 pattern-part 限制继续生效。超过限制时会报告错误，并返回

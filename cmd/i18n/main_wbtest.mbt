@@ -91,7 +91,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.8.0"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.9.0"))
   assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }
@@ -638,7 +638,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "pseudo",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     schema,
     "en-US",
     source,
@@ -650,7 +650,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "export-xliff",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     schema,
     "en-US",
     source,
@@ -665,7 +665,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "import-xliff",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     "--state-output",
     state_file,
     "--report-output",
@@ -684,7 +684,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "import-xliff",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     schema,
     "en-US",
     source,
@@ -698,7 +698,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "export-xliff",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     "--state",
     state_file,
     schema,
@@ -714,7 +714,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "import-i18next",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     schema,
     "zh-CN",
     target,
@@ -736,7 +736,7 @@ async test "CLI generation and tooling integrate on the portable filesystem" {
   run_command([
     "import-arb",
     "--message-profile",
-    @runtime.MF2_STANDARD_MESSAGE_PROFILE,
+    @runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
     migration_schema,
     "fr",
     arb_input,

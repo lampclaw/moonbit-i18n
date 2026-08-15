@@ -9,7 +9,13 @@ const pin = (await readFile(resolve(root, "tests/unicode-mf2/PINNED_COMMIT"), "u
 assert.match(pin, /^[0-9a-f]{40}$/u);
 
 const files = new Map([
-  ["LICENSE", "fbcc4d0631d6e1cb9d4a7750a6510605205a70c7bd74f957d1f998ff0f1e849d"],
+  ["LICENSE", "5dde1004a6504168448185c6dba364b824dedf20791e0a4c3cf6c874120f4fe1"],
+  ["spec/intro.md", "9336837c41277fd32e3c962fa78b0ed7609e454011db5c1e7d8ee9f373a123e0"],
+  ["spec/syntax.md", "9f4cf87490069c9a615fe5b01681a848055ea9eddec7e6491ae09ab47fea9039"],
+  ["spec/message.abnf", "5dcad699587cf982225d008e6dc5d3e2028bfb184c73c7f6ddd2e079c1b72829"],
+  ["spec/data-model/README.md", "d4915d9ce3473e51e558d75d16e73efd1aeb89381eeeeb1e6a9bcda631021e48"],
+  ["spec/data-model/message.json", "185ee0f30b8ab875d5ffc89d12f30c10127cb07090d1cf4653de72d51cddd5d3"],
+  ["spec/appendices.md", "8eb08451c5d22f03fe0f8c0c9eb8e11f0f00b64ceb93f21bdf617052385d50fd"],
   ["test/tests/syntax.json", "4311db5ee6cfc307fa0505a7484ce7cf9e326dd770cc1c85772a35b3fdbdb810"],
   ["test/tests/syntax-errors.json", "26a090b1eb1fdda98d578362c7a49184350a5f80fd919ad54a1735e00786909b"],
   ["test/tests/data-model-errors.json", "6b8d8527b5248af76bca3f61d7c58c3339c91b05555f2fc11727efc81b94e615"],
@@ -22,8 +28,8 @@ const files = new Map([
   ["spec/u-namespace.md", "733e8b8d23ea5f54ea66f4580543795ea9e41e6742906d27b932f7ee8ffb7e81"],
   ["spec/functions/README.md", "54826d6f1ccecb62bede6b393f4f298e965cfb10363a06af459ae07b098cc44b"],
   ["spec/functions/string.md", "8b74c29eeb07b56c172aee9263bcee4c18fdf9fe240383eef691249e60f965dc"],
-  ["spec/functions/number.md", "c48d4ec28c9bb7a104266ebf3d28aa171b9260a92f8cfa9d65730b5595da4b5a"],
-  ["spec/functions/datetime.md", "d6e4058e3a444416fdc5eb07758939c04497513c5f4fa32d07b53e39e09dc65a"],
+  ["spec/functions/number.md", "b40cdbcc200238eea4c4dfe9d48eb557dafdd592841d9de3331b51b3e60fb444"],
+  ["spec/functions/datetime.md", "6e7d9586c20c981d35f3302d4ffde6bac639433cf5209f2cd459c138fa521b41"],
   ["test/tests/functions/currency.json", "12c38d70bfea75c016427ad9623122dd19efdd1cb848b72fcf54dd72292abdea"],
   ["test/tests/functions/date.json", "8b8c76dd1e44b625e97185a04b73f6b416b98931bc1d532325b50f1ff9bfe219"],
   ["test/tests/functions/datetime.json", "f7f15c40eba40e972a2d84bf9f7e54a12f4d5b7a65ae9b316e8fe7cc2aae20cd"],

@@ -1,0 +1,10 @@
+import {
+  "lampclaw/i18n/runtime",
+  "lampclaw/i18n/runtime/js" @runtime_js,
+  "moonbitlang/core/json",
+  "moonbitlang/core/string",
+}
+
+supported_targets = "js"
+
+pkgtype(kind: "executable")

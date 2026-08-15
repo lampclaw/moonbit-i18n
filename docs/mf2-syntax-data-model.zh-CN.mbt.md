@@ -2,10 +2,10 @@
 
 [English](mf2-syntax-data-model.mbt.md)
 
-`0.5.0` 新增独立 profile `unicode-mf2-ldml48.2-syntax-v1`，固定到 Unicode
-MessageFormat WG commit `d115a614079678850aac8b52742360e888b8f027`。它面向工具、
-编辑器、转换器和未来的标准模式 authoring，与生成应用当前使用的 strict-v1 catalog
-formatter 相互隔离。
+`0.5.0` 新增独立 profile `unicode-mf2-ldml48.2-syntax-v1`，现在冻结到 Unicode
+MessageFormat WG 正式 tag `LDML48.2`、commit
+`7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`。它面向工具、编辑器、转换器和标准模式
+authoring，并与 strict-v1 compatibility catalog compiler 相互隔离。
 
 ## 概念
 
@@ -86,7 +86,8 @@ option。interchange JSON 同样有大小和嵌套深度限制。这些实现限
 本 API 不执行 declaration resolution、variant selection、value formatting、bidi
 isolation 或 function registry，也不会改变现有 locale JSON 或 catalog-v2 的含义。
 在 `0.8.x` 引入显式标准模式 authoring profile 前，应用仍应使用自身的 generated
-facade。
+facade。该集成现在已经发布；`0.9.0` 以 stable v2 与显式分离的 experimental datetime
+profile 冻结相同 model。
 
 `0.6.0` 通过独立的 `unicode-mf2-ldml48.2-resolution-v1` profile 增加上述与目标无关
 的 resolution、selection、fallback、structured-output 与 bidi 语义，详见

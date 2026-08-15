@@ -1,25 +1,29 @@
 # Unicode MF2 reference snapshot
 
-This directory pins the upstream Unicode MessageFormat WG fixtures at commit
-`d115a614079678850aac8b52742360e888b8f027` (LDML 48.2 era, 2026-06-11).
-The pin is a review reference, not a conformance claim and not a moving branch.
+This directory pins official Unicode MessageFormat WG tag `LDML48.2`, commit
+`7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`. The pin is an immutable
+normative review reference, not a moving branch.
 
-The project exposes the standards catalog profile
-`unicode-mf2-ldml48.2-js-v1`, the frozen compatibility profile
+The project exposes stable standards catalog profile
+`unicode-mf2-ldml48.2-js-v2`, experimental datetime profile
+`unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`, legacy standards v1,
+the frozen compatibility profile
 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1`, and the standalone syntax,
 resolution, and default-function profiles. Their accepted and deferred feature
 groups are machine-readable in `profile.json`. `requirements.json` maps every
 scoped normative requirement and stable registry option to test evidence.
 Generated fixture tests prove grammar, validity, resolution, fallback,
-selection, bidi, Unicode options, and all 124 pinned function cases on the
-declared backends. `differential.json` and `differential-report.json` compare a
-pinned independent implementation under Node 26 and classify exact output,
-CLDR-text variation, and semantic failures separately. Draft date/time support
-is tracked separately and does not expand the stable conformance claim.
+selection, bidi, and Unicode options on the declared backends. The function
+evidence separates 104 stable from 20 experimental date/time cases.
+`differential.json` and `differential-report.json` compare a pinned independent
+implementation under Node 26 and separate 20 stable from 4 experimental cases,
+while classifying exact output, CLDR-text variation, and semantic failures.
+The same suites run in real Chromium, Firefox, and WebKit. Draft date/time
+support never expands the stable conformance claim.
 
 When intentionally changing the profile:
 
-1. review the upstream diff from this exact commit;
+1. review the upstream diff from this exact tag and commit;
 2. update the profile identifier, compatibility matrix, tests, docs, and
    generated catalog contract hashes in one change;
 3. run `node scripts/check-mf2-requirements.mjs`,

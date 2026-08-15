@@ -39,10 +39,10 @@ The separate standards-core path uses `parse_valid_mf2_model` followed by
 `format_mf2_standalone`. Its `Mf2FormatResult` returns best-effort text,
 renderer-independent structured parts, and all discovered typed errors.
 `Mf2FormattingContext` requires strict BCP 47 locales and explicit value/message
-direction metadata. Catalog-v2 entries with
-`unicode-mf2-ldml48.2-js-v1` are parsed once into this model during atomic
-installation and formatted through the pinned default registry. Compatibility
-catalogs continue to use `CompiledMessage`; see
+direction metadata. Catalog-v2 entries with the stable v2, legacy v1, or
+experimental datetime standards profile are parsed once into this model during
+atomic installation and formatted through the pinned default registry.
+Compatibility catalogs continue to use `CompiledMessage`; see
 [`mf2-resolution-formatting.mbt.md`](mf2-resolution-formatting.mbt.md).
 
 For Node 26 JavaScript, `@runtime_js.format_mf2` supplies the pinned stable
@@ -54,10 +54,11 @@ Unicode conformance; see
 
 ## Catalog compatibility contract
 
-The `0.8.0` release accepts catalog format version `2` with either the
-compatibility profile `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` or the
-standards authoring profile `unicode-mf2-ldml48.2-js-v1`. One `I18n` instance
-requires exactly one profile; catalogs cannot be mixed. `contractHash` is the
+The `0.9.0` release accepts catalog format version `2` with an explicit
+compatibility, legacy v1, stable v2, or experimental datetime profile. Stable
+authoring uses `unicode-mf2-ldml48.2-js-v2`; experimental date/time authoring
+uses `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`. One `I18n`
+instance requires exactly one profile; catalogs cannot be mixed. `contractHash` is the
 SHA-256 digest of a canonical UTF-8 contract containing the selected profile,
 message IDs, parameter types, and allowed markup names. A catalog is accepted
 only when version, profile, contract hash, and normalized locale all match.
@@ -105,11 +106,13 @@ diagnostics that could not be retained. `take_diagnostics()` drains the buffer.
 
 The compatibility profile preserves patterns, declarations, matching, legacy
 markup parts, `:string`, `:number`, `:integer`, `:offset`, and private
-`:lampclaw:datetime`. The standards authoring profile uses the complete pinned
-model, resolution, bidi, stable default registry, and separately marked draft
-date/time functions. Generated standards catalogs reject every private or
+`:lampclaw:datetime`. The stable v2 authoring profile uses the complete pinned
+model, resolution, bidi, and stable default registry while rejecting Draft
+date/time functions. The explicitly named experimental profile adds those
+three Draft functions. Generated standards catalogs reject every private or
 custom function. Low-level callers may still register namespaced custom
 functions, but their behavior is outside generated authoring and conformance.
-Neither profile name claims the final 1.0 complete Unicode MF2 contract; see
+The candidate public interface and wire contracts are frozen in
+`docs/contracts/1.0-candidate.json`; see
 [`mf2-profile.mbt.md`](mf2-profile.mbt.md) for the pinned reference snapshot
 and the compatibility matrix.

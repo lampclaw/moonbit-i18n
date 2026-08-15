@@ -66,8 +66,8 @@ pub(all) struct I18nConfig {
   /// Catalog authoring/runtime profile selected for generated messages.
   message_profile : String
   /// Whether `messageProfile` was explicitly present in the source config.
-  /// This distinguishes intentional compatibility mode from the temporary
-  /// pre-1.0 default used for older projects.
+  /// Starting in 0.9 this is always true for successfully parsed configs;
+  /// the field remains for source compatibility with 0.8 tooling.
   message_profile_explicit : Bool
   /// Locale that defines authoring completeness.
   source_locale : String

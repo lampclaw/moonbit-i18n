@@ -23,7 +23,7 @@ test "structured diagnostics expose stable human and JSON contracts" {
 ///|
 test "locale and MF2 failures retain locale source identity" {
   let config =
-    #|{"sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
+    #|{"messageProfile":"lampclaw-mf2-strict-v1+lampclaw-datetime-v1","sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
   let schema =
     #|{"messages":{"common":["hello"]}}
   let locale =
@@ -44,7 +44,7 @@ test "locale and MF2 failures retain locale source identity" {
 ///|
 test "configuration diagnostics do not point at locale resources" {
   let config =
-    #|{"sourceLocale":"bad locale","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
+    #|{"messageProfile":"lampclaw-mf2-strict-v1+lampclaw-datetime-v1","sourceLocale":"bad locale","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
   let result = generate_with_diagnostics(
     config,
     "{}",
@@ -59,7 +59,7 @@ test "configuration diagnostics do not point at locale resources" {
 }
 
 ///|
-test "omitted profile and legacy datetime emit path-aware migration warnings" {
+test "omitted profile is a path-aware error" {
   let config =
     #|{"sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
   let schema =
@@ -74,21 +74,42 @@ test "omitted profile and legacy datetime emit path-aware migration warnings" {
       schema_path="localization/schema.json",
       locale_directory="localization/locales",
     )
-    is Ok(artifacts) else {
-    fail("legacy generation should remain compatible")
+    is Err([diagnostic]) else {
+    fail("missing profile must fail")
   }
-  assert_eq(artifacts.diagnostics.length(), 2)
-  assert_eq(artifacts.diagnostics[0].code, "I18N1003")
-  assert_eq(artifacts.diagnostics[0].severity, Warning)
+  assert_eq(diagnostic.code, "I18N1003")
+  assert_eq(diagnostic.severity, Error)
+  assert_eq(diagnostic.path, "localization/config.json")
+}
+
+///|
+test "legacy profiles emit path-aware migration warnings" {
+  let config =
+    #|{"messageProfile":"unicode-mf2-ldml48.2-js-v1","sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
+  let schema =
+    #|{"messages":{"common":["updated"]}}
+  let locale =
+    #|{"common":{"updated":"Updated"}}
+  guard generate_with_diagnostics(
+      config,
+      schema,
+      [{ code: "en-US", source: locale }],
+      config_path="localization/config.json",
+      schema_path="localization/schema.json",
+      locale_directory="localization/locales",
+    )
+    is Ok(artifacts) else {
+    fail("legacy v1 generation should remain supported")
+  }
+  assert_eq(artifacts.diagnostics.length(), 1)
+  assert_eq(artifacts.diagnostics[0].code, "I18N1004")
   assert_eq(artifacts.diagnostics[0].path, "localization/config.json")
-  assert_eq(artifacts.diagnostics[1].code, "I18N3003")
-  assert_eq(artifacts.diagnostics[1].path, "localization/locales/en-US.json")
 }
 
 ///|
 test "standards profile rejects private datetime with a stable diagnostic" {
   let config =
-    #|{"messageProfile":"unicode-mf2-ldml48.2-js-v1","sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
+    #|{"messageProfile":"unicode-mf2-ldml48.2-js-v2","sourceLocale":"en-US","defaultLocale":"en-US","fallbackLocale":"en-US","embeddedLocales":["en-US"],"locales":{"en-US":{}}}
   let schema =
     #|{"messages":{"common":["updated"]},"params":{"common.updated":[{"name":"when","type":"InstantMillis"}]}}
   let locale =

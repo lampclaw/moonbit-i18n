@@ -78,6 +78,9 @@ from the published archive.
 - [ ] Confirm the documented compatibility and standards MF2 profiles, pinned
       Unicode snapshot, normative requirement matrix, and differential report;
       do not claim behavior beyond the machine-readable conformance evidence.
+- [ ] Run `node scripts/check-contract-snapshot.mjs`; review any intentional
+      public-interface, generated-template, CLI, diagnostic, profile, or wire
+      change before updating the 1.0 candidate snapshot.
 - [ ] Confirm `docs/support-policy*.mbt.md` matches the exact CI matrix and
       compatibility behavior exercised by this release.
 - [ ] Review both public roadmap languages. Confirm their current-status and
@@ -110,7 +113,9 @@ from the published archive.
 - [ ] Regenerate Rabbita through the CLI, run `check`, and verify no generated
       or interface drift remains.
 - [ ] Build the Rabbita Todo release artifact and run the locked Playwright
-      scenarios on Chromium, Firefox, and WebKit: locale switching, plural,
+      scenarios on Chromium, Firefox, and WebKit. This must include the real
+      MoonBit upstream syntax/data-model, resolution, stable/experimental
+      function, and differential suites as well as locale switching, plural,
       number/datetime formatting, rich parts, fallback, dynamic catalog
       installation/failure/retry, preference persistence, unavailable storage,
       and diagnostics.
@@ -125,8 +130,9 @@ from the published archive.
       not be in the archive.
 - [ ] Confirm runtime, generator, CLI, portable formatter, README, changelog,
       security policy, license, profile and profile-migration documents, and
-      both public roadmap languages are in the archive. Confirm `AGENTS.md`
-      remains repository-only.
+      both public roadmap languages are in the archive. Confirm
+      `docs/contracts/1.0-candidate.json` is present and `AGENTS.md` remains
+      repository-only.
 - [ ] Extract the archive in a clean directory and run `moon doc` there.
 - [ ] Run `node scripts/package-smoke.mjs` to exercise the actual archive as a
       clean local workspace dependency, generate a bilingual app, run its
@@ -147,8 +153,8 @@ from the published archive.
       The helper applies the exact pinned-client acceptance rule above and
       prints the archive checksum. Record its complete output. Do not publish
       from a dirty or unreviewed worktree. The helper reruns the documentation,
-      API, MF2 requirement, differential, profile, and version-contract gates
-      before it contacts the registry.
+      API, MF2 requirement, differential, profile, 1.0 candidate contract, and
+      version-contract gates before it contacts the registry.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with the intended remote branch, then create a signed
       `v<version>` tag locally. Publish only `lampclaw/i18n` from that tagged
@@ -198,6 +204,7 @@ node scripts/check-api-docs.mjs
 node scripts/check-mf2-requirements.mjs
 node scripts/check-mf2-differential.mjs
 node scripts/check-mf2-profile.mjs
+node scripts/check-contract-snapshot.mjs
 node scripts/version-contract.mjs check
 node scripts/publish-dry-run.mjs
 ~~~

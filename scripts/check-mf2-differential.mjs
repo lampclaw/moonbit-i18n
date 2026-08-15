@@ -16,7 +16,7 @@ const fixture = JSON.parse(await read("tests/unicode-mf2/differential.json"));
 const update = process.argv.includes("--update");
 
 assert.equal(process.versions.node.split(".")[0], "26", "differential tests support Node 26 only");
-assert.equal(fixture.fixtureVersion, 1);
+assert.equal(fixture.fixtureVersion, 2);
 assert.deepEqual(fixture.reference, {
   package: "messageformat",
   version: "4.0.0",
@@ -39,6 +39,10 @@ function runReference(testCase) {
   const errors = [];
   try {
     const formatter = new MessageFormat(testCase.locale, testCase.source, {
+      // messageformat@4.0.0 still exposes the newly stable :currency and
+      // :percent handlers through this compatibility registry. Case profile
+      // classification below, rather than the oracle's export name, defines
+      // the Lampclaw stable claim.
       functions: DraftFunctions,
       bidiIsolation: testCase.bidiIsolation === "none" ? "none" : "default",
     });
@@ -124,11 +128,25 @@ for (const testCase of fixture.cases) {
 }
 
 const report = {
-  reportVersion: 1,
-  messageProfile: "unicode-mf2-ldml48.2-js-v1",
+  reportVersion: 2,
+  messageProfile: "unicode-mf2-ldml48.2-js-v2",
+  experimentalDatetimeProfile:
+    "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   reference: fixture.reference,
-  nodeMajor: 26,
+  host: {
+    node: process.versions.node,
+    icu: process.versions.icu,
+    cldr: process.versions.cldr,
+    unicode: process.versions.unicode,
+    timeZoneData: process.versions.tz,
+  },
   totalCases: fixture.cases.length,
+  stableCases: fixture.cases
+    .filter(testCase => testCase.profile !== "experimental-datetime")
+    .map(testCase => testCase.id),
+  experimentalDatetimeCases: fixture.cases
+    .filter(testCase => testCase.profile === "experimental-datetime")
+    .map(testCase => testCase.id),
   exactMatches,
   semanticErrorMatches,
   cldrMatches,

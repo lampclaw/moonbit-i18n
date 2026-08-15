@@ -12,7 +12,7 @@
 
 ~~~bash
 moon-i18n export-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr localization/locales/fr.json \
@@ -23,7 +23,7 @@ moon-i18n export-xliff \
 
 ~~~bash
 moon-i18n import-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json \
   en-US localization/locales/en-US.json \
   fr build/fr.xlf \
@@ -43,7 +43,7 @@ localization/locales/fr.json.xliff-report.json
 
 ~~~bash
 moon-i18n export-xliff \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   --state localization/locales/fr.json.xliff-state.json \
   localization/schema.json \
   en-US localization/locales/en-US.json \
@@ -105,12 +105,12 @@ API。
 
 ~~~bash
 moon-i18n import-i18next \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json fr legacy/fr.json \
   localization/locales/fr.json build/fr-i18next-report.json
 
 moon-i18n import-arb \
-  --message-profile unicode-mf2-ldml48.2-js-v1 \
+  --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json fr legacy/app_fr.arb \
   localization/locales/fr.json build/fr-arb-report.json
 ~~~
@@ -127,8 +127,10 @@ PO/POT 迁移被刻意排除。只有完成书面 MF2 映射，并由真实消�
 足够低之后，才会考虑加入。
 
 这些独立命令不会读取应用 config。应通过 `--message-profile` 传入应用的精确
-`messageProfile`；省略时采用[迁移指南](message-profile-migration.zh-CN.mbt.md)所述的
-临时兼容 profile 行为。公共 interchange API 提供对应的可选 `message_profile` 参数。
+`messageProfile`；`0.9.0` 中省略它属于 CLI usage error。交换消息含 Draft date/time
+function 时应选择单独命名的 experimental datetime profile。公共 interchange API 为源码
+兼容保留可选 `message_profile` 参数，新的 API caller 应显式传入。详见
+[迁移指南](message-profile-migration.zh-CN.mbt.md)。
 
 ## 安全与运行限制
 

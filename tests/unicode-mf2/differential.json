@@ -1,5 +1,5 @@
 {
-  "fixtureVersion": 1,
+  "fixtureVersion": 2,
   "reference": {
     "package": "messageformat",
     "version": "4.0.0",
@@ -26,9 +26,9 @@
     {"id": "markup", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "{#strong}Typed{/strong} message"},
     {"id": "unresolved-variable", "classification": "semantic-error", "locale": "en-US", "bidiIsolation": "none", "source": "Missing {$value}", "expectedError": "resolution"},
     {"id": "bad-number-option", "classification": "semantic-error", "locale": "en-US", "bidiIsolation": "none", "source": "{1 :number select=$mode}", "params": {"mode": {"type": "string", "value": "exact"}}, "expectedError": "resolution"},
-    {"id": "date", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"},
-    {"id": "time", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :time precision=second timeZone=UTC}"},
-    {"id": "datetime", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :datetime dateLength=medium timePrecision=minute timeZone=UTC}"},
-    {"id": "date-zh", "classification": "cldr-text", "locale": "zh-CN", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"}
+    {"id": "date", "profile": "experimental-datetime", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"},
+    {"id": "time", "profile": "experimental-datetime", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :time precision=second timeZone=UTC}"},
+    {"id": "datetime", "profile": "experimental-datetime", "classification": "cldr-text", "locale": "en-US", "bidiIsolation": "none", "source": "{|2006-01-02T15:04:06Z| :datetime dateLength=medium timePrecision=minute timeZone=UTC}"},
+    {"id": "date-zh", "profile": "experimental-datetime", "classification": "cldr-text", "locale": "zh-CN", "bidiIsolation": "none", "source": "{|2006-01-02| :date length=long timeZone=UTC}"}
   ]
 }
