@@ -14,21 +14,25 @@
 `lampclaw/i18n` 的目标是成为 MoonBit 原生、生成优先、类型安全、标准驱动的国际化
 基础设施，具有可移植核心和可替换的目标平台 formatter。
 
-稳定版 `0.1.0` 基线已经超出原型阶段：
+当前稳定版 `0.9.0` 已经超出原型阶段，并冻结了 1.0 candidate 基线：
 
 - 应用代码使用生成的类型安全 MoonBit facade，而不是裸字符串消息 ID；
 - schema、locale 资源、生成源码、catalog 和所有权 manifest 构成确定性的 authoring
   与部署流程；
 - runtime 支持 locale 协商、内嵌与动态 catalog、结构化失败与诊断、rich parts
   和有界资源使用；
-- CLI 支持生成、校验、覆盖率、pseudo locale 和 XLIFF 2.1 交换；
+- CLI 支持生成、校验、覆盖率、pseudo locale、XLIFF 2.1 交换，以及 i18next/ARB
+  单向迁移；
+- stable `unicode-mf2-ldml48.2-js-v2` profile 具有可追溯的 Unicode MF2 requirement
+  matrix、独立 differential evidence 和 Node.js/三浏览器 conformance gate；
 - 发布门槛覆盖多个 MoonBit target、覆盖率、性能、打包、API 文档和全新模块消费。
 
 当前生成的应用 facade 是 Web/JavaScript 产品，通过明确的 formatter 边界使用宿主
 `Intl`。可移植 runtime 能在其他 MoonBit target 编译，但 locale-sensitive formatting
-能力刻意保持有限。当前发布的
-`lampclaw-mf2-strict-v1+lampclaw-datetime-v1` profile 是严格的
-MessageFormat 2 派生子集，不表示完整通过 Unicode MessageFormat 2。
+能力刻意保持有限。当前 stable authoring 使用
+`unicode-mf2-ldml48.2-js-v2`；Draft date/time 只在显式命名的 experimental profile
+中提供，早期 `lampclaw-mf2-strict-v1+lampclaw-datetime-v1` 仅作为 compatibility
+profile 保留。
 
 近期主要用户是需要工程级本地化的 MoonBit Web 应用。框架和工具作者可以通过已记录的
 runtime 与 generator 接口使用底层能力。完整的跨后端 locale formatting 是长期扩展，
@@ -60,19 +64,46 @@ runtime 与 generator 接口使用底层能力。完整的跨后端 locale forma
 官方 [package 配置](https://docs.moonbitlang.com/en/latest/toolchain/moon/package.html)
 与[多目标工作流](https://www.moonbitlang.com/blog/moonbit-multiple-targets)。
 
-## 借鉴其他生态
+## 产品架构参照与组合借鉴
 
-| 生态 | 吸收 | 不照搬 |
-|---|---|---|
-| [Unicode MF2 与 ICU](https://www.unicode.org/reports/tr35/tr35-messageFormat.html) | 规范性语法与数据模型术语、默认函数、错误与 fallback 行为、Unicode/CLDR 语义和可追溯 conformance 测试。 | 把部分 grammar 描述成“MF2 compliant”，或者静默近似所选 profile 未实现的函数。 |
-| [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) | 编译期校验、类型安全消息函数、确定性生成，以及不可达时能够被消除的输出。 | 把 JavaScript 专属 runtime 模型或框架假设带入可移植 MoonBit core。 |
-| [Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization) | 显式资源契约、稳定的生成 API、延迟 locale 加载和可审查的输入/输出 manifest。 | 引入第二套 canonical ARB authoring 模型，或者把 core package 与一个 UI 框架耦合。 |
-| [FormatJS](https://formatjs.github.io/docs/getting-started/message-extraction/)、[gettext](https://www.gnu.org/software/gettext/manual/gettext.html) 与 [Babel](https://babel.pocoo.org/en/latest/messages.html) | translator context、机器可读诊断、过期/废弃翻译处理、确定性 merge 流程和 TMS 交换。 | 用基于正则的源码抽取取代类型化 schema，或者向用户隐藏有损 round trip。 |
-| [Fluent](https://projectfluent.org/fluent/guide/terms.html) | 面向 translator 的上下文、可复用术语和面向富 UI 的消息。 | 建立平行消息语言；可复用概念应通过 MF2 与类型化 schema 表达。 |
-| [i18next](https://www.i18next.com/overview/plugins-and-utils) | locale detection、loading、cache 和框架 adapter 的清晰边界。 | core runtime 中的全局可变 locale 状态、无边界插件体系或强制网络/storage 依赖。 |
+### 主要产品架构参照：Flutter `gen_l10n`
+
+如果只能选择一个产品架构参照，本项目选择
+[Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization)。它与 MoonBit
+同属编译型语言工具链，最值得借鉴的是显式资源契约、稳定的类型化生成 API、延迟 locale
+加载，以及可供构建系统和审查者核对的输入/输出 manifest。这些能力与生成优先、提交
+确定性产物和让非法应用调用难以表达的 MoonBit 方向一致。
+
+这一选择不表示 ARB 或 Flutter API 兼容。`gen_l10n` 的优势是成熟的框架集成和低摩擦
+codegen；代价是 canonical ARB、delegate/context 生命周期与 Flutter 构建系统强耦合，
+其生成和运行模型不能直接跨语言复用。`lampclaw/i18n` 保留以下差异：
+
+- canonical authoring 是类型化 schema、显式 config 和 MF2 locale JSON，不引入第二套
+  ARB authoring；
+- `moonx` 显式生成并提交应用专用 MoonBit package、deployment manifest 和 catalog，
+  依赖安装不隐式执行 generator；
+- locale 按 namespace chunk 部署并验证字节数、SHA-256、profile 与 contract，而不是
+  只按框架 delegate 加载；
+- 网络、storage、retry 和 locale commit 属于应用或有界 adapter，可移植 core 不依赖
+  某个 UI framework 或宿主全局状态。
+
+### 组合借鉴职责
+
+Flutter 是主要产品架构参照，但不是规范、翻译工作流或所有集成问题的唯一答案。各生态
+承担互不重叠的参照职责：
+
+| 职责 | 生态 | 吸收 | 不照搬 |
+|---|---|---|---|
+| 规范语义 | [Unicode MF2 与 ICU](https://www.unicode.org/reports/tr35/tr35-messageFormat.html) | 规范性语法与数据模型、默认函数、错误与 fallback、Unicode/CLDR 语义和可追溯 conformance。 | 把部分 grammar 宣称为完整 MF2，或静默近似未实现的函数。 |
+| 产品架构 | [Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization) | 显式资源契约、类型化 codegen、延迟 locale 和输入/输出 manifest。 | ARB 作为第二 canonical 格式、隐式生成或 core 与 UI framework 耦合。 |
+| 编译期 DX | [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) | 编译期校验、类型安全消息函数、确定性生成和不可达输出消除。 | JavaScript 专属 runtime 模型，或把尚未稳定的生态当作语义权威。 |
+| 应用集成 | [i18next](https://www.i18next.com/overview/plugins-and-utils) | locale detection、loading、cache、SSR 和 framework adapter 的清晰边界。 | 全局可变 locale、core 中无边界插件体系或强制网络/storage 依赖。 |
+| 翻译生命周期 | [FormatJS](https://formatjs.github.io/docs/getting-started/message-extraction/)、[gettext](https://www.gnu.org/software/gettext/manual/gettext.html) 与 [Babel](https://babel.pocoo.org/en/latest/messages.html) | translator context、机器可读诊断、过期/废弃翻译、确定性 merge 和 TMS 交换。 | 正则源码抽取取代类型化 schema，或隐藏有损 round trip。 |
+| 译者表达 | [Fluent](https://projectfluent.org/fluent/guide/terms.html) | 可复用术语、语法属性、translator context 和富 UI 消息。 | 建立平行消息语言；可复用概念应通过 MF2 与类型化 schema 表达。 |
 
 canonical authoring 模型继续是项目 JSON schema、config 和 locale 资源。除非未来路线图
-明确改变这一决定，其他格式只是迁移或交换边界。
+明确改变这一决定，其他格式只是迁移或交换边界；参照关系也不构成 API 或文件格式兼容
+承诺。
 
 ## 里程碑与兼容政策
 
@@ -297,6 +328,21 @@ requirement matrix 与独立 differential report 达到这个 scope 内门槛。
 不使用 Draft function 的稳定 consumer 迁移到 v2。发布门槛还要求三个独立 consumer 精确
 固定 `0.9.0`，并通过 generation、JavaScript build 与应用检查。
 
+## 从 `0.9.x` 到 `1.0.0` 的晋升策略
+
+架构参照、取舍和长期职责现在就必须写入路线图；由这些参照启发的非阻塞功能则默认在
+`1.0.0` 之后开发。`0.9.x` 期间只进行真实消费者使用、人工 API/authoring 审查、迁移
+演练，以及缺陷、安全、conformance、性能和兼容性修复。
+
+`1.0.0` 是稳定性晋升，不是新的功能里程碑。只要没有阻塞问题，0.9 冻结的 public
+interface、生成 template、profile、CLI 和 wire contract 应原样晋升。如果真实消费者
+发现必须破坏候选契约才能解决的 P0/P1 blocker，应先更新路线图和迁移政策并发布
+`0.10.0`；不能在 `1.0.0` 中静默改变 candidate。
+
+Rabbita adapter、TMS/editor 集成、compiler-aware 引用分析、可复用术语模型、新的
+locale formatter 与跨后端 CLDR provider 都不是 JavaScript MF2 `1.0.0` 的前置条件。
+它们只有在解除已测量的 1.0 blocker 时才允许提前，否则进入 `1.x`。
+
 ## 长期：`1.0.0`
 
 ### `1.0.0` 中“完整 MF2”的定义
@@ -327,7 +373,15 @@ Native、Wasm 与 Wasm-GC formatter 可以继续保持有限或 experimental，�
 
 - 先稳定可选 Native CLDR provider，再提供相应 Wasm/Wasm-GC provider；不能在 core
   runtime 中内嵌无边界的 CLDR payload。
-- 在不改变无框架应用 facade 的前提下扩展 TMS、编辑器和框架集成。
+- 只有当多个维护中的消费者测量出相同 lifecycle 重复时，才增加有界 Rabbita adapter；
+  detector、loader、cache、retry 与 persistence 仍保持可替换且位于 core 之外。
+- 在不改变无框架应用 facade 的前提下扩展 TMS、编辑器和 framework integration。
+- 只有 MoonBit 提供稳定的 compiler/LSP 接口后，才增加 compiler-aware message 引用、
+  rename 与 unused-message 分析；不使用正则或不稳定编译器内部接口。
+- 评估通过 MF2 与类型化 schema 表达的可复用术语和 translator context，不建立平行
+  Fluent authoring 语言或私有 stable 语义。
+- 用真实 bundle 测量决定是否引入更细粒度的 codegen/tree shaking；新的 stable MF2
+  function 或 formatter 必须通过新 profile 和完整迁移采用。
 - 只有真实消费者测量出依赖解析损害或版本冲突时，才重新评估把 runtime 与 authoring
   工具拆为不同 Mooncakes module。
 - 后续稳定 MF2 版本通过显式 profile、兼容测试和迁移采用，不能静默改变 `1.0` 语义。

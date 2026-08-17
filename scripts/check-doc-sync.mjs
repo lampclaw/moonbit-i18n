@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const read = path => readFile(resolve(root, path), "utf8");
+const read = (path) => readFile(resolve(root, path), "utf8");
 const moonMod = await read("moon.mod");
 const version = /^version = "([^"]+)"$/mu.exec(moonMod)?.[1];
 assert.match(version ?? "", /^0\.[0-9]+\.[0-9]+$/u);
@@ -45,7 +45,17 @@ for (const source of [readme, readmeZh]) {
 const profile = await read("docs/mf2-profile.mbt.md");
 const profileZh = await read("docs/mf2-profile.zh-CN.mbt.md");
 for (const source of [profile, profileZh]) {
-  for (const token of ["77", "40", "24", "270", "67", "104", "messageformat@4.0.0", "I18N1003", "I18N1004"]) {
+  for (const token of [
+    "77",
+    "40",
+    "24",
+    "270",
+    "67",
+    "104",
+    "messageformat@4.0.0",
+    "I18N1003",
+    "I18N1004",
+  ]) {
     assert.ok(source.includes(token), `MF2 profile docs missing release evidence: ${token}`);
   }
 }
@@ -64,6 +74,26 @@ const roadmap = await read("docs/roadmap.mbt.md");
 const roadmapZh = await read("docs/roadmap.zh-CN.mbt.md");
 assert.ok(roadmap.includes("Status: stable in `0.9.0`"));
 assert.ok(roadmapZh.includes("状态：已在 `0.9.0` 稳定"));
+const roadmapBaseline = roadmap.split("## MoonBit-native design principles", 1)[0];
+const roadmapBaselineZh = roadmapZh.split("## MoonBit 原生设计原则", 1)[0];
+assert.ok(roadmapBaseline.includes("Stable authoring now uses\n`unicode-mf2-ldml48.2-js-v2`"));
+assert.ok(roadmapBaselineZh.includes("当前 stable authoring 使用\n`unicode-mf2-ldml48.2-js-v2`"));
+for (const token of [
+  "Primary product architecture reference: Flutter `gen_l10n`",
+  "Reference portfolio",
+  "`1.0.0` is a stability promotion",
+  "`0.10.0`",
+]) {
+  assert.ok(roadmap.includes(token), `English roadmap missing architecture decision: ${token}`);
+}
+for (const token of [
+  "主要产品架构参照：Flutter `gen_l10n`",
+  "组合借鉴职责",
+  "`1.0.0` 是稳定性晋升",
+  "`0.10.0`",
+]) {
+  assert.ok(roadmapZh.includes(token), `Chinese roadmap missing architecture decision: ${token}`);
+}
 
 const lifecycle = await read("docs/translation-lifecycle.mbt.md");
 const lifecycleZh = await read("docs/translation-lifecycle.zh-CN.mbt.md");
@@ -89,7 +119,7 @@ for (const code of ["I18N1003", "I18N1004", "I18N3003", "I18N3004"]) {
 const publicMarkdown = [
   "README.mbt.md",
   "README.zh-CN.mbt.md",
-  ...pairs.flat().filter(path => path.startsWith("docs/")),
+  ...pairs.flat().filter((path) => path.startsWith("docs/")),
   "docs/translation-lifecycle.mbt.md",
   "docs/translation-lifecycle.zh-CN.mbt.md",
   "docs/web-delivery.mbt.md",

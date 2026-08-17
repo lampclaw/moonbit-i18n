@@ -18,7 +18,8 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The stable `0.1.0` baseline is beyond a prototype:
+The current stable `0.9.0` release is beyond a prototype and freezes the 1.0
+candidate baseline:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
   string message identifiers;
@@ -26,17 +27,21 @@ The stable `0.1.0` baseline is beyond a prototype:
   manifests form a deterministic authoring and deployment workflow;
 - the runtime supports locale negotiation, embedded and dynamic catalogs,
   structured failures and diagnostics, rich parts, and bounded resource use;
-- the CLI supports generation, checking, coverage, pseudo-locales, and XLIFF
-  2.1 exchange;
+- the CLI supports generation, checking, coverage, pseudo-locales, XLIFF 2.1
+  exchange, and one-way i18next/ARB migration;
+- the stable `unicode-mf2-ldml48.2-js-v2` profile has a traceable Unicode MF2
+  requirement matrix, independent differential evidence, and Node.js plus
+  three-browser conformance gates;
 - release gates cover multiple MoonBit targets, coverage, performance,
   packaging, API documentation, and clean-module consumption.
 
 The current generated application facade is a Web/JavaScript product. It uses
 the host's `Intl` implementation behind an explicit formatter boundary. The
 portable runtime compiles on other MoonBit targets, but its locale-sensitive
-formatting is deliberately limited. The shipped
-`lampclaw-mf2-strict-v1+lampclaw-datetime-v1` profile is a strict
-MessageFormat 2-derived subset, not full Unicode MessageFormat 2 conformance.
+formatting is deliberately limited. Stable authoring now uses
+`unicode-mf2-ldml48.2-js-v2`; Draft date/time behavior is available only in a
+separately named experimental profile, while the earlier
+`lampclaw-mf2-strict-v1+lampclaw-datetime-v1` remains a compatibility profile.
 
 The primary near-term audience is MoonBit Web applications that need
 production-grade localization. Framework and tooling authors are a secondary
@@ -81,20 +86,53 @@ files, and shared-core/multiple-target workflow. See the official
 and
 [multiple-target workflow](https://www.moonbitlang.com/blog/moonbit-multiple-targets).
 
-## Lessons from other ecosystems
+## Product architecture reference and reference portfolio
 
-| Ecosystem | Adopt | Do not copy |
-|---|---|---|
-| [Unicode MF2 and ICU](https://www.unicode.org/reports/tr35/tr35-messageFormat.html) | Normative syntax and data-model terminology, default functions, error and fallback behavior, Unicode/CLDR semantics, and traceable conformance tests. | Describing a partial grammar as “MF2 compliant”, or silently approximating a function that the selected profile does not implement. |
-| [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) | Compile-time validation, typed message functions, deterministic generation, and output that can be eliminated when unreachable. | A JavaScript-only runtime model or framework assumptions inside the portable MoonBit core. |
-| [Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization) | An explicit resource contract, stable generated APIs, deferred locale loading, and inspectable input/output manifests. | A second canonical ARB authoring model or coupling the core package to one UI framework. |
-| [FormatJS](https://formatjs.github.io/docs/getting-started/message-extraction/), [gettext](https://www.gnu.org/software/gettext/manual/gettext.html), and [Babel](https://babel.pocoo.org/en/latest/messages.html) | Translator context, machine-readable diagnostics, stale/obsolete translation handling, deterministic merge workflows, and TMS interchange. | Regex-based source extraction replacing the typed schema, or lossy round trips hidden from users. |
-| [Fluent](https://projectfluent.org/fluent/guide/terms.html) | Translator-facing context, reusable terminology, and rich UI-oriented messages. | A parallel message language; reusable concepts must be represented through MF2 and the typed schema. |
-| [i18next](https://www.i18next.com/overview/plugins-and-utils) | Clear boundaries for locale detection, loading, caching, and framework adapters. | Global mutable locale state, an unbounded plugin surface in the core runtime, or mandatory network/storage dependencies. |
+### Primary product architecture reference: Flutter `gen_l10n`
+
+If only one product architecture reference is selected, this project chooses
+[Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization). Like
+MoonBit, it belongs to a compiled-language toolchain. Its explicit resource
+contract, stable typed generated API, deferred locale loading, and inspectable
+input/output manifest align with generator-first MoonBit design, committed
+deterministic artifacts, and making illegal application calls difficult.
+
+This choice does not imply ARB or Flutter API compatibility. `gen_l10n` gains
+mature framework integration and low-friction code generation at the cost of
+coupling canonical ARB, delegate/context lifecycle, and generation to the
+Flutter build system; that generated and runtime model is not directly
+portable across languages. `lampclaw/i18n` retains these differences:
+
+- canonical authoring is the typed schema, explicit configuration, and MF2
+  locale JSON rather than a second ARB authoring model;
+- `moonx` explicitly generates and commits an application-specific MoonBit
+  package, deployment manifest, and catalogs; dependency installation does not
+  implicitly run a generator;
+- locale deployment uses namespace chunks whose byte length, SHA-256, profile,
+  and contract are verified rather than only framework-delegate loading; and
+- networking, storage, retry, and locale commit belong to the application or a
+  bounded adapter, while the portable core remains independent of a UI
+  framework and ambient host state.
+
+### Reference portfolio
+
+Flutter is the primary product architecture reference, but it is not the sole
+answer for normative semantics, translation workflow, or integration. Each
+ecosystem has a distinct reference role:
+
+| Role | Ecosystem | Adopt | Do not copy |
+|---|---|---|---|
+| Normative semantics | [Unicode MF2 and ICU](https://www.unicode.org/reports/tr35/tr35-messageFormat.html) | Normative syntax and data model, default functions, errors and fallback, Unicode/CLDR semantics, and traceable conformance. | Claiming a partial grammar as full MF2 or silently approximating an unimplemented function. |
+| Product architecture | [Flutter `gen_l10n`](https://docs.flutter.dev/ui/internationalization) | Explicit resource contracts, typed codegen, deferred locales, and input/output manifests. | ARB as a second canonical format, implicit generation, or core/UI-framework coupling. |
+| Compile-time DX | [Paraglide JS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) | Compile-time validation, typed message functions, deterministic generation, and unreachable-output elimination. | A JavaScript-only runtime model or treating a younger ecosystem as the semantic authority. |
+| Application integration | [i18next](https://www.i18next.com/overview/plugins-and-utils) | Clear boundaries for locale detection, loading, caching, SSR, and framework adapters. | Global mutable locale state, an unbounded core plugin surface, or mandatory network/storage dependencies. |
+| Translation lifecycle | [FormatJS](https://formatjs.github.io/docs/getting-started/message-extraction/), [gettext](https://www.gnu.org/software/gettext/manual/gettext.html), and [Babel](https://babel.pocoo.org/en/latest/messages.html) | Translator context, machine-readable diagnostics, stale/obsolete translations, deterministic merge, and TMS interchange. | Regex extraction replacing the typed schema or hidden lossy round trips. |
+| Translator expression | [Fluent](https://projectfluent.org/fluent/guide/terms.html) | Reusable terminology, grammatical attributes, translator context, and rich UI messages. | A parallel message language; reusable concepts must be represented through MF2 and the typed schema. |
 
 The canonical authoring model remains the project JSON schema, configuration,
 and locale resources. Other formats are migration or interchange edges unless
-a future roadmap revision explicitly changes that decision.
+a future roadmap revision explicitly changes that decision; a reference role
+also does not promise API or file-format compatibility.
 
 ## Milestone and compatibility policy
 
@@ -369,6 +407,28 @@ datetime profile; stable consumers without Draft functions migrate to v2. The
 release gate also requires three independent consumers to pin exact `0.9.0`
 and pass generation, JavaScript build, and application checks.
 
+## Promotion strategy from `0.9.x` to `1.0.0`
+
+Architecture references, tradeoffs, and long-term responsibilities must be
+recorded in the roadmap now. Non-blocking capabilities inspired by those
+references are developed after `1.0.0` by default. Work during `0.9.x` is
+limited to real-consumer use, manual API and authoring review, migration
+rehearsal, and correctness, security, conformance, performance, and
+compatibility fixes.
+
+`1.0.0` is a stability promotion, not a new feature milestone. Unless a
+blocker is found, the public interfaces, generator template, profiles, CLI,
+and wire contracts frozen in 0.9 advance unchanged. If a real consumer finds
+a P0/P1 blocker that requires breaking the candidate contract, update the
+roadmap and migration policy and publish `0.10.0` first; do not silently
+change the candidate in `1.0.0`.
+
+A Rabbita adapter, TMS/editor integration, compiler-aware reference analysis,
+reusable terminology model, new locale formatters, and cross-backend CLDR
+providers are not prerequisites for the JavaScript MF2 `1.0.0`. They move
+earlier only when they unblock a measured 1.0 requirement; otherwise they
+belong to `1.x`.
+
 ## Long term: `1.0.0`
 
 ### Definition of “full MF2” for `1.0.0`
@@ -403,8 +463,20 @@ their own conformance gates pass.
 
 - Stabilize an optional Native CLDR provider before equivalent Wasm/Wasm-GC
   providers; do not embed an unbounded CLDR payload in the core runtime.
+- Add a bounded Rabbita adapter only after multiple maintained consumers
+  measure the same lifecycle duplication; detectors, loaders, caches, retry,
+  and persistence remain replaceable and outside the core.
 - Expand TMS, editor, and framework integrations without changing the
   framework-neutral application facade.
+- Add compiler-aware message references, rename, and unused-message analysis
+  only after MoonBit exposes stable compiler or LSP interfaces; do not use
+  regex extraction or unstable compiler internals.
+- Evaluate reusable terminology and translator context expressed through MF2
+  and the typed schema, without a parallel Fluent authoring language or
+  private stable semantics.
+- Let measured bundle evidence decide finer-grained codegen and tree shaking;
+  every new stable MF2 function or formatter adopts a new profile with a full
+  migration.
 - Re-evaluate splitting runtime and authoring tools into separate Mooncakes
   modules only with measured dependency-resolution harm or version conflicts
   from real consumers.
