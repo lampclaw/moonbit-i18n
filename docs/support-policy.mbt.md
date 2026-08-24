@@ -5,11 +5,16 @@
 This document defines the supported `0.x` Web release line. A target is supported
 only when it is named here and exercised by the release gates.
 
+Release `0.9.1` advances the exact MoonBit pin from the immutable `0.9.0`
+release baseline to the versions below. It preserves the supported target set,
+public and generated APIs, profiles, CLI and wire contracts, and Node/browser
+host policy.
+
 ## Supported matrix
 
 | Surface | Release gate | Support level |
 |---|---|---|
-| MoonBit toolchain | archive `0.10.6+80dc50f24`, Moon `0.1.20260803`, moonc `0.10.6` | Pinned compatibility and CI release gate |
+| MoonBit toolchain | archive `0.10.9+6e6c44045`, Moon `0.1.20260819`, moonc `0.10.9` | Pinned compatibility and CI release gate |
 | JavaScript runtime | Node.js `26.7.0` | Sole server/runtime and product gate |
 | Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.62.1` | Generated facade, upstream MF2 suites, differential cases, and application scenarios |
 | CLI operating systems | Ubuntu 24.04, macOS 15, Windows 2025 | Wasm `moonx`, native CLI, and installed launcher |

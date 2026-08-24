@@ -11,7 +11,7 @@ import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const dist = resolve(
-  process.argv[2] ?? join(root, "_build", "browser", "rabbita-todo"),
+  process.argv[2] ?? join(root, "examples", "rabbita_todo", "dist"),
 );
 assert.ok(existsSync(dist), `browser release directory is missing: ${dist}`);
 

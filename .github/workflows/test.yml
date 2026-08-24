@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  MOONBIT_TOOLCHAIN: 0.10.6+80dc50f24
+  MOONBIT_TOOLCHAIN: 0.10.9+6e6c44045
   MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
-  MOON_VERSION: 0.1.20260803
-  MOONC_VERSION: 0.10.6
+  MOON_VERSION: 0.1.20260819
+  MOONC_VERSION: 0.10.9
   NODE_VERSION: 26.7.0
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
@@ -139,18 +139,18 @@ jobs:
 
       - name: Rabbita Todo release build
         run: |
-          moon install moonbit-community/warren@0.2.2
+          moon install moonbit-community/warren@0.3.2
           cd examples/rabbita_todo
-          warren build --dist /tmp/moonbit-i18n-rabbita-todo
-          node ../../scripts/check-web-size.mjs /tmp/moonbit-i18n-rabbita-todo
-          if find /tmp/moonbit-i18n-rabbita-todo -name '*.lampclaw.lock' -print -quit | grep -q .; then
+          warren build --browser-entry main --dist dist
+          node ../../scripts/check-web-size.mjs dist
+          if find dist -name '*.lampclaw.lock' -print -quit | grep -q .; then
             echo "release artifact contains a generation coordination lock" >&2
             exit 1
           fi
 
       - name: Publish archive contents
         run: |
-          # Moon 0.1.20260803 writes the package list to stderr.
+          # Moon 0.1.20260819 writes the package list to stderr.
           package_list="$(moon package --frozen --list 2>&1)"
           printf '%s\n' "$package_list"
           if printf '%s\n' "$package_list" | grep -E \
@@ -217,7 +217,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
@@ -248,7 +248,7 @@ jobs:
 
       - name: Install browser tooling
         run: |
-          moon install moonbit-community/warren@0.2.2
+          moon install moonbit-community/warren@0.3.2
           npm ci
           npx playwright install --with-deps "${{ matrix.browser }}"
 
@@ -269,7 +269,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false

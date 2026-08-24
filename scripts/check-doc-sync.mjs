@@ -59,6 +59,8 @@ for (const source of [profile, profileZh]) {
     assert.ok(source.includes(token), `MF2 profile docs missing release evidence: ${token}`);
   }
 }
+assert.ok(profile.includes("seven Rabbita application scenarios"));
+assert.ok(profileZh.includes("七个 Rabbita 应用场景"));
 
 const migration = await read("docs/message-profile-migration.mbt.md");
 const migrationZh = await read("docs/message-profile-migration.zh-CN.mbt.md");

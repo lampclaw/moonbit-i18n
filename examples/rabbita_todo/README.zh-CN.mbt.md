@@ -10,14 +10,14 @@
 在仓库根目录执行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -35,16 +35,20 @@ function 的应用应改用 stable `unicode-mf2-ldml48.2-js-v2`。
 ## 运行
 
 ~~~bash
+npm ci
 cd examples/rabbita_todo
-moon install moonbit-community/warren@0.2.2
-warren dev
+moon install moonbit-community/warren@0.3.2
+warren dev --browser-entry main
 ~~~
 
 release 构建：
 
 ~~~bash
-warren build --dist /tmp/moonbit-i18n-rabbita-todo
+warren build --browser-entry main --dist dist
 ~~~
+
+执行 `npm ci` 后，仓库内固定的 Terser `5.50.0` 会让 Warren release minification
+保持可复现。
 
 ## 架构
 
@@ -60,11 +64,11 @@ i18n/generated.mbt + moon.pkg  public/i18n/manifest.json + chunks
 类型化 facade + 内嵌数据       namespace + SHA-256 + 契约 hash
               │
               ▼
-main/moon.pkg 导入生成 i18n + browser_preferences
-              │                         │
-              ▼                         ▼
-Rabbita model / update / view       localStorage / navigator
-调用 Translator::t                 应用 adapter
+main/moon.pkg 导入生成 i18n + browser_http + browser_preferences
+              │                  │                  │
+              ▼                  ▼                  ▼
+Rabbita model / update / view  同源 fetch        localStorage / navigator
+调用 Translator::t            应用 adapter       应用 adapter
 ~~~
 
 生成 facade 负责 locale 协商、内嵌与动态 catalog、JavaScript `Intl` 格式化、
@@ -88,7 +92,9 @@ metadata 比较，再交给 facade 验证并安装。请求失败、integrity �
 HTTP 缓存仍可避免再次传输。Todo 项目数据本身有意不做持久化。
 
 locale 检测、加载和持久化都是应用拥有的 adapter。生成 facade 接收 locale code
-和 catalog 数据，但不访问浏览器存储，也不自行发起网络请求。
+和 catalog 数据，但不访问浏览器存储，也不自行发起网络请求。示例中边界刻意收窄的
+`browser_http/` package 只获取同源 catalog 文本，通过 Rabbita command 报告 HTTP
+与网络失败，不把通用 HTTP client 链接进 release bundle。
 
 小型 `contract/` package 是框架 adapter 和浏览器验收 fixture：它把结构化
 `MessagePart` 转成 Rabbita HTML，并在三种支持的浏览器 engine 中验证 number、

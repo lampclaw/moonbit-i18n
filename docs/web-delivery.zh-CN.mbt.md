@@ -141,5 +141,11 @@ MF2 syntax/data-model 校验器、resolver、bidi 行为和默认 function dispa
 仍不可达。这些经过检查的值是防止回退的 ceiling，不代表所有应用 bundle 都具有相同
 体积。
 
+使用 `0.9.1` 发布工具链（MoonBit `0.10.9`）、Rabbita `0.15.4`、Warren
+`0.3.2` 与 Terser `5.50.0` 时，维护中的应用实测为 JavaScript 444.6 KiB、gzip
+119.4 KiB；chunk 与 manifest 仍分别为 2.0 KiB、1.1 KiB 和 2.1 KiB。raw 结果只剩
+3.4 KiB 余量。应用拥有的同源文本 loader 避免链接 Rabbita 的通用 HTTP stack，但
+后续 framework 或编译器升级仍必须运行该门禁，不能假设这部分余量一直存在。
+
 0.4 不新增 framework-specific package：目前还没有两个独立消费者需要同一套
 lifecycle adapter、且有明确维护者负责它的证据。

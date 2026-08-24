@@ -1,6 +1,6 @@
 name = "lampclaw/i18n"
 
-version = "0.9.0"
+version = "0.9.1"
 
 preferred_target = "native"
 
@@ -18,9 +18,9 @@ description = "Typed internationalization, MF2 formatting, and catalog tooling f
 
 import {
   "Milky2018/xml@0.4.0",
-  "moonbitlang/x@0.4.49",
-  "moonbitlang/parser@0.3.13",
-  "moonbitlang/async@0.20.3",
+  "moonbitlang/x@0.5.1",
+  "moonbitlang/parser@0.3.18",
+  "moonbitlang/async@0.21.0",
   "tonyfettes/normalization@0.4.0",
 }
 

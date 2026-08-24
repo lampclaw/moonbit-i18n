@@ -259,7 +259,8 @@ fn request_locale(
     for chunk_namespace in required_catalog_namespaces() {
       if !i18n.has_catalog_namespace(target, chunk_namespace) {
         requests.push(
-          @http.get("/i18n/\{target.code()}--\{chunk_namespace.code()}.json").expect_text(
+          @browser_http.get_text(
+            "/i18n/\{target.code()}--\{chunk_namespace.code()}.json",
             emit.map(result => CatalogLoaded(target, chunk_namespace, result)),
           ),
         )

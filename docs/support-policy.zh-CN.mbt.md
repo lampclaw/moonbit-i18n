@@ -5,11 +5,15 @@
 本文档定义 `0.x` Web 发布线的支持范围。只有在这里列出且由发布门槛持续验证的目标，
 才属于受支持目标。
 
+`0.9.1` 把精确 MoonBit pin 从不可变的 `0.9.0` 发布基线推进到下表版本，同时保持
+受支持 target 集合、公开与生成 API、profile、CLI/wire 契约以及 Node/浏览器 host
+政策不变。
+
 ## 支持矩阵
 
 | 界面 | 发布门槛 | 支持级别 |
 |---|---|---|
-| MoonBit 工具链 | archive `0.10.6+80dc50f24`、Moon `0.1.20260803`、moonc `0.10.6` | 固定的兼容性与 CI 发布门槛 |
+| MoonBit 工具链 | archive `0.10.9+6e6c44045`、Moon `0.1.20260819`、moonc `0.10.9` | 固定的兼容性与 CI 发布门槛 |
 | JavaScript runtime | Node.js `26.7.0` | 唯一的服务端/runtime 与产品门槛 |
 | 浏览器 runtime | 锁定 Playwright `1.62.1` 提供的 Chromium、Firefox、WebKit | 生成 facade、上游 MF2 suite、differential case 与应用场景 |
 | CLI 操作系统 | Ubuntu 24.04、macOS 15、Windows 2025 | Wasm `moonx`、Native CLI 和安装 launcher |

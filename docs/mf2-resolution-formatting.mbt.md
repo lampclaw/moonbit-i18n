@@ -7,6 +7,7 @@ remains the target-independent resolution core in `0.7.0`. It builds on the
 pinned syntax/interchange model and now feeds the separately versioned
 `unicode-mf2-ldml48.2-default-functions-v1` registry without changing the
 existing catalog profile or canonical JSON authoring workflow.
+Release `0.9.1` preserves this resolution and formatting contract unchanged.
 
 This phase implements the target-independent semantics between parsing and the
 default function registry:

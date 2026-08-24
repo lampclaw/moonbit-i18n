@@ -6,6 +6,8 @@ Diagnostic contract version `1` 在整个 `0.x` 保持稳定。人类可读输�
 后添加 `--diagnostic-format=json` 可选择机器可读输出。集成必须按 `code` 分支，不能解析
 英文 message。
 
+`0.9.1` 保持该诊断契约与 code 集合不变，只更新精确的构建工具与依赖版本。
+
 每条诊断包含 severity、调用者可见的源路径和半开 span。line/column 从 1 开始，
 `byteOffset` 是从 0 开始的 UTF-8 偏移。Parser 无法安全缩小位置时会报告整个有界 source，
 不会伪造精度。
