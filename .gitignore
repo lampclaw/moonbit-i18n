@@ -1,5 +1,6 @@
 .DS_Store
 _build/
+dist/
 .mooncakes/
 *.lampclaw.lock
 node_modules/

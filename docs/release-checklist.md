@@ -9,14 +9,14 @@ an RC unless the release policy is changed explicitly. All commands below use
 
 Before publishing, the reviewed release commit must be clean, pushed to
 `origin/main`, and green in every required Test job. Run the full quality and
-package gates below with Node.js `26.7.0`, verify `moon whoami` is `lampclaw`,
-then run `node scripts/publish-dry-run.mjs`. Moon `0.1.20260803` with
-mooncake-bin `0.1.20260731` and Moon `0.1.20260807` with mooncake-bin
-`0.1.20260805` have both been observed returning 255 after a successful dry
-run. The helper accepts 255 only after both archive checks, exact `202
-Accepted`, and the version-specific registry success detail all match. It
-rejects every other non-zero status or incomplete response; never treat 255 as
-a general success code.
+package gates below with archive `0.10.9+6e6c44045` (Moon
+`0.1.20260819`, moonc `0.10.9`), mooncake-bin `0.1.20260805`, and Node.js
+`26.7.0`. Verify `moon whoami` is `lampclaw`, then run
+`node scripts/publish-dry-run.mjs`. Older observed client pairs have returned
+255 after a successful dry run. The helper accepts 255 only after both archive
+checks, exact `202 Accepted`, and the version-specific registry success
+detail all match. It rejects every other non-zero status or incomplete
+response; never treat 255 as a general success code.
 
 Documentation synchronization is a hard release gate. Before any dry run or
 real publish, the versioned English and Chinese README, public profile,

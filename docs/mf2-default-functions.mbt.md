@@ -6,6 +6,8 @@ Version `0.7.0` added, `0.8.0` integrated, and `0.9.0` freezes the pinned
 registry profile `unicode-mf2-ldml48.2-default-functions-v1` on top of the
 syntax and resolution profiles. Its normative reference is official tag
 `LDML48.2`, commit `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`.
+Release `0.9.1` preserves this registry and its formatting semantics
+unchanged.
 
 ## Supported repertoire
 

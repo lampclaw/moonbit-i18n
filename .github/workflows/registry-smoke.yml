@@ -15,11 +15,11 @@ permissions:
   contents: read
 
 env:
-  MOONBIT_TOOLCHAIN: 0.10.6+80dc50f24
+  MOONBIT_TOOLCHAIN: 0.10.9+6e6c44045
   MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
-  MOON_VERSION: 0.1.20260803
-  MOONC_VERSION: 0.10.6
+  MOON_VERSION: 0.1.20260819
+  MOONC_VERSION: 0.10.9
   NODE_VERSION: 26.7.0
   LAMPCLAW_TEST_BIN: "1"
 
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false

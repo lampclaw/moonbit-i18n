@@ -16,6 +16,7 @@ const snapshot = readJson(path);
 const profile = readJson("tests/unicode-mf2/profile.json");
 const runtime = read("runtime/catalog.mbt");
 const cli = read("cmd/i18n/main.mbt");
+const releaseVersion = /^version = "([^"]+)"$/mu.exec(read("moon.mod"))?.[1];
 const cliPackage = read("cmd/i18n/moon.pkg");
 const tooling = read("cmd/i18n/tooling.mbt");
 const diagnostics = `${read("generator/diagnostic.mbt")}\n${read(
@@ -74,7 +75,11 @@ assert(
   cliPackage.includes(`bin_name: \"${snapshot.cli.binary}\"`),
   "CLI binary name drifted",
 );
-assert(cli.includes('const CLI_VERSION : String = "0.9.0"'), "CLI version drifted");
+assert(
+  releaseVersion !== undefined &&
+    cli.includes(`const CLI_VERSION : String = "${releaseVersion}"`),
+  "CLI version drifted",
+);
 for (const command of snapshot.cli.commands) {
   assert(cli.includes(`\"${command}\"`), `CLI command ${command} drifted`);
 }

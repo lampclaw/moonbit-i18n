@@ -6,6 +6,36 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-08-24
+
+### Changed
+
+- Advanced the exact release toolchain to archive
+  `0.10.9+6e6c44045` (Moon `0.1.20260819`, moonc `0.10.9`) and updated
+  the direct `moonbitlang/x`, `parser`, and `async` pins to `0.5.1`,
+  `0.3.18`, and `0.21.0`. This is the supported build baseline for
+  `0.9.1`; `0.9.0` remains the immutable release for its older exact pin.
+- Updated CI to `actions/setup-node@v7.0.0`, Warren `0.3.2`, its explicit
+  browser entry/output contract, and a project-local Terser `5.50.0` pin.
+  The maintained Rabbita application now pins Rabbita `0.15.4` and
+  `moonbitlang/x@0.5.1`.
+- Regenerated the committed Rabbita facade with the current MoonBit formatter.
+  The byte-level formatting and generation-manifest checksum changed, while
+  the generated API, public MoonBit interfaces, generator template, message
+  profiles, catalog format, CLI surface, wire contracts, supported targets,
+  and Node/browser host policy remain unchanged from the `0.9.0` candidate.
+
+### Fixed
+
+- Kept the Rabbita release artifact within the existing Web delivery budgets
+  after the dependency upgrade by using an application-owned, same-origin
+  catalog text loader instead of linking Rabbita's general-purpose HTTP stack;
+  three-browser acceptance now covers HTTP/network failure and retry directly.
+- Made the frozen 1.0 contract check derive the current CLI version from
+  `moon.mod`, while retaining `0.9.0` as the candidate snapshot release.
+- Clarified that pre-1.0 security fixes apply to the latest published `0.x`
+  release rather than the obsolete `0.1.x` line.
+
 ## [0.9.0] - 2026-08-15
 
 ### Added
@@ -418,7 +448,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...v0.7.0

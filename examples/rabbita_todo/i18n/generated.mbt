@@ -116,58 +116,70 @@ pub fn catalog_chunk_metadata(
   chunk_namespace : CatalogNamespace,
 ) -> CatalogChunkMetadata? {
   if locale == EnUS && chunk_namespace == CatalogCommon {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "en-US--common.json",
-      sha256: "f56cd6d1182bc32a4edfeb9c91629fc181a181e19ed5c5672ffd20e6e6f7c369",
-      bytes: 510,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "en-US--common.json",
+        sha256: "f56cd6d1182bc32a4edfeb9c91629fc181a181e19ed5c5672ffd20e6e6f7c369",
+        bytes: 510,
+      },
+    )
   }
   if locale == EnUS && chunk_namespace == CatalogContract {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "en-US--contract.json",
-      sha256: "96de178faf841ca6da9abff1e803961e4f80446d1cad42962715e35a8db273ac",
-      bytes: 489,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "en-US--contract.json",
+        sha256: "96de178faf841ca6da9abff1e803961e4f80446d1cad42962715e35a8db273ac",
+        bytes: 489,
+      },
+    )
   }
   if locale == EnUS && chunk_namespace == CatalogTodoUi {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "en-US--todo_ui.json",
-      sha256: "0a8a09451b22945bac2e29a7a326ec50a4f66ba38fed4a30898dd4bb014ad798",
-      bytes: 1069,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "en-US--todo_ui.json",
+        sha256: "0a8a09451b22945bac2e29a7a326ec50a4f66ba38fed4a30898dd4bb014ad798",
+        bytes: 1069,
+      },
+    )
   }
   if locale == ZhCN && chunk_namespace == CatalogCommon {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "zh-CN--common.json",
-      sha256: "a598b211a8fb0cf3e458d59b311491893d78282c86d458c1b3f209d02dd95400",
-      bytes: 505,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "zh-CN--common.json",
+        sha256: "a598b211a8fb0cf3e458d59b311491893d78282c86d458c1b3f209d02dd95400",
+        bytes: 505,
+      },
+    )
   }
   if locale == ZhCN && chunk_namespace == CatalogContract {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "zh-CN--contract.json",
-      sha256: "0c36b8ae3235095ab199e1d50cefc749cdba238f302b7c239970a825368e5542",
-      bytes: 495,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "zh-CN--contract.json",
+        sha256: "0c36b8ae3235095ab199e1d50cefc749cdba238f302b7c239970a825368e5542",
+        bytes: 495,
+      },
+    )
   }
   if locale == ZhCN && chunk_namespace == CatalogTodoUi {
-    return Some({
-      locale,
-      chunk_namespace,
-      path: "zh-CN--todo_ui.json",
-      sha256: "fb8b0dd68d47de51fdc29a7fe29b099c82bbee8418e298946f2226825650d670",
-      bytes: 1108,
-    })
+    return Some(
+      {
+        locale,
+        chunk_namespace,
+        path: "zh-CN--todo_ui.json",
+        sha256: "fb8b0dd68d47de51fdc29a7fe29b099c82bbee8418e298946f2226825650d670",
+        bytes: 1108,
+      },
+    )
   }
   None
 }

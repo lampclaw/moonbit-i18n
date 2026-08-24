@@ -1,6 +1,6 @@
 # Contributing
 
-Use toolchain archive `0.10.6+80dc50f24` (Moon `0.1.20260803`, moonc `0.10.6`)
+Use toolchain archive `0.10.9+6e6c44045` (Moon `0.1.20260819`, moonc `0.10.9`)
 and Node.js `26.7.0` for the engineering and product gates. Dependency versions
 in `moon.mod` must stay exact.
 
@@ -72,8 +72,8 @@ the `Registry smoke` workflow with the exact version. It validates `moon add`, p
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
-Moon `0.1.20260803` / `mooncake-bin 0.1.20260731` and the current publish
-client used for `0.2.0` have a known dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
+Older Moon / `mooncake-bin` pairs used for earlier releases have a known
+dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
 rules in the repository's release checklist; do not treat exit 255 as a
 general success code. This release tracks the behavior locally and does not
 require an upstream report. Maintainers should run

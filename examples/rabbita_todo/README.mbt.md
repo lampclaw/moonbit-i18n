@@ -12,14 +12,14 @@ import the i18n runtime.
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.0 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.0 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -40,16 +40,20 @@ different profile. Applications without date/time functions should use stable
 ## Run
 
 ~~~bash
+npm ci
 cd examples/rabbita_todo
-moon install moonbit-community/warren@0.2.2
-warren dev
+moon install moonbit-community/warren@0.3.2
+warren dev --browser-entry main
 ~~~
 
 For a release build:
 
 ~~~bash
-warren build --dist /tmp/moonbit-i18n-rabbita-todo
+warren build --browser-entry main --dist dist
 ~~~
+
+The repository-local Terser `5.50.0` pin makes Warren's release minification
+reproducible after `npm ci`.
 
 ## Architecture
 
@@ -65,11 +69,11 @@ i18n/generated.mbt + moon.pkg  public/i18n/manifest.json + chunks
 typed facade + embedded data   namespace + SHA-256 + contract hash
               │
               ▼
-main/moon.pkg imports generated i18n + browser_preferences
-              │                         │
-              ▼                         ▼
-Rabbita model / update / view       localStorage / navigator
-calls Translator::t                 application adapter
+main/moon.pkg imports generated i18n + browser_http + browser_preferences
+              │                     │                  │
+              ▼                     ▼                  ▼
+Rabbita model / update / view   same-origin fetch   localStorage / navigator
+calls Translator::t             application adapter application adapter
 ~~~
 
 The generated facade owns locale negotiation, embedded and dynamic catalogs,
@@ -101,7 +105,10 @@ not stored.
 
 Locale detection, loading, and persistence remain application-owned adapters.
 The generated facade accepts locale codes and catalog data but does not access
-browser storage or perform network requests.
+browser storage or perform network requests. The example's deliberately narrow
+`browser_http/` package fetches same-origin catalog text and reports both HTTP
+and network failures through a Rabbita command; it does not link a
+general-purpose HTTP client into the release bundle.
 
 The small `contract/` package is a framework adapter and browser acceptance
 fixture. It turns structured `MessagePart` values into Rabbita HTML and proves

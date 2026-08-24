@@ -18,7 +18,7 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    command: "node scripts/serve-static.mjs _build/browser/rabbita-todo 41873",
+    command: "node scripts/serve-static.mjs examples/rabbita_todo/dist 41873",
     url: "http://127.0.0.1:41873",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

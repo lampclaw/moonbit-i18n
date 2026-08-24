@@ -79,6 +79,59 @@ test("keeps the old locale after an invalid catalog and supports retry", async (
   expect(catalogRequests).toBe(3);
 });
 
+test("keeps the old locale across HTTP and network failures, then retries only the missing catalog", async ({
+  page,
+}) => {
+  let catalogRequests = 0;
+  let commonFailures = 0;
+  await page.route("**/i18n/zh-CN--*.json", async (route) => {
+    catalogRequests += 1;
+    if (
+      commonFailures < 2 &&
+      route.request().url().endsWith("/i18n/zh-CN--common.json")
+    ) {
+      const failure = commonFailures;
+      commonFailures += 1;
+      if (failure === 0) {
+        const response = await route.fetch();
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        await route.fulfill({ response, status: 503 });
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await route.abort("failed");
+      return;
+    }
+    await route.continue();
+  });
+  await page.goto("/");
+
+  const app = page.getByTestId("todo-app");
+  await page.locator("#locale-toggle").click();
+  await expect(page.getByTestId("catalog-status")).toHaveAttribute(
+    "data-state",
+    "error",
+  );
+  await expect(app).toHaveAttribute("data-locale", "en-US");
+  await expect(page.locator("#locale-toggle")).toHaveText("Retry");
+
+  await page.locator("#locale-toggle").click();
+  await expect(page.getByTestId("catalog-status")).toHaveAttribute(
+    "data-state",
+    "loading",
+  );
+  await expect(page.getByTestId("catalog-status")).toHaveAttribute(
+    "data-state",
+    "error",
+  );
+  await expect(app).toHaveAttribute("data-locale", "en-US");
+
+  await page.locator("#locale-toggle").click();
+  await expect(app).toHaveAttribute("data-locale", "zh-CN");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("待办事项");
+  expect(catalogRequests).toBe(4);
+});
+
 test("persists an explicit locale and restores it after reload", async ({
   page,
 }) => {

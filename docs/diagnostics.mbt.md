@@ -7,6 +7,9 @@ is intended for terminals; place `--diagnostic-format=json` after the command
 name for machine-readable output. Integrations must branch on `code`, never on
 the English message.
 
+Release `0.9.1` preserves this diagnostic contract and its code set
+unchanged while updating only the exact build-tool and dependency pins.
+
 Every diagnostic contains a severity, caller-visible source path, and a
 half-open span. Lines and columns are one-based; `byteOffset` is a zero-based
 UTF-8 offset. A parser that cannot safely narrow a location reports the full

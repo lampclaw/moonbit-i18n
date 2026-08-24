@@ -2,8 +2,8 @@
 
 ## Supported versions
 
-Before the first stable release, security fixes are provided only on the
-latest `0.1.x` release. Older development snapshots are unsupported.
+Before the first `1.0.0` release, security fixes are provided only on the
+latest published `0.x` release. Older development snapshots are unsupported.
 
 ## Reporting a vulnerability
 
