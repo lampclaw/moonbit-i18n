@@ -117,3 +117,15 @@ conformance-candidate 声明。
 context 最多接受 64 个 input；source 与格式化输出分别限制为 64 KiB；原有 declaration、
 selector、variant、option 与 pattern-part 限制继续生效。超过限制时会报告错误，并返回
 有界的整条 message fallback，而不是部分、不安全的输出。
+
+尚未发布的维护修复改为逐段执行输出字节限制。追加每段 text 或格式化 expression
+之前，runtime 会检查其 UTF-8 大小是否超出剩余预算，bidi isolation 控制符也计入
+预算。一旦超限，就停止求值剩余 pattern，返回有界的整条 message fallback，并在
+保留已发现错误的基础上追加 `Mf2LimitCode`。被跳过的尾部 expression 不再求值，
+因此不会产生额外错误或 formatter 调用。Declaration resolution 与 pattern selection
+仍在 pattern formatting 之前完成。
+
+这项检查限制的是 core formatter 累积的输出，不限制调用方已经分配的输入，也不能
+限制 custom formatter 返回之前在其内部已分配的字符串和 field。Option、attribute
+与 formatter field 等 structured metadata 保持已有契约；本次修复不为这些数据
+增加独立的合计字节上限。

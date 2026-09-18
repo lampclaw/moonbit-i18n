@@ -416,6 +416,13 @@ application checks.
 
 ## Promotion strategy from `0.9.x` to `1.0.0`
 
+The project remains on `0.x` until MoonBit officially releases `1.0`.
+An official upstream `1.0` release is a prerequisite for considering
+`lampclaw/i18n` `1.0.0`; it does not trigger an automatic promotion or replace
+the compatibility, conformance, and real-consumer acceptance gates below.
+Until then, maintenance continues within the current `0.x` compatibility and
+candidate-contract policy without a promised promotion date.
+
 Architecture references, tradeoffs, and long-term responsibilities must be
 recorded in the roadmap now. Non-blocking capabilities inspired by those
 references are developed after `1.0.0` by default. Work during `0.9.x` is

@@ -93,6 +93,14 @@ values. The generated facade owns those conversions.
 
 ## Fallback and diagnostics
 
+The unreleased maintenance fix makes `I18n::translator_from_code` consider
+locales installed only through catalog chunks as well as full catalogs.
+It uses the same sorted installed-locale list exposed by
+`catalog_locale_codes()`; normalization, parent lookup, and configured
+fallback are unchanged. Generated facades still select from their configured
+locales before catalog data is loaded, so this fix does not change their
+locale-selection policy.
+
 Lookup tries the requested locale chain and then the configured fallback.
 Formatting failure in one catalog does not stop the chain: a later catalog may
 still produce a valid message. If no candidate succeeds, `try_t` returns all
