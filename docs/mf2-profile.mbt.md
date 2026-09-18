@@ -4,9 +4,10 @@
 
 Version `0.9.0` froze the JavaScript conformance candidate against the
 official Unicode MessageFormat 2.0 text shipped with LDML 48.2. Version
-`0.9.1` preserves that candidate unchanged while advancing only the exact
-MoonBit build-tool and dependency pins. Authoring must select one of these
-explicit message profiles:
+`0.9.2` preserves that candidate while fixing chunk-only locale negotiation
+and enforcing the existing text-output limit incrementally. The exact
+MoonBit build-tool and dependency pins remain those of `0.9.1`.
+Authoring must select one of these explicit message profiles:
 
 - `unicode-mf2-ldml48.2-js-v2` is the recommended stable profile. It includes
   the stable `:string`, `:number`, `:integer`, `:offset`, `:currency`, and
@@ -63,7 +64,7 @@ claim.
 
 ## Conformance statement
 
-The `0.9.1` JavaScript backend remains the release candidate for the pinned stable
+The `0.9.2` JavaScript backend remains the release candidate for the pinned stable
 MF2 surface, backed by:
 
 - 270 upstream syntax and data-model cases (114 well-formed, 133 syntax
@@ -87,7 +88,7 @@ differences remain visible instead of being mistaken for engine bugs.
 The claim is intentionally limited to the stable JavaScript profile. Draft
 date/time behavior is experimental, Draft `:unit` is deferred, custom
 functions are extensions, and Native/Wasm do not yet ship a project-owned
-CLDR formatter. Therefore `0.9.1` does not claim every optional or Draft MF2
+CLDR formatter. Therefore `0.9.2` does not claim every optional or Draft MF2
 feature on every backend.
 
 ## Contract discipline

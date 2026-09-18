@@ -7,7 +7,7 @@ remains the target-independent resolution core in `0.7.0`. It builds on the
 pinned syntax/interchange model and now feeds the separately versioned
 `unicode-mf2-ldml48.2-default-functions-v1` registry without changing the
 existing catalog profile or canonical JSON authoring workflow.
-Release `0.9.1` preserves this resolution and formatting contract unchanged.
+Release `0.9.2` preserves this resolution and formatting contract unchanged.
 
 This phase implements the target-independent semantics between parsing and the
 default function registry:
@@ -139,7 +139,7 @@ limited to 64 KiB, and the existing declaration, selector, variant, option,
 and pattern-part limits still apply. A limit failure is reported and produces
 the bounded whole-message fallback instead of partial unsafe output.
 
-The unreleased maintenance fix enforces the output byte limit incrementally.
+The `0.9.2` maintenance fix enforces the output byte limit incrementally.
 Before appending each text or formatted-expression contribution, the runtime
 checks its UTF-8 size against the remaining budget, including any bidi
 isolation controls. On overflow it stops evaluating the remaining pattern,

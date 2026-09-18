@@ -2,11 +2,10 @@
 
 [English](message-profile-migration.mbt.md)
 
-`0.9.0` 要求显式声明 message 契约，并把稳定 MF2 与实验 date/time 行为分开。不编写
-date/time function 的新项目应使用：
-
-`0.9.1` 只改变精确的 MoonBit 构建工具与依赖版本，不需要迁移 message profile，
-并保持 `0.9.0` 的生成 API、catalog、CLI 与 wire 契约。
+`0.9.0` 要求显式声明 message 契约，并把稳定 MF2 与实验 date/time 行为分开。
+`0.9.2` 修复只通过分块安装的 locale 协商，并增量执行现有文本输出上限，不需要迁移
+message profile。它保持 `0.9.0` 的生成 API、catalog、CLI 与 wire 契约，并继续使用
+`0.9.1` 的工具链与依赖基线。不编写 date/time function 的新项目应使用：
 
 ~~~json
 {
@@ -47,7 +46,7 @@ version 2，但 profile 参与 contract hash；不匹配的 facade 与 catalog �
 3. 如果确实需要其中任意一项，选择
    `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`，并记录该 authoring surface
    可能在 Unicode 稳定这些 function 时变化；
-4. 同时把库与 CLI 升级到 `0.9.1`，并在同一变更中重新生成 binding、generation
+4. 同时把库与 CLI 升级到 `0.9.2`，并在同一变更中重新生成 binding、generation
    manifest、deployment manifest 与所有 catalog chunk；
 5. 部署前运行 `check`、JavaScript test、浏览器/应用 test 与 production build，并把
    生成代码和 catalog 一起发布。
@@ -80,18 +79,18 @@ rich parts、locale negotiation 与 namespace loading 保持原有应用层形�
 ## 验证命令
 
 ~~~bash
-moon add lampclaw/i18n@0.9.1
-moon add --bin lampclaw/i18n/cmd/i18n@0.9.1
+moon add lampclaw/i18n@0.9.2
+moon add --bin lampclaw/i18n/cmd/i18n@0.9.2
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 generate \
   localization/config.json localization/schema.json localization/locales \
   i18n public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 check \
   localization/config.json localization/schema.json localization/locales \
   i18n public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 pseudo \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 pseudo \
   --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json en-US localization/locales/en-US.json \
   en-XA localization/locales/en-XA.json

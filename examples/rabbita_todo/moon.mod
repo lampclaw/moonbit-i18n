@@ -1,9 +1,9 @@
 name = "lampclaw/i18n_rabbita_todo"
 
-version = "0.9.1"
+version = "0.9.2"
 
 import {
-  "lampclaw/i18n@0.9.1",
+  "lampclaw/i18n@0.9.2",
   "moonbit-community/rabbita@0.15.4",
   "moonbitlang/x@0.5.1",
 }

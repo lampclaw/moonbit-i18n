@@ -14,7 +14,7 @@
 `lampclaw/i18n` 的目标是成为 MoonBit 原生、生成优先、类型安全、标准驱动的国际化
 基础设施，具有可移植核心和可替换的目标平台 formatter。
 
-当前稳定版 `0.9.1` 已经超出原型阶段，并保持 `0.9.0` 冻结的 1.0 candidate 基线：
+`0.9.2` 维护版本已经超出原型阶段，并保持 `0.9.0` 冻结的 1.0 candidate 基线：
 
 - 应用代码使用生成的类型安全 MoonBit facade，而不是裸字符串消息 ID；
 - schema、locale 资源、生成源码、catalog 和所有权 manifest 构成确定性的 authoring
@@ -324,10 +324,11 @@ requirement matrix 与独立 differential report 达到这个 scope 内门槛。
 - 1.0 候选公共 runtime、generator、authoring、catalog、registry、CLI、diagnostic、
   manifest 与生成 facade 契约冻结在 `docs/contracts/1.0-candidate.json`。
 
-`0.9.1` 是该里程碑的兼容性维护版本。它把精确 MoonBit 构建工具和实现依赖 pin
-推进到当前兼容版本，同时保持全部冻结 candidate 边界、受支持 target 以及
-Node/浏览器 host 契约。其验收门槛仍是完整的四 target、conformance、浏览器、打包与
-registry 门禁。
+`0.9.1` 推进了精确 MoonBit 构建工具和实现依赖 pin，同时保持全部冻结 candidate
+边界、受支持 target 以及 Node/浏览器 host 契约。`0.9.2` 保留该基线，修复只通过
+分块安装的 locale 协商，并增量执行现有 MF2 文本输出上限，不引入公开 API、
+profile、wire 契约或受支持 target 变化。其验收门槛仍是完整的四 target、
+conformance、浏览器、打包与 registry 门禁。
 
 维护中的 Rabbita 应用因有意使用 Draft function 而选择 experimental datetime profile；
 不使用 Draft function 的稳定 consumer 迁移到 v2。原始 `0.9.0` candidate 发布门槛

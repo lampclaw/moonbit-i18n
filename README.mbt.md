@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. `0.9.1` ships one module containing the runtime, generator, a portable
+MoonBit. `0.9.2` ships one module containing the runtime, generator, a portable
 `moonx` CLI, and standalone pinned Unicode MF2 syntax/data-model, resolution,
 stable default-function, and public registry APIs.
 Generated application facades currently target JavaScript and use the host's
@@ -16,8 +16,10 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.9.1` preserves the JavaScript Unicode MF2 conformance candidate frozen in
-`0.9.0`. New scaffolds use the explicit stable
+`0.9.2` preserves the JavaScript Unicode MF2 conformance candidate frozen in
+`0.9.0`. It fixes negotiation for chunk-only installed locales and checks the
+existing MF2 text-output limit before accumulation, retaining the exact
+`0.9.1` toolchain and dependency baseline. New scaffolds use the explicit stable
 `unicode-mf2-ldml48.2-js-v2` profile end to end. Draft `:date`, `:time`,
 and `:datetime` require the separately named
 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` profile. Omitted
@@ -49,24 +51,24 @@ and real-consumer acceptance gates must still pass.
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.9.1
+moon add lampclaw/i18n@0.9.2
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 --help
+moonx lampclaw/i18n/cmd/i18n@0.9.2 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.9.1` is an optional project-local binary
+`moon add --bin lampclaw/i18n@0.9.2` is an optional project-local binary
 dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.9.1`; it is named `moon-i18n`.
+`moon install lampclaw/i18n/cmd/i18n@0.9.2`; it is named `moon-i18n`.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.9.2 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -161,14 +163,14 @@ independently.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -313,7 +315,7 @@ message.
 ## Example and low-level APIs
 
 The source repository's
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.9.1/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.9.2/examples/rabbita_todo)
 demonstrates the full browser workflow. Examples are intentionally excluded
 from the published archive, so the registry page stays focused on the library.
 

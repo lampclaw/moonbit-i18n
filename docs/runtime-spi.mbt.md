@@ -54,7 +54,7 @@ Unicode conformance; see
 
 ## Catalog compatibility contract
 
-The `0.9.1` release preserves the catalog format version `2` contract
+The `0.9.2` release preserves the catalog format version `2` contract
 frozen in `0.9.0`, with an explicit
 compatibility, legacy v1, stable v2, or experimental datetime profile. Stable
 authoring uses `unicode-mf2-ldml48.2-js-v2`; experimental date/time authoring
@@ -93,7 +93,7 @@ values. The generated facade owns those conversions.
 
 ## Fallback and diagnostics
 
-The unreleased maintenance fix makes `I18n::translator_from_code` consider
+The `0.9.2` maintenance fix makes `I18n::translator_from_code` consider
 locales installed only through catalog chunks as well as full catalogs.
 It uses the same sorted installed-locale list exposed by
 `catalog_locale_codes()`; normalization, parent lookup, and configured

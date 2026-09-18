@@ -3,12 +3,12 @@
 [中文](message-profile-migration.zh-CN.mbt.md)
 
 Version `0.9.0` makes the message contract explicit and separates stable MF2
-from experimental date/time behavior. New projects that do not author
-date/time functions should use:
-
-Version `0.9.1` changes only the exact MoonBit build-tool and dependency
-pins. It requires no message-profile migration and preserves the `0.9.0`
-generated API, catalog, CLI, and wire contracts.
+from experimental date/time behavior. Version `0.9.2` fixes chunk-only locale
+negotiation and enforces the existing text-output limit incrementally. It
+requires no message-profile migration, preserves the `0.9.0` generated API,
+catalog, CLI, and wire contracts, and retains the `0.9.1` toolchain and
+dependency baseline. New projects that do not author date/time functions
+should use:
 
 ~~~json
 {
@@ -54,7 +54,7 @@ closed.
 3. If any are intentional, choose
    `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` and record that the
    authoring surface may change when Unicode stabilizes those functions.
-4. Upgrade the library and CLI together to `0.9.1`, then regenerate bindings,
+4. Upgrade the library and CLI together to `0.9.2`, then regenerate bindings,
    the generation manifest, the deployment manifest, and every catalog chunk
    in one change.
 5. Run `check`, JavaScript tests, browser/application tests, and the production
@@ -90,18 +90,18 @@ exports `MESSAGE_PROFILE` for diagnostics and deployment metadata.
 ## Verification commands
 
 ~~~bash
-moon add lampclaw/i18n@0.9.1
-moon add --bin lampclaw/i18n/cmd/i18n@0.9.1
+moon add lampclaw/i18n@0.9.2
+moon add --bin lampclaw/i18n/cmd/i18n@0.9.2
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 generate \
   localization/config.json localization/schema.json localization/locales \
   i18n public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 check \
   localization/config.json localization/schema.json localization/locales \
   i18n public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 pseudo \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 pseudo \
   --message-profile unicode-mf2-ldml48.2-js-v2 \
   localization/schema.json en-US localization/locales/en-US.json \
   en-XA localization/locales/en-XA.json

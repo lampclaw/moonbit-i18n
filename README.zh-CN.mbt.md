@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.9.1` 以一个模块发布 runtime、generator、可移植 `moonx` CLI，以及独立的固定
+`0.9.2` 以一个模块发布 runtime、generator、可移植 `moonx` CLI，以及独立的固定
 Unicode MF2 语法/data-model、resolution、stable 默认函数与公开 registry API。生成的应用 facade 当前面向
 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
@@ -13,7 +13,9 @@ JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 ## 路线图与当前状态
 
-`0.9.1` 保持 `0.9.0` 冻结的 JavaScript Unicode MF2 conformance candidate。
+`0.9.2` 保持 `0.9.0` 冻结的 JavaScript Unicode MF2 conformance candidate。
+它修复只通过分块安装的 locale 协商，并在累积文本前检查现有 MF2 输出上限，
+继续使用 `0.9.1` 的精确工具链与依赖基线。
 新 scaffold 会端到端使用显式 stable `unicode-mf2-ldml48.2-js-v2`。Draft `:date`、
 `:time`、`:datetime` 必须使用单独命名的
 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`。省略 `messageProfile` 是 error
@@ -39,24 +41,24 @@ conformance 与真实消费者验收门槛。
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.9.1
+moon add lampclaw/i18n@0.9.2
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 --help
+moonx lampclaw/i18n/cmd/i18n@0.9.2 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.9.1` 是可选的项目级二进制依赖，并非
+`moon add --bin lampclaw/i18n@0.9.2` 是可选的项目级二进制依赖，并非
 主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.9.1` 全局安装，命令名为
+`moon install lampclaw/i18n/cmd/i18n@0.9.2` 全局安装，命令名为
 `moon-i18n`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.9.2 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -145,14 +147,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.1 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.1 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.2 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \
@@ -277,7 +279,7 @@ KiB，以及每个 message 64 个参数、input 或 rich tag。
 ## 示例与底层 API
 
 源码仓库中的
-[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.9.1/examples/rabbita_todo)
+[`examples/rabbita_todo`](https://github.com/lampclaw/moonbit-i18n/tree/v0.9.2/examples/rabbita_todo)
 演示完整浏览器流程。示例刻意排除在发布 archive 外，registry 页面专注于库本身。
 
 框架与 generator 维护者可以使用有文档的 `runtime` 与 `generator` package；普通应用
