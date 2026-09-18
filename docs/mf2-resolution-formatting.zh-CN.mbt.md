@@ -6,7 +6,7 @@
 无关的 resolution core。它构建在固定 syntax/interchange model 上，现在连接到单独
 version 的 `unicode-mf2-ldml48.2-default-functions-v1` registry，但不改变已有 catalog
 profile 和 canonical JSON authoring 工作流。
-`0.9.1` 保持该 resolution 与 formatting 契约不变。
+`0.9.2` 保持该 resolution 与 formatting 契约不变。
 
 本阶段实现 parser 与默认 function registry 之间、与目标平台无关的语义：
 
@@ -118,7 +118,7 @@ context 最多接受 64 个 input；source 与格式化输出分别限制为 64 
 selector、variant、option 与 pattern-part 限制继续生效。超过限制时会报告错误，并返回
 有界的整条 message fallback，而不是部分、不安全的输出。
 
-尚未发布的维护修复改为逐段执行输出字节限制。追加每段 text 或格式化 expression
+`0.9.2` 的维护修复改为逐段执行输出字节限制。追加每段 text 或格式化 expression
 之前，runtime 会检查其 UTF-8 大小是否超出剩余预算，bidi isolation 控制符也计入
 预算。一旦超限，就停止求值剩余 pattern，返回有界的整条 message fallback，并在
 保留已发现错误的基础上追加 `Mf2LimitCode`。被跳过的尾部 expression 不再求值，

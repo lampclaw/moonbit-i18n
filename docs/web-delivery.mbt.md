@@ -152,13 +152,14 @@ dispatch in the browser bundle. Generation-only code is still unreachable.
 These checked limits are regression ceilings, not promises that every
 application bundle has the same size.
 
-With the `0.9.1` release toolchain (MoonBit `0.10.9`), Rabbita `0.15.4`,
-Warren `0.3.2`, and Terser `5.50.0`, the maintained application measures
-444.6 KiB JavaScript and 119.4 KiB gzip; the chunk and manifest measurements
-remain 2.0 KiB, 1.1 KiB, and 2.1 KiB. The raw result has only 3.4 KiB of
-headroom. The application-owned same-origin text loader avoids linking
-Rabbita's general-purpose HTTP stack, but future framework or compiler
-upgrades must continue to run this gate rather than assume that headroom.
+The `0.9.2` maintained application, built with MoonBit `0.10.9`, Rabbita
+`0.15.4`, Warren `0.3.2`, and Terser `5.50.0`, measures 455,928 JavaScript
+bytes (445.2 KiB) and 122,607 gzip bytes (119.7 KiB). Embedded chunks, the
+largest dynamic chunk, and the deployment manifest measure 2,068, 1,108, and
+2,131 bytes. Raw headroom is 2,824 bytes. These are whole-application sizes,
+including the framework. The application-owned same-origin text loader avoids
+linking Rabbita's general-purpose HTTP stack; future framework or compiler
+upgrades must continue to pass this gate.
 
 No framework-specific package is introduced in 0.4. The current evidence does
 not yet show two independent consumers needing the same owned lifecycle

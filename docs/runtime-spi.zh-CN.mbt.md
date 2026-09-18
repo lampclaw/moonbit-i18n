@@ -46,7 +46,7 @@ structured `Intl` field。Framework 可以取得 `@runtime_js.mf2_registry()`，
 
 ## Catalog 兼容契约
 
-`0.9.1` 保持 `0.9.0` 冻结的 catalog format version `2` 契约，并要求显式选择
+`0.9.2` 保持 `0.9.0` 冻结的 catalog format version `2` 契约，并要求显式选择
 compatibility、legacy v1、
 stable v2 或 experimental datetime profile。Stable authoring 使用
 `unicode-mf2-ldml48.2-js-v2`；experimental date/time authoring 使用
@@ -77,7 +77,7 @@ rich-part tag。底层 formatter 最多接受 64 个参数，每个 expression �
 
 ## Fallback 与诊断
 
-尚未发布的维护修复让 `I18n::translator_from_code` 同时考虑完整 catalog 和仅通过
+`0.9.2` 的维护修复让 `I18n::translator_from_code` 同时考虑完整 catalog 和仅通过
 catalog chunk 安装的 locale。它使用 `catalog_locale_codes()` 暴露的同一份已排序
 安装列表；normalization、父级查找和配置的 fallback 行为保持不变。生成 facade
 仍可在 catalog 数据加载之前从已配置 locale 中选择，因此本次修复不改变生成层的

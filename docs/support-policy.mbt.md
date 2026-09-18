@@ -5,8 +5,8 @@
 This document defines the supported `0.x` Web release line. A target is supported
 only when it is named here and exercised by the release gates.
 
-Release `0.9.1` advances the exact MoonBit pin from the immutable `0.9.0`
-release baseline to the versions below. It preserves the supported target set,
+Release `0.9.2` retains the exact MoonBit and dependency baseline introduced
+by `0.9.1`, including the versions below. It preserves the supported target set,
 public and generated APIs, profiles, CLI and wire contracts, and Node/browser
 host policy.
 

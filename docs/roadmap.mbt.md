@@ -18,7 +18,7 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The current stable `0.9.1` release is beyond a prototype and preserves the
+The `0.9.2` maintenance version is beyond a prototype and preserves the
 1.0 candidate baseline frozen in `0.9.0`:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
@@ -402,11 +402,13 @@ with these frozen boundaries:
   CLI, diagnostics, manifest, and generated-facade contracts frozen in
   `docs/contracts/1.0-candidate.json`.
 
-`0.9.1` is the compatibility-maintenance release for this milestone. It
-advances the exact MoonBit build-tool and implementation dependency pins to
-current compatible releases while preserving every frozen candidate boundary,
-supported target, and Node/browser host contract. Its acceptance gate remains
-the complete four-target, conformance, browser, package, and registry suite.
+`0.9.1` advanced the exact MoonBit build-tool and implementation dependency
+pins while preserving every frozen candidate boundary, supported target, and
+Node/browser host contract. `0.9.2` keeps that baseline and fixes chunk-only
+locale negotiation and incremental enforcement of the existing MF2 text-output
+limit. It adds no public API, profile, wire-contract, or supported-target change.
+Its acceptance gate remains the complete four-target, conformance, browser,
+package, and registry suite.
 
 The maintained Rabbita application deliberately selects the experimental
 datetime profile; stable consumers without Draft functions migrate to v2. The

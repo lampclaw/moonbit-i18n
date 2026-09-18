@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-09-18
+
 ### Fixed
 
 - Include locales installed only through catalog chunks when
@@ -469,7 +471,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...v0.8.0
