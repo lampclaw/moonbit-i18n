@@ -138,3 +138,18 @@ Contexts accept at most 64 inputs. Source and formatted output are each
 limited to 64 KiB, and the existing declaration, selector, variant, option,
 and pattern-part limits still apply. A limit failure is reported and produces
 the bounded whole-message fallback instead of partial unsafe output.
+
+The unreleased maintenance fix enforces the output byte limit incrementally.
+Before appending each text or formatted-expression contribution, the runtime
+checks its UTF-8 size against the remaining budget, including any bidi
+isolation controls. On overflow it stops evaluating the remaining pattern,
+returns the bounded whole-message fallback, and retains errors already
+discovered before adding `Mf2LimitCode`. Expressions in the skipped tail are
+not evaluated, so they produce no additional errors or formatter calls.
+Declaration resolution and pattern selection still precede pattern formatting.
+
+This guard bounds output accumulation in the core formatter; it does not
+bound input allocations already made by callers or strings and fields
+allocated inside a custom formatter before it returns. Structured metadata,
+including options, attributes, and formatter fields, retains its existing
+contract: this fix adds no independent aggregate byte limit for that data.

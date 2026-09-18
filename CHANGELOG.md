@@ -6,6 +6,27 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Include locales installed only through catalog chunks when
+  `I18n::translator_from_code` negotiates among installed catalogs. Locale
+  normalization, parent lookup, configured fallback, and generated-facade
+  locale selection retain their existing behavior.
+- Enforce the existing 64 KiB MF2 output limit incrementally before appending
+  each text or formatted-expression contribution, including bidi controls.
+  Stop pattern evaluation on overflow, retain errors already discovered, and
+  return the bounded whole-message fallback without evaluating the remaining
+  pattern or allocating its combined output. This bounds core output
+  accumulation, not allocations owned by callers or custom formatters, and
+  introduces no new byte-size contract for structured metadata.
+
+### Changed
+
+- Keep development on `0.x` until MoonBit officially releases `1.0`.
+  Considering `lampclaw/i18n` `1.0.0` then still requires the project's
+  compatibility, conformance, and real-consumer acceptance gates; the upstream
+  release does not automatically promote this library.
+
 ## [0.9.1] - 2026-08-24
 
 ### Changed

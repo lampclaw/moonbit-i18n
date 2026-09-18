@@ -30,6 +30,10 @@ authoring 与交付完善，最终到 JavaScript 后端完整 MF2 的推进路�
 精确的工具链、操作系统、浏览器、后端和 `0.x` 兼容承诺见
 [支持政策](docs/support-policy.zh-CN.mbt.md)。
 
+在 MoonBit 正式发布 `1.0` 之前，本项目继续维护 `0.x`。上游正式版是考虑
+`lampclaw/i18n` `1.0.0` 的前置条件，并不意味着自动晋升；项目仍须通过兼容性、
+conformance 与真实消费者验收门槛。
+
 ## 安装与运行 CLI
 
 向应用模块添加库依赖：

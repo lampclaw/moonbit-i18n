@@ -77,6 +77,12 @@ rich-part tag。底层 formatter 最多接受 64 个参数，每个 expression �
 
 ## Fallback 与诊断
 
+尚未发布的维护修复让 `I18n::translator_from_code` 同时考虑完整 catalog 和仅通过
+catalog chunk 安装的 locale。它使用 `catalog_locale_codes()` 暴露的同一份已排序
+安装列表；normalization、父级查找和配置的 fallback 行为保持不变。生成 facade
+仍可在 catalog 数据加载之前从已配置 locale 中选择，因此本次修复不改变生成层的
+locale 选择策略。
+
 查找会依次尝试请求 locale chain，最后尝试配置的 fallback。某个 catalog 格式化失败
 不会中断链路，后续 catalog 仍可返回有效消息；若所有候选均失败，`try_t` 会返回失败
 候选关联的全部格式化错误。

@@ -39,6 +39,11 @@ The exact toolchain, operating-system, browser, backend, and `0.x`
 compatibility commitments are listed in the
 [support policy](docs/support-policy.mbt.md).
 
+Development remains on `0.x` until MoonBit officially releases `1.0`.
+That upstream release is a prerequisite for considering `lampclaw/i18n`
+`1.0.0`, not an automatic promotion: the project's compatibility, conformance,
+and real-consumer acceptance gates must still pass.
+
 ## Install and run the CLI
 
 Add the library dependency to an application module:
