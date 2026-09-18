@@ -309,14 +309,10 @@ fn format_mf2_model_with_provider(
   let result = mf2_format_pattern(
     pattern, bindings, inputs, context, provider, errors,
   )
+  // The pattern builder preflights every append. Keep this bounded encoding
+  // check to preserve the target encoder's handling of unpaired surrogates.
   if @utf8.encode(result.value).length() > MF2_MAX_OUTPUT_BYTES {
-    errors.push({
-      kind: Mf2LimitError,
-      code: Mf2LimitCode,
-      message: "formatted output exceeds the \{MF2_MAX_OUTPUT_BYTES}-byte limit",
-      offset: 0,
-    })
-    mf2_message_fallback(context, errors)
+    mf2_output_limit_fallback(context, errors)
   } else {
     result
   }
@@ -741,6 +737,12 @@ fn mf2_message_fallback(
   errors : Array[Mf2Error],
 ) -> Mf2FormatResult {
   let source = if context.fallback.is_empty() ||
+    mf2_count_output_segment(
+      { bytes: 0, trailing_high_surrogate: false },
+      context.fallback,
+      MF2_MAX_OUTPUT_BYTES - 2,
+    )
+    is None ||
     @utf8.encode(context.fallback).length() + 2 > MF2_MAX_OUTPUT_BYTES {
     "�"
   } else {
@@ -891,6 +893,60 @@ fn mf2_push_bad_selector_once(
 }
 
 ///|
+priv struct Mf2OutputBudget {
+  bytes : Int
+  trailing_high_surrogate : Bool
+}
+
+///|
+// Count UTF-8 bytes without encoding or copying an unbounded input string.
+// A trailing high surrogate provisionally contributes three bytes. If the
+// next segment starts with a low surrogate, the pair needs only one more
+// byte, rather than three. Empty segments (including markup) preserve state.
+fn mf2_count_output_segment(
+  budget : Mf2OutputBudget,
+  value : String,
+  limit : Int,
+) -> Mf2OutputBudget? {
+  let mut bytes = budget.bytes
+  let mut trailing_high_surrogate = budget.trailing_high_surrogate
+  for index = 0; index < value.length(); index = index + 1 {
+    let unit = value.unsafe_get(index).to_int()
+    let high = unit >= 0xD800 && unit <= 0xDBFF
+    let low = unit >= 0xDC00 && unit <= 0xDFFF
+    let width = if low && trailing_high_surrogate {
+      1
+    } else if unit < 0x80 {
+      1
+    } else if unit < 0x800 {
+      2
+    } else {
+      3
+    }
+    if width > limit - bytes {
+      return None
+    }
+    bytes = bytes + width
+    trailing_high_surrogate = high
+  }
+  Some({ bytes, trailing_high_surrogate })
+}
+
+///|
+fn mf2_output_limit_fallback(
+  context : Mf2FormattingContext,
+  errors : Array[Mf2Error],
+) -> Mf2FormatResult {
+  errors.push({
+    kind: Mf2LimitError,
+    code: Mf2LimitCode,
+    message: "formatted output exceeds the \{MF2_MAX_OUTPUT_BYTES}-byte limit",
+    offset: 0,
+  })
+  mf2_message_fallback(context, errors)
+}
+
+///|
 fn mf2_format_pattern(
   pattern : Mf2ModelPattern,
   bindings : Map[String, Mf2ResolvedValue],
@@ -901,9 +957,18 @@ fn mf2_format_pattern(
 ) -> Mf2FormatResult {
   let out = StringBuilder::new()
   let parts : Array[Mf2FormattedPart] = []
+  let mut budget : Mf2OutputBudget = {
+    bytes: 0,
+    trailing_high_surrogate: false,
+  }
   for part in pattern.parts {
     match part {
       Mf2ModelText(value) => {
+        budget = match
+          mf2_count_output_segment(budget, value, MF2_MAX_OUTPUT_BYTES) {
+          Some(next) => next
+          None => return mf2_output_limit_fallback(context, errors)
+        }
         out.write_string(value)
         parts.push(Mf2FormattedText(value))
       }
@@ -924,6 +989,21 @@ fn mf2_format_pattern(
           }
         }
         let isolation = mf2_bidi_start(final_value, context)
+        // Reserve the complete expression before appending either its text or
+        // structured fields, including both ends of any bidi isolation.
+        let segments = match isolation {
+          Some(start) => [start, formatted.value, "\u{2069}"]
+          None => [formatted.value]
+        }
+        let mut next_budget = budget
+        for segment in segments {
+          next_budget = match
+            mf2_count_output_segment(next_budget, segment, MF2_MAX_OUTPUT_BYTES) {
+            Some(next) => next
+            None => return mf2_output_limit_fallback(context, errors)
+          }
+        }
+        budget = next_budget
         match isolation {
           Some(start) => {
             out.write_string(start)
