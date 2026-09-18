@@ -178,6 +178,75 @@ test "runtime installs independent chunks and reports namespace readiness" {
 }
 
 ///|
+test "locale negotiation includes chunk-only locales after successful installation" {
+  let i18n = test_i18n()
+  install_for_test(
+    i18n,
+    runtime_catalog("en-US", [
+      { id: "common.hello", message: "Hello" },
+      { id: "common.save", message: "Save" },
+    ]),
+  )
+  assert_eq(i18n.translator_from_code("fr-FR").locale_code(), "en-US")
+  let malformed = runtime_chunk("fr", "common", [
+    { id: "common.hello", message: "Broken {" },
+  ])
+  assert_true(i18n.install_generated_catalog(malformed) is Err(_))
+  assert_eq(i18n.translator_from_code("fr-FR").locale_code(), "en-US")
+  install_for_test(
+    i18n,
+    runtime_chunk("fr", "common", [{ id: "common.hello", message: "Bonjour" }]),
+  )
+  assert_eq(i18n.translator_from_code("fr").locale_code(), "fr")
+  let translator = i18n.translator_from_code("FR_fr")
+  assert_eq(translator.locale_code(), "fr")
+  assert_eq(translator.t("common.hello", []), "Bonjour")
+  assert_eq(translator.t("common.save", []), "Save")
+  let diagnostics = i18n.take_diagnostics()
+  assert_eq(diagnostics.entries.length(), 1)
+  assert_eq(diagnostics.entries[0].kind, MessageFallbackDiagnostic)
+  assert_eq(diagnostics.entries[0].requested_locale, "fr")
+  assert_eq(diagnostics.entries[0].used_locale, "en-US")
+  install_for_test(
+    i18n,
+    runtime_chunk("fr", "account", [{ id: "account.title", message: "Compte" }]),
+  )
+  assert_eq(i18n.catalog_locale_codes(), ["en-US", "fr"])
+  assert_eq(i18n.translator_from_code("fr-BE").t("account.title", []), "Compte")
+  assert_true(i18n.install_generated_catalog(malformed) is Err(_))
+  assert_eq(i18n.translator_from_code("fr-FR").t("common.hello", []), "Bonjour")
+}
+
+///|
+test "locale negotiation prefers regional chunks and preserves message fallback" {
+  let i18n = test_i18n()
+  install_for_test(
+    i18n,
+    runtime_chunk("en-US", "common", [{ id: "common.save", message: "Save" }]),
+  )
+  install_for_test(
+    i18n,
+    runtime_catalog("fr", [{ id: "common.save", message: "Enregistrer" }]),
+  )
+  install_for_test(
+    i18n,
+    runtime_chunk("fr-CA", "account", [
+      { id: "account.title", message: "Compte canadien" },
+    ]),
+  )
+  let regional = i18n.translator_from_code("fr-CA")
+  assert_eq(regional.locale_code(), "fr-CA")
+  assert_eq(regional.t("account.title", []), "Compte canadien")
+  assert_eq(regional.t("common.save", []), "Enregistrer")
+  assert_eq(i18n.translator_from_code("fr-BE").locale_code(), "fr")
+  assert_eq(i18n.translator_from_code("de-DE").locale_code(), "en-US")
+  assert_eq(
+    i18n.translator_from_code("bad--locale").t("common.save", []),
+    "Save",
+  )
+}
+
+///|
 test "catalog installation rejects conflicting directions within a locale" {
   let i18n = test_i18n()
   install_for_test(

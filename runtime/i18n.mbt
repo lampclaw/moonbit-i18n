@@ -148,7 +148,7 @@ pub fn I18n::translator_from_code(
   self : I18n,
   locale_code : String,
 ) -> Translator {
-  let supported : Array[String] = self.catalogs.keys().collect()
+  let supported = self.catalog_locale_codes()
   self.translator(
     resolve_locale_code([locale_code], supported, self.fallback_locale_code),
   )
