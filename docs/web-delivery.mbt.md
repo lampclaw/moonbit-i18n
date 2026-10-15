@@ -128,6 +128,10 @@ The maintained Rabbita Todo example follows this ownership boundary. It embeds
 English, requests the `common` and `todo_ui` Chinese chunks independently,
 keeps English on failure, retries only missing chunks, and persists an explicit
 locale choice only after both required namespaces validate.
+In `0.9.3`, each request has a 10-second deadline for headers and body, counts
+actual streamed bytes against the generated length and 64 KiB hard ceiling,
+and strictly decodes UTF-8 before the existing SHA-256 and catalog checks.
+Request IDs isolate retries from late completions of earlier attempts.
 
 ## Published release budgets
 
@@ -136,8 +140,8 @@ enforces these raw release limits:
 
 | Artifact | Budget |
 | --- | ---: |
-| Browser release JavaScript | 448 KiB |
-| Gzip-compressed browser JavaScript | 128 KiB |
+| Browser release JavaScript | 512 KiB |
+| Gzip-compressed browser JavaScript | 160 KiB |
 | All chunks for embedded locales | 8 KiB |
 | One dynamic namespace chunk | 64 KiB |
 | Deployment manifest | 64 KiB |
@@ -160,6 +164,16 @@ largest dynamic chunk, and the deployment manifest measure 2,068, 1,108, and
 including the framework. The application-owned same-origin text loader avoids
 linking Rabbita's general-purpose HTTP stack; future framework or compiler
 upgrades must continue to pass this gate.
+
+The `0.9.3` migration is an explicitly approved size-budget exception on
+2026-10-14. MoonBit `0.10.15+943464bfa`, Rabbita `0.16.5`, and Warren `0.4.5`
+(bundled Evol minifier) produce 496,495 raw bytes and 145,326 gzip bytes.
+Those exceed the former 448 KiB / 128 KiB ceilings; comparisons with compatible
+older Rabbita versions and Terser compression also exceeded them. The reviewed
+ceilings are now 512 KiB / 160 KiB, leaving 27,793 / 18,514 bytes of headroom.
+The unchanged chunk/manifest measurements above and the unchanged performance,
+profile, and conformance gates remain required. This records a measured build
+baseline change, not a formatting-feature expansion or a size reduction.
 
 No framework-specific package is introduced in 0.4. The current evidence does
 not yet show two independent consumers needing the same owned lifecycle

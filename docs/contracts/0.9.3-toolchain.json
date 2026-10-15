@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "toolchain": "0.10.15+943464bfa",
+  "candidateSnapshot": "docs/contracts/1.0-candidate.json",
+  "reason": "Explicitly preserve previously implicit Eq and Debug methods; migrate StringBuilder and compiler formatting without changing generated catalog semantics.",
+  "publicInterfaces": {
+    "runtime/pkg.generated.mbti": "7354e83dd6116c5f6b517231e05e8b1e797867802af8ce8d578cfdd5f8c329b6",
+    "runtime/js/pkg.generated.mbti": "2b02a16d373f668624bfdcbfd8ccf30604015b6f26651f1ddf4bbad36fdb027f",
+    "generator/pkg.generated.mbti": "904ff85efafd2a21830fccf2e7fc650ba6dfbd903702d8e1da6c5a7282dc468c"
+  },
+  "generatorTemplate": {
+    "path": "generator/codegen.mbt",
+    "sha256": "499f8cee3f6d05cd14ecbbf40d35b6e7baacfe345260e625f34def61f070b931"
+  }
+}

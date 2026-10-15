@@ -107,7 +107,7 @@ fn inherited_option(
 }
 
 ///|
-fn test_number_string(value : Double, decimal_places : Int) -> String {
+fn test_number_string(value : Double, decimal_places : Int32) -> String {
   let sign = if value < 0.0 { "-" } else { "" }
   let absolute = if value < 0.0 { -value } else { value }
   let integer = absolute.trunc().to_int()
@@ -181,7 +181,7 @@ fn test_function_handler(name : String) -> @runtime.Mf2FunctionHandler {
         Err(@runtime.Mf2FunctionBadOption("test function formatting failed"))
       }
     } else {
-      () => Ok(@runtime.FormatterOutput::{ value: formatted, parts: [] })
+      () => Ok(@runtime.FormatterOutput::{ value: formatted, parts: [], })
     }
     let match_key = if name == "test:format" {
       None
@@ -211,10 +211,10 @@ fn test_function_handler(name : String) -> @runtime.Mf2FunctionHandler {
         match_key~,
         better_than~,
         inherited_options=[
-          { name: "test:input", value: input.to_string() },
-          { name: "test:decimalPlaces", value: decimal_places.to_string() },
-          { name: "test:failsFormat", value: fails_format.to_string() },
-          { name: "test:failsSelect", value: fails_select.to_string() },
+          { name: "test:input", value: input.to_string(), },
+          { name: "test:decimalPlaces", value: decimal_places.to_string(), },
+          { name: "test:failsFormat", value: fails_format.to_string(), },
+          { name: "test:failsSelect", value: fails_select.to_string(), },
         ],
       ),
     )

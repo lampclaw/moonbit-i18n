@@ -3,19 +3,24 @@
 ## Current stable-release procedure (`0.2.0` and later)
 
 Releases in the approved roadmap range are direct stable releases. Read the
-version from `moon.mod`; never infer it from the previous tag and never publish
+version from `moon.mod`; never infer it from Git references and never publish
 an RC unless the release policy is changed explicitly. All commands below use
-`version="$(node scripts/version-contract.mjs get)"` and tag `v$version`.
+`version="$(node scripts/version-contract.mjs get)"` and the full source commit
+`revision="$(git rev-parse HEAD)"`. The repository retains only `main` and no tags.
+Historical tag-verification records below describe the checks performed at the
+time; those references were removed on 2026-10-14. Their full commit SHAs and
+archive checksums remain the release identities.
 
 Before publishing, the reviewed release commit must be clean, pushed to
 `origin/main`, and green in every required Test job. Run the full quality and
-package gates below with archive `0.10.9+6e6c44045` (Moon
-`0.1.20260819`, moonc `0.10.9`), mooncake-bin `0.1.20260805`, and Node.js
+package gates below with archive `0.10.15+943464bfa` (Moon
+`0.1.20261012`, moonc `0.10.15`), its bundled publishing client, and Node.js
 `26.7.0`. Verify `moon whoami` is `lampclaw`, then run
 `node scripts/publish-dry-run.mjs`. Older observed client pairs have returned
-255 after a successful dry run. The helper accepts 255 only after both archive
-checks, exact `202 Accepted`, and the version-specific registry success
-detail all match. It rejects every other non-zero status or incomplete
+255 after a successful dry run. That exception is limited to the recorded
+historical client pair; the current baseline must exit zero and satisfy both
+archive checks, exact `202 Accepted`, and the version-specific success detail.
+The helper rejects every other non-zero status or incomplete
 response; never treat 255 as a general success code.
 
 Documentation synchronization is a hard release gate. Before any dry run or
@@ -26,18 +31,18 @@ changelog must describe the code that is actually in the reviewed commit. Run
 failure blocks the release. The synchronized documents and generated public
 interfaces must be committed and green in CI before `moon publish` is invoked.
 
-Create and locally verify one signed `v$version` tag at the reviewed commit.
+Record the full reviewed source SHA and archive SHA-256; do not create a tag.
 Invoke `moon publish` exactly once. A non-zero or ambiguous result is never an
 authorization to retry: first verify the exact version on mooncakes.io and run
 `node scripts/registry-smoke.mjs "$version"`. Only after the registry assets,
-README/API rendering, and clean-module smoke pass should the signed tag be
-pushed. The stable tag automatically runs Registry smoke on Linux, macOS, and
-Windows. Record the commit, tag verification, archive SHA-256, CI runs,
+README/API rendering, and clean-module smoke pass, manually dispatch Registry
+smoke on Linux, macOS, and Windows with `version`, `revision`, and `archive_sha256`.
+Record the source commit, exact version, archive SHA-256, CI runs,
 registry URL, publish timestamps/status, and known limitations under
 `docs/releases/<version>-acceptance.md`.
 
 If a defect is found after the registry accepted a version, fix it in the next
-SemVer patch. Mooncakes versions and signed tags are immutable and must never
+SemVer patch. Published Mooncakes versions and recorded release identities must never
 be overwritten.
 
 ## Historical `0.1.0` pinned publish-client behavior
@@ -156,17 +161,16 @@ from the published archive.
       API, MF2 requirement, differential, profile, 1.0 candidate contract, and
       version-contract gates before it contacts the registry.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
-      with the intended remote branch, then create a signed
-      `v<version>` tag locally. Publish only `lampclaw/i18n` from that tagged
-      commit. Keep the tag local until the exact registry version and its CLI
-      asset are available so the tag-triggered Registry smoke cannot race the
-      registry build.
+      with `origin/main`, and record its full SHA and package archive checksum.
+      Publish only `lampclaw/i18n` from that commit. Keep Registry smoke manual
+      so it cannot race the registry build; do not create release tags or branches.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
       mooncakes.io for `lampclaw/i18n@<version>` before considering any retry.
 - [ ] In a brand-new temporary module, run `moon add` for the exact version and
       execute the pinned CLI with `moonx`. Dispatch the `Registry smoke`
-      workflow with the exact published version to repeat this on Linux,
+      workflow with the exact published version, full source SHA, and archive
+      SHA-256 to repeat this on Linux,
       macOS, and Windows.
 - [ ] Generate a minimal English/Chinese app with only English embedded, then
       run JS check/build and the resulting JavaScript program.
@@ -179,7 +183,7 @@ from the published archive.
       executable-only `cmd/i18n` package has no public API; verify its delivery
       through exact-version `moonx` and optional binary installation instead
       of requiring an empty API page in the generated documentation index.
-- [ ] Record the registry URL, signed tag, release notes, archive SHA-256, and
+- [ ] Record the registry URL, full source commit SHA, exact version, release notes, archive SHA-256, and
       any known stable-release limitations.
 
 ## Release command sequence
@@ -211,23 +215,12 @@ node scripts/publish-dry-run.mjs
 
 `git status --short` must be empty, the divergence count must be `0 0`, the
 tool versions must match the support policy, and `moon whoami` must be
-`lampclaw`. After required CI passes, create and verify the immutable release
-reference. This release uses the existing Lampclaw ED25519 key through Git's
-SSH signing backend; command-local settings avoid changing the user's global
-Git configuration:
+`lampclaw`. After required CI passes, record the immutable release identity:
 
 ~~~bash
-allowed_signers="$(mktemp)"
 version="$(node scripts/version-contract.mjs get)"
-tag="v$version"
-printf 'lampclaw@gmail.com %s\n' "$(cat ~/.ssh/id_ed25519_lampclaw_github.pub)" > "$allowed_signers"
-git -c gpg.format=ssh \
-  -c user.signingkey=~/.ssh/id_ed25519_lampclaw_github.pub \
-  tag -s "$tag" -m "lampclaw/i18n $version"
-git -c gpg.format=ssh \
-  -c gpg.ssh.allowedSignersFile="$allowed_signers" \
-  tag -v "$tag"
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 "$tag")"
+revision="$(git rev-parse HEAD)"
+shasum -a 256 "_build/publish/lampclaw-i18n-$version.zip"
 ~~~
 
 Then run the real command exactly once:
@@ -243,12 +236,12 @@ accepted publish completed even if the pinned client returned 255:
 
 ~~~bash
 LAMPCLAW_TEST_BIN=1 node scripts/registry-smoke.mjs "$version"
-git push origin "$tag"
 ~~~
 
-Pushing the verified stable tag automatically dispatches
-`.github/workflows/registry-smoke.yml` for that version. The manual workflow
-dispatch remains available for a later rerun. Inspect the mooncakes.io README,
+Manually dispatch `.github/workflows/registry-smoke.yml` from `main`, supplying
+`version`, `revision`, and the verified `archive_sha256`. It checks out that
+exact source SHA, verifies the registry archive, and runs the clean consumer
+on all three operating systems. Inspect the mooncakes.io README,
 metadata and public library API docs, and record the final registry URL and
 archive checksum. The executable-only CLI need not appear as an empty API
 page; its exact-version execution is the delivery proof. A `202` response

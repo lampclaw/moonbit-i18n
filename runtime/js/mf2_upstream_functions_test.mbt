@@ -32,7 +32,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_0 = format_mf2("{:currency}", context_0)
+  let result_0 = @js.format_mf2("{:currency}", context_0)
   assert_eq(result_0.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
   ])
@@ -47,7 +47,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_1 = format_mf2("{foo :currency}", context_1)
+  let result_1 = @js.format_mf2("{foo :currency}", context_1)
   assert_eq(result_1.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
   ])
@@ -62,7 +62,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_2 = format_mf2("{42 :currency}", context_2)
+  let result_2 = @js.format_mf2("{42 :currency}", context_2)
   assert_eq(result_2.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
   ])
@@ -77,7 +77,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_3 = format_mf2(
+  let result_3 = @js.format_mf2(
     ".local $n = {42 :number} {{{$n :currency}}}", context_3,
   )
   assert_eq(result_3.errors.map(error => error.code), [
@@ -94,7 +94,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_4 = format_mf2("{42 :currency currency=EUR}", context_4)
+  let result_4 = @js.format_mf2("{42 :currency currency=EUR}", context_4)
   assert_eq(result_4.errors.map(error => error.code), [])
   // currency 5: Currency function
   let context_5 = match
@@ -107,7 +107,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_5 = format_mf2(
+  let result_5 = @js.format_mf2(
     ".local $n = {42 :number} {{{$n :currency currency=EUR}}}", context_5,
   )
   assert_eq(result_5.errors.map(error => error.code), [])
@@ -122,7 +122,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_6 = format_mf2(
+  let result_6 = @js.format_mf2(
     ".local $n = {42 :integer} {{{$n :currency currency=EUR}}}", context_6,
   )
   assert_eq(result_6.errors.map(error => error.code), [])
@@ -137,7 +137,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_7 = format_mf2(
+  let result_7 = @js.format_mf2(
     ".local $n = {42 :currency currency=EUR} {{{$n :currency}}}", context_7,
   )
   assert_eq(result_7.errors.map(error => error.code), [])
@@ -152,7 +152,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_8 = format_mf2(
+  let result_8 = @js.format_mf2(
     "{42 :currency currency=EUR fractionDigits=auto}", context_8,
   )
   assert_eq(result_8.errors.map(error => error.code), [])
@@ -167,7 +167,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_9 = format_mf2(
+  let result_9 = @js.format_mf2(
     "{42 :currency currency=EUR fractionDigits=2}", context_9,
   )
   assert_eq(result_9.errors.map(error => error.code), [])
@@ -182,7 +182,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_10 = format_mf2("{$x :currency currency=EUR}", context_10)
+  let result_10 = @js.format_mf2("{$x :currency currency=EUR}", context_10)
   assert_eq(result_10.errors.map(error => error.code), [])
   // currency 11: Currency function
   let context_11 = match
@@ -195,7 +195,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_11 = format_mf2(
+  let result_11 = @js.format_mf2(
     ".local $n = {42 :currency currency=EUR} .match $n * {{other}}", context_11,
   )
   assert_eq(result_11.value, "other")
@@ -213,7 +213,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_12 = format_mf2("{:date}", context_12)
+  let result_12 = @js.format_mf2("{:date}", context_12)
   assert_eq(result_12.value, "{:date}")
   assert_eq(result_12.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -229,7 +229,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_13 = format_mf2("{horse :date}", context_13)
+  let result_13 = @js.format_mf2("{horse :date}", context_13)
   assert_eq(result_13.value, "{|horse|}")
   assert_eq(result_13.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -245,7 +245,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_14 = format_mf2("{|2006-01-02| :date}", context_14)
+  let result_14 = @js.format_mf2("{|2006-01-02| :date}", context_14)
   assert_eq(result_14.errors.map(error => error.code), [])
   // date 3: Date function
   let context_15 = match
@@ -258,7 +258,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_15 = format_mf2("{|2006-01-02T15:04:06| :date}", context_15)
+  let result_15 = @js.format_mf2("{|2006-01-02T15:04:06| :date}", context_15)
   assert_eq(result_15.errors.map(error => error.code), [])
   // date 4: Date function
   let context_16 = match
@@ -271,7 +271,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_16 = format_mf2("{|2006-01-02| :date length=long}", context_16)
+  let result_16 = @js.format_mf2("{|2006-01-02| :date length=long}", context_16)
   assert_eq(result_16.errors.map(error => error.code), [])
   // date 5: Date function
   let context_17 = match
@@ -284,7 +284,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_17 = format_mf2(
+  let result_17 = @js.format_mf2(
     ".local $d = {|2006-01-02| :date length=long} {{{$d}}}", context_17,
   )
   assert_eq(result_17.errors.map(error => error.code), [])
@@ -299,7 +299,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_18 = format_mf2(
+  let result_18 = @js.format_mf2(
     ".local $d = {|2006-01-02| :datetime dateLength=long timePrecision=second} {{{$d :date}}}",
     context_18,
   )
@@ -315,7 +315,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_19 = format_mf2("{:datetime}", context_19)
+  let result_19 = @js.format_mf2("{:datetime}", context_19)
   assert_eq(result_19.value, "{:datetime}")
   assert_eq(result_19.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -331,7 +331,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_20 = format_mf2("{$x :datetime}", context_20)
+  let result_20 = @js.format_mf2("{$x :datetime}", context_20)
   assert_eq(result_20.value, "{$x}")
   assert_eq(result_20.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -347,7 +347,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_21 = format_mf2("{horse :datetime}", context_21)
+  let result_21 = @js.format_mf2("{horse :datetime}", context_21)
   assert_eq(result_21.value, "{|horse|}")
   assert_eq(result_21.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -363,7 +363,9 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_22 = format_mf2("{|2006-01-02T15:04:06| :datetime}", context_22)
+  let result_22 = @js.format_mf2(
+    "{|2006-01-02T15:04:06| :datetime}", context_22,
+  )
   assert_eq(result_22.errors.map(error => error.code), [])
   // datetime 4: Datetime function
   let context_23 = match
@@ -376,7 +378,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_23 = format_mf2(
+  let result_23 = @js.format_mf2(
     "{|2006-01-02T15:04:06| :datetime dateLength=long}", context_23,
   )
   assert_eq(result_23.errors.map(error => error.code), [])
@@ -391,7 +393,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_24 = format_mf2(
+  let result_24 = @js.format_mf2(
     "{|2006-01-02T15:04:06| :datetime timePrecision=second}", context_24,
   )
   assert_eq(result_24.errors.map(error => error.code), [])
@@ -408,7 +410,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_25 = format_mf2("{$dt :datetime}", context_25)
+  let result_25 = @js.format_mf2("{$dt :datetime}", context_25)
   assert_eq(result_25.errors.map(error => error.code), [])
   // integer 0: Integer function
   let context_26 = match
@@ -421,7 +423,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_26 = format_mf2("hello {4.2 :integer}", context_26)
+  let result_26 = @js.format_mf2("hello {4.2 :integer}", context_26)
   assert_eq(result_26.value, "hello 4")
   assert_eq(result_26.errors.map(error => error.code), [])
   // integer 1: Integer function
@@ -435,7 +437,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_27 = format_mf2("hello {-4.20 :integer}", context_27)
+  let result_27 = @js.format_mf2("hello {-4.20 :integer}", context_27)
   assert_eq(result_27.value, "hello -4")
   assert_eq(result_27.errors.map(error => error.code), [])
   // integer 2: Integer function
@@ -449,7 +451,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_28 = format_mf2("hello {0.42 :integer}", context_28)
+  let result_28 = @js.format_mf2("hello {0.42 :integer}", context_28)
   assert_eq(result_28.value, "hello 0")
   assert_eq(result_28.errors.map(error => error.code), [])
   // integer 3: Integer function
@@ -463,7 +465,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_29 = format_mf2("hello {|0.42e+1| :integer}", context_29)
+  let result_29 = @js.format_mf2("hello {|0.42e+1| :integer}", context_29)
   assert_eq(result_29.value, "hello 4")
   assert_eq(result_29.errors.map(error => error.code), [])
   // integer 4: Integer function
@@ -477,7 +479,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_30 = format_mf2(
+  let result_30 = @js.format_mf2(
     ".input {$foo :integer} .match $foo 1 {{=1}} * {{other}}", context_30,
   )
   assert_eq(result_30.value, "=1")
@@ -493,7 +495,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_31 = format_mf2(
+  let result_31 = @js.format_mf2(
     ".input {$foo :integer} .match $foo 1 {{=1}} one {{one}} * {{other}}", context_31,
   )
   assert_eq(result_31.value, "=1")
@@ -509,7 +511,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_32 = format_mf2(
+  let result_32 = @js.format_mf2(
     ".local $x = {1.25 :integer} .local $y = {$x :number} {{{$y}}}", context_32,
   )
   assert_eq(result_32.value, "1")
@@ -525,7 +527,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_33 = format_mf2(
+  let result_33 = @js.format_mf2(
     "literal select {1 :integer select=exact}", context_33,
   )
   assert_eq(result_33.value, "literal select 1")
@@ -541,7 +543,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_34 = format_mf2(
+  let result_34 = @js.format_mf2(
     ".local $bad = {exact} {{variable select {1 :integer select=$bad}}}", context_34,
   )
   assert_eq(result_34.value, "variable select 1")
@@ -559,7 +561,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_35 = format_mf2(
+  let result_35 = @js.format_mf2(
     "variable select {1 :integer select=$bad}", context_35,
   )
   assert_eq(result_35.value, "variable select 1")
@@ -577,7 +579,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_36 = format_mf2(
+  let result_36 = @js.format_mf2(
     ".local $sel = {1 :integer select=exact} .match $sel 1 {{literal select {$sel}}} * {{OTHER}}",
     context_36,
   )
@@ -594,7 +596,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_37 = format_mf2(
+  let result_37 = @js.format_mf2(
     ".local $sel = {1 :integer select=exact} .local $bad = {$sel :integer} .match $bad 1 {{ONE}} * {{operand select {$bad}}}",
     context_37,
   )
@@ -614,7 +616,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_38 = format_mf2(
+  let result_38 = @js.format_mf2(
     ".local $sel = {1 :integer select=$bad} .match $sel 1 {{ONE}} * {{variable select {$sel}}}",
     context_38,
   )
@@ -634,7 +636,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_39 = format_mf2("hello {4.2 :number}", context_39)
+  let result_39 = @js.format_mf2("hello {4.2 :number}", context_39)
   assert_eq(result_39.value, "hello 4.2")
   assert_eq(result_39.errors.map(error => error.code), [])
   // number 1: Number function
@@ -648,7 +650,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_40 = format_mf2("hello {-4.20 :number}", context_40)
+  let result_40 = @js.format_mf2("hello {-4.20 :number}", context_40)
   assert_eq(result_40.value, "hello -4.2")
   assert_eq(result_40.errors.map(error => error.code), [])
   // number 2: Number function
@@ -662,7 +664,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_41 = format_mf2("hello {0.42 :number}", context_41)
+  let result_41 = @js.format_mf2("hello {0.42 :number}", context_41)
   assert_eq(result_41.value, "hello 0.42")
   assert_eq(result_41.errors.map(error => error.code), [])
   // number 3: Number function
@@ -676,7 +678,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_42 = format_mf2("hello {|0.42e+1| :number}", context_42)
+  let result_42 = @js.format_mf2("hello {|0.42e+1| :number}", context_42)
   assert_eq(result_42.value, "hello 4.2")
   assert_eq(result_42.errors.map(error => error.code), [])
   // number 4: Number function
@@ -690,7 +692,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_43 = format_mf2("hello {00 :number}", context_43)
+  let result_43 = @js.format_mf2("hello {00 :number}", context_43)
   assert_eq(result_43.value, "hello {|00|}")
   assert_eq(result_43.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -706,7 +708,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_44 = format_mf2("hello {042 :number}", context_44)
+  let result_44 = @js.format_mf2("hello {042 :number}", context_44)
   assert_eq(result_44.value, "hello {|042|}")
   assert_eq(result_44.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -722,7 +724,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_45 = format_mf2("hello {1. :number}", context_45)
+  let result_45 = @js.format_mf2("hello {1. :number}", context_45)
   assert_eq(result_45.value, "hello {|1.|}")
   assert_eq(result_45.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -738,7 +740,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_46 = format_mf2("hello {1e :number}", context_46)
+  let result_46 = @js.format_mf2("hello {1e :number}", context_46)
   assert_eq(result_46.value, "hello {|1e|}")
   assert_eq(result_46.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -754,7 +756,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_47 = format_mf2("hello {1E :number}", context_47)
+  let result_47 = @js.format_mf2("hello {1E :number}", context_47)
   assert_eq(result_47.value, "hello {|1E|}")
   assert_eq(result_47.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -770,7 +772,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_48 = format_mf2("hello {1.e :number}", context_48)
+  let result_48 = @js.format_mf2("hello {1.e :number}", context_48)
   assert_eq(result_48.value, "hello {|1.e|}")
   assert_eq(result_48.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -786,7 +788,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_49 = format_mf2("hello {1.2e :number}", context_49)
+  let result_49 = @js.format_mf2("hello {1.2e :number}", context_49)
   assert_eq(result_49.value, "hello {|1.2e|}")
   assert_eq(result_49.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -802,7 +804,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_50 = format_mf2("hello {1.e3 :number}", context_50)
+  let result_50 = @js.format_mf2("hello {1.e3 :number}", context_50)
   assert_eq(result_50.value, "hello {|1.e3|}")
   assert_eq(result_50.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -818,7 +820,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_51 = format_mf2("hello {1e+ :number}", context_51)
+  let result_51 = @js.format_mf2("hello {1e+ :number}", context_51)
   assert_eq(result_51.value, "hello {|1e+|}")
   assert_eq(result_51.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -834,7 +836,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_52 = format_mf2("hello {1e- :number}", context_52)
+  let result_52 = @js.format_mf2("hello {1e- :number}", context_52)
   assert_eq(result_52.value, "hello {|1e-|}")
   assert_eq(result_52.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -850,7 +852,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_53 = format_mf2("hello {1.0e2.0 :number}", context_53)
+  let result_53 = @js.format_mf2("hello {1.0e2.0 :number}", context_53)
   assert_eq(result_53.value, "hello {|1.0e2.0|}")
   assert_eq(result_53.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -866,7 +868,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_54 = format_mf2("hello {foo :number}", context_54)
+  let result_54 = @js.format_mf2("hello {foo :number}", context_54)
   assert_eq(result_54.value, "hello {|foo|}")
   assert_eq(result_54.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -882,7 +884,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_55 = format_mf2(
+  let result_55 = @js.format_mf2(
     "invalid number literal {|.1| :number}", context_55,
   )
   assert_eq(result_55.value, "invalid number literal {|.1|}")
@@ -900,7 +902,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_56 = format_mf2(
+  let result_56 = @js.format_mf2(
     "invalid number literal {|1.| :number}", context_56,
   )
   assert_eq(result_56.value, "invalid number literal {|1.|}")
@@ -918,7 +920,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_57 = format_mf2(
+  let result_57 = @js.format_mf2(
     "invalid number literal {|01| :number}", context_57,
   )
   assert_eq(result_57.value, "invalid number literal {|01|}")
@@ -936,7 +938,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_58 = format_mf2(
+  let result_58 = @js.format_mf2(
     "invalid number literal {|+1| :number}", context_58,
   )
   assert_eq(result_58.value, "invalid number literal {|+1|}")
@@ -954,7 +956,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_59 = format_mf2(
+  let result_59 = @js.format_mf2(
     "invalid number literal {|0x1| :number}", context_59,
   )
   assert_eq(result_59.value, "invalid number literal {|0x1|}")
@@ -972,7 +974,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_60 = format_mf2("hello {:number}", context_60)
+  let result_60 = @js.format_mf2("hello {:number}", context_60)
   assert_eq(result_60.value, "hello {:number}")
   assert_eq(result_60.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -988,7 +990,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_61 = format_mf2(
+  let result_61 = @js.format_mf2(
     "hello {4.2 :number minimumFractionDigits=2}", context_61,
   )
   assert_eq(result_61.value, "hello 4.20")
@@ -1004,7 +1006,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_62 = format_mf2(
+  let result_62 = @js.format_mf2(
     "hello {|4.2| :number minimumFractionDigits=|2|}", context_62,
   )
   assert_eq(result_62.value, "hello 4.20")
@@ -1020,7 +1022,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_63 = format_mf2(
+  let result_63 = @js.format_mf2(
     "hello {4.2 :number minimumFractionDigits=$foo}", context_63,
   )
   assert_eq(result_63.value, "hello 4.20")
@@ -1036,7 +1038,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_64 = format_mf2(
+  let result_64 = @js.format_mf2(
     "hello {|4.2| :number minimumFractionDigits=$foo}", context_64,
   )
   assert_eq(result_64.value, "hello 4.20")
@@ -1052,7 +1054,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_65 = format_mf2(
+  let result_65 = @js.format_mf2(
     ".local $foo = {$bar :number} {{bar {$foo}}}", context_65,
   )
   assert_eq(result_65.value, "bar 4.2")
@@ -1068,7 +1070,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_66 = format_mf2(
+  let result_66 = @js.format_mf2(
     ".local $foo = {$bar :number minimumFractionDigits=2} {{bar {$foo}}}", context_66,
   )
   assert_eq(result_66.value, "bar 4.20")
@@ -1084,7 +1086,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_67 = format_mf2(
+  let result_67 = @js.format_mf2(
     ".local $foo = {$bar :number minimumFractionDigits=foo} {{bar {$foo}}}", context_67,
   )
   assert_eq(result_67.errors.map(error => error.code), [
@@ -1101,7 +1103,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_68 = format_mf2(
+  let result_68 = @js.format_mf2(
     ".local $foo = {$bar :number} {{bar {$foo}}}", context_68,
   )
   assert_eq(result_68.value, "bar {$foo}")
@@ -1119,7 +1121,9 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_69 = format_mf2(".input {$foo :number} {{bar {$foo}}}", context_69)
+  let result_69 = @js.format_mf2(
+    ".input {$foo :number} {{bar {$foo}}}", context_69,
+  )
   assert_eq(result_69.value, "bar 4.2")
   assert_eq(result_69.errors.map(error => error.code), [])
   // number 31: Number function
@@ -1133,7 +1137,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_70 = format_mf2(
+  let result_70 = @js.format_mf2(
     ".input {$foo :number minimumFractionDigits=2} {{bar {$foo}}}", context_70,
   )
   assert_eq(result_70.value, "bar 4.20")
@@ -1149,7 +1153,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_71 = format_mf2(
+  let result_71 = @js.format_mf2(
     ".input {$foo :number minimumFractionDigits=foo} {{bar {$foo}}}", context_71,
   )
   assert_eq(result_71.errors.map(error => error.code), [
@@ -1166,7 +1170,9 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_72 = format_mf2(".input {$foo :number} {{bar {$foo}}}", context_72)
+  let result_72 = @js.format_mf2(
+    ".input {$foo :number} {{bar {$foo}}}", context_72,
+  )
   assert_eq(result_72.value, "bar {$foo}")
   assert_eq(result_72.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -1182,7 +1188,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_73 = format_mf2(
+  let result_73 = @js.format_mf2(
     "literal select {1 :number select=exact}", context_73,
   )
   assert_eq(result_73.value, "literal select 1")
@@ -1198,7 +1204,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_74 = format_mf2(
+  let result_74 = @js.format_mf2(
     ".local $bad = {exact} {{variable select {1 :number select=$bad}}}", context_74,
   )
   assert_eq(result_74.value, "variable select 1")
@@ -1216,7 +1222,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_75 = format_mf2(
+  let result_75 = @js.format_mf2(
     "variable select {1 :number select=$bad}", context_75,
   )
   assert_eq(result_75.value, "variable select 1")
@@ -1234,7 +1240,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_76 = format_mf2(
+  let result_76 = @js.format_mf2(
     ".local $sel = {1 :number select=exact} .match $sel 1 {{literal select {$sel}}} * {{OTHER}}",
     context_76,
   )
@@ -1251,7 +1257,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_77 = format_mf2(
+  let result_77 = @js.format_mf2(
     ".local $sel = {1 :number select=exact} .local $bad = {$sel :number} .match $bad 1 {{ONE}} * {{operand select {$bad}}}",
     context_77,
   )
@@ -1271,7 +1277,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_78 = format_mf2(
+  let result_78 = @js.format_mf2(
     ".local $sel = {1 :number select=$bad} .match $sel 1 {{ONE}} * {{variable select {$sel}}}",
     context_78,
   )
@@ -1291,7 +1297,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_79 = format_mf2("{42 :number @foo @bar=13}", context_79)
+  let result_79 = @js.format_mf2("{42 :number @foo @bar=13}", context_79)
   assert_eq(result_79.value, "42")
   assert_eq(result_79.errors.map(error => error.code), [])
   assert_eq(mf2_function_fixture_fields(result_79.parts), ["integer|42"])
@@ -1306,7 +1312,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_80 = format_mf2("{:offset add=13}", context_80)
+  let result_80 = @js.format_mf2("{:offset add=13}", context_80)
   assert_eq(result_80.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
   ])
@@ -1321,7 +1327,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_81 = format_mf2("{foo :offset add=13}", context_81)
+  let result_81 = @js.format_mf2("{foo :offset add=13}", context_81)
   assert_eq(result_81.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
   ])
@@ -1336,7 +1342,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_82 = format_mf2("{42 :offset}", context_82)
+  let result_82 = @js.format_mf2("{42 :offset}", context_82)
   assert_eq(result_82.errors.map(error => error.code), [
     @runtime.Mf2BadOptionCode,
   ])
@@ -1351,7 +1357,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_83 = format_mf2("{42 :offset add=foo}", context_83)
+  let result_83 = @js.format_mf2("{42 :offset add=foo}", context_83)
   assert_eq(result_83.errors.map(error => error.code), [
     @runtime.Mf2BadOptionCode,
   ])
@@ -1366,7 +1372,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_84 = format_mf2("{42 :offset subtract=foo}", context_84)
+  let result_84 = @js.format_mf2("{42 :offset subtract=foo}", context_84)
   assert_eq(result_84.errors.map(error => error.code), [
     @runtime.Mf2BadOptionCode,
   ])
@@ -1381,7 +1387,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_85 = format_mf2("{42 :offset foo=13}", context_85)
+  let result_85 = @js.format_mf2("{42 :offset foo=13}", context_85)
   assert_eq(result_85.errors.map(error => error.code), [
     @runtime.Mf2BadOptionCode,
   ])
@@ -1396,7 +1402,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_86 = format_mf2("{42 :offset add=13 subtract=13}", context_86)
+  let result_86 = @js.format_mf2("{42 :offset add=13 subtract=13}", context_86)
   assert_eq(result_86.errors.map(error => error.code), [
     @runtime.Mf2BadOptionCode,
   ])
@@ -1411,7 +1417,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_87 = format_mf2("{41 :offset add=1}", context_87)
+  let result_87 = @js.format_mf2("{41 :offset add=1}", context_87)
   assert_eq(result_87.value, "42")
   assert_eq(result_87.errors.map(error => error.code), [])
   // offset 8: Offset function
@@ -1425,7 +1431,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_88 = format_mf2("{52 :offset subtract=10}", context_88)
+  let result_88 = @js.format_mf2("{52 :offset subtract=10}", context_88)
   assert_eq(result_88.value, "42")
   assert_eq(result_88.errors.map(error => error.code), [])
   // offset 9: Offset function
@@ -1439,7 +1445,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_89 = format_mf2("{41 :offset add=1 foo=13}", context_89)
+  let result_89 = @js.format_mf2("{41 :offset add=1 foo=13}", context_89)
   assert_eq(result_89.value, "42")
   assert_eq(result_89.errors.map(error => error.code), [])
   // offset 10: Offset function
@@ -1453,7 +1459,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_90 = format_mf2(
+  let result_90 = @js.format_mf2(
     ".local $x = {41 :integer signDisplay=always} {{{$x :offset add=1}}}", context_90,
   )
   assert_eq(result_90.value, "+42")
@@ -1469,7 +1475,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_91 = format_mf2(
+  let result_91 = @js.format_mf2(
     ".local $x = {52 :number signDisplay=always} {{{$x :offset subtract=10}}}", context_91,
   )
   assert_eq(result_91.value, "+42")
@@ -1485,7 +1491,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_92 = format_mf2("{$x :offset add=1}", context_92)
+  let result_92 = @js.format_mf2("{$x :offset add=1}", context_92)
   assert_eq(result_92.value, "42")
   assert_eq(result_92.errors.map(error => error.code), [])
   // offset 13: Offset function
@@ -1499,7 +1505,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_93 = format_mf2("{$x :offset subtract=10}", context_93)
+  let result_93 = @js.format_mf2("{$x :offset subtract=10}", context_93)
   assert_eq(result_93.value, "42")
   assert_eq(result_93.errors.map(error => error.code), [])
   // offset 14: Offset function
@@ -1513,7 +1519,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_94 = format_mf2(
+  let result_94 = @js.format_mf2(
     ".local $x = {1 :offset add=1} .match $x 1 {{=1}} 2 {{=2}} * {{other}}", context_94,
   )
   assert_eq(result_94.value, "=2")
@@ -1529,7 +1535,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_95 = format_mf2(
+  let result_95 = @js.format_mf2(
     ".local $x = {10 :integer} .local $y = {$x :offset subtract=6} .match $y 10 {{=10}} 4 {{=4}} * {{other}}",
     context_95,
   )
@@ -1546,7 +1552,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_96 = format_mf2("{:percent}", context_96)
+  let result_96 = @js.format_mf2("{:percent}", context_96)
   assert_eq(result_96.value, "{:percent}")
   assert_eq(result_96.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -1562,7 +1568,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_97 = format_mf2("{foo :percent}", context_97)
+  let result_97 = @js.format_mf2("{foo :percent}", context_97)
   assert_eq(result_97.value, "{|foo|}")
   assert_eq(result_97.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -1578,7 +1584,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_98 = format_mf2("{1 :percent}", context_98)
+  let result_98 = @js.format_mf2("{1 :percent}", context_98)
   assert_eq(result_98.errors.map(error => error.code), [])
   // percent 3: Percent function
   let context_99 = match
@@ -1591,7 +1597,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_99 = format_mf2(
+  let result_99 = @js.format_mf2(
     ".local $n = {0.42 :number} {{{$n :percent}}}", context_99,
   )
   assert_eq(result_99.errors.map(error => error.code), [])
@@ -1606,7 +1612,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_100 = format_mf2(
+  let result_100 = @js.format_mf2(
     ".local $n = {42 :integer} {{{$n :percent}}}", context_100,
   )
   assert_eq(result_100.errors.map(error => error.code), [])
@@ -1621,7 +1627,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_101 = format_mf2(
+  let result_101 = @js.format_mf2(
     ".local $n = {0.01 :percent} {{{$n :percent}}}", context_101,
   )
   assert_eq(result_101.errors.map(error => error.code), [])
@@ -1636,7 +1642,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_102 = format_mf2("{0.12345678 :percent}", context_102)
+  let result_102 = @js.format_mf2("{0.12345678 :percent}", context_102)
   assert_eq(result_102.errors.map(error => error.code), [])
   // percent 7: Percent function
   let context_103 = match
@@ -1649,7 +1655,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_103 = format_mf2(
+  let result_103 = @js.format_mf2(
     "{0.12345678 :percent maximumFractionDigits=1}", context_103,
   )
   assert_eq(result_103.errors.map(error => error.code), [])
@@ -1664,7 +1670,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_104 = format_mf2(
+  let result_104 = @js.format_mf2(
     "{0.12 :percent minimumFractionDigits=1}", context_104,
   )
   assert_eq(result_104.errors.map(error => error.code), [])
@@ -1679,7 +1685,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_105 = format_mf2(
+  let result_105 = @js.format_mf2(
     "{0.12 :percent minimumSignificantDigits=1}", context_105,
   )
   assert_eq(result_105.errors.map(error => error.code), [])
@@ -1694,7 +1700,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_106 = format_mf2("{$x :percent}", context_106)
+  let result_106 = @js.format_mf2("{$x :percent}", context_106)
   assert_eq(result_106.errors.map(error => error.code), [])
   // percent 11: Percent function
   let context_107 = match
@@ -1707,7 +1713,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_107 = format_mf2(
+  let result_107 = @js.format_mf2(
     ".input {$n :percent} .match $n one {{one}} * {{other}}", context_107,
   )
   assert_eq(result_107.value, "one")
@@ -1723,7 +1729,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_108 = format_mf2(
+  let result_108 = @js.format_mf2(
     ".input {$n :percent} .match $n one {{one}} * {{other}}", context_108,
   )
   assert_eq(result_108.value, "other")
@@ -1739,7 +1745,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_109 = format_mf2(
+  let result_109 = @js.format_mf2(
     ".input {$foo :string} .match $foo |1| {{one}} * {{other}}", context_109,
   )
   assert_eq(result_109.value, "one")
@@ -1755,7 +1761,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_110 = format_mf2(
+  let result_110 = @js.format_mf2(
     ".input {$foo :string} .match $foo 1 {{one}} * {{other}}", context_110,
   )
   assert_eq(result_110.value, "one")
@@ -1771,7 +1777,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_111 = format_mf2(
+  let result_111 = @js.format_mf2(
     ".input {$foo :string} .match $foo 1 {{one}} * {{other}}", context_111,
   )
   assert_eq(result_111.value, "other")
@@ -1787,7 +1793,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_112 = format_mf2(
+  let result_112 = @js.format_mf2(
     ".input {$foo :string} .match $foo 1 {{one}} * {{other}}", context_112,
   )
   assert_eq(result_112.value, "other")
@@ -1805,7 +1811,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_113 = format_mf2(
+  let result_113 = @js.format_mf2(
     ".local $x = {Ḍ̇ :string} .match $x Ḍ̇ {{Not normalized}} Ḍ̇ {{Normalized}} * {{Wrong}}",
     context_113,
   )
@@ -1823,7 +1829,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_114 = format_mf2(
+  let result_114 = @js.format_mf2(
     ".local $x = {Ḍ̇ :string} .match $x |Ḍ̇| {{Not normalized}} |Ḍ̇| {{Normalized}} * {{Wrong}}",
     context_114,
   )
@@ -1841,7 +1847,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_115 = format_mf2(
+  let result_115 = @js.format_mf2(
     ".local $x = {Ḍ̇ :string} .match $x Ḍ̇ {{Not normalized}} |Ḍ̇| {{Normalized}} * {{Wrong}}",
     context_115,
   )
@@ -1859,7 +1865,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_116 = format_mf2(
+  let result_116 = @js.format_mf2(
     ".local $x = {Ḍ̇ :string} .match $x Ḍ̇ {{Right}} * {{Wrong}}", context_116,
   )
   assert_eq(result_116.value, "Right")
@@ -1875,7 +1881,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_117 = format_mf2(
+  let result_117 = @js.format_mf2(
     ".local $x = {Ḍ̇ :string} .match $x Ḍ̇ {{Right}} * {{Wrong}}", context_117,
   )
   assert_eq(result_117.value, "Right")
@@ -1891,7 +1897,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_118 = format_mf2("{:time}", context_118)
+  let result_118 = @js.format_mf2("{:time}", context_118)
   assert_eq(result_118.value, "{:time}")
   assert_eq(result_118.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -1907,7 +1913,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_119 = format_mf2("{horse :time}", context_119)
+  let result_119 = @js.format_mf2("{horse :time}", context_119)
   assert_eq(result_119.value, "{|horse|}")
   assert_eq(result_119.errors.map(error => error.code), [
     @runtime.Mf2BadOperandCode,
@@ -1923,7 +1929,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_120 = format_mf2("{|2006-01-02T15:04:06| :time}", context_120)
+  let result_120 = @js.format_mf2("{|2006-01-02T15:04:06| :time}", context_120)
   assert_eq(result_120.errors.map(error => error.code), [])
   // time 3: Time function
   let context_121 = match
@@ -1936,7 +1942,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_121 = format_mf2(
+  let result_121 = @js.format_mf2(
     "{|2006-01-02T15:04:06| :time precision=second}", context_121,
   )
   assert_eq(result_121.errors.map(error => error.code), [])
@@ -1951,7 +1957,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_122 = format_mf2(
+  let result_122 = @js.format_mf2(
     ".local $t = {|2006-01-02T15:04:06| :time precision=second} {{{$t}}}", context_122,
   )
   assert_eq(result_122.errors.map(error => error.code), [])
@@ -1966,7 +1972,7 @@ test "Unicode MF2 pinned default-function fixtures" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let result_123 = format_mf2(
+  let result_123 = @js.format_mf2(
     ".local $t = {|2006-01-02T15:04:06| :datetime dateLength=long timePrecision=second} {{{$t :time}}}",
     context_123,
   )

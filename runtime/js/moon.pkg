@@ -2,10 +2,6 @@ import {
   "lampclaw/i18n/runtime",
 }
 
-import {
-  "moonbitlang/core/bench",
-} for "test"
-
 options(
   targets: {
     "formatter.mbt": [ "js" ],

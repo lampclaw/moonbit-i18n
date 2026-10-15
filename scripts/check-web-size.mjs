@@ -64,9 +64,11 @@ const observed = {
   dynamicChunk: largestDynamicChunk,
   deploymentManifest: manifestBytes.length,
 };
+const exceeded = [];
 for (const [name, value] of Object.entries(observed)) {
   const budget = budgets[name];
   assert.ok(Number.isInteger(budget) && budget > 0, `missing size budget: ${name}`);
   console.log(`${name}: ${value} bytes / ${budget} bytes`);
-  assert.ok(value <= budget, `${name} exceeds its published size budget`);
+  if (value > budget) exceeded.push(name);
 }
+assert.equal(exceeded.length, 0, `${exceeded.join(", ")} exceeds its published size budget`);

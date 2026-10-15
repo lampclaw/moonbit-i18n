@@ -54,7 +54,7 @@ Unicode conformance; see
 
 ## Catalog compatibility contract
 
-The `0.9.2` release preserves the catalog format version `2` contract
+The `0.9.3` release preserves the catalog format version `2` contract
 frozen in `0.9.0`, with an explicit
 compatibility, legacy v1, stable v2, or experimental datetime profile. Stable
 authoring uses `unicode-mf2-ldml48.2-js-v2`; experimental date/time authoring

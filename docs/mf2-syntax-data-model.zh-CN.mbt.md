@@ -6,7 +6,7 @@
 MessageFormat WG 正式 tag `LDML48.2`、commit
 `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`。它面向工具、编辑器、转换器和标准模式
 authoring，并与 strict-v1 compatibility catalog compiler 相互隔离。
-`0.9.2` 保持该 syntax 与 interchange data-model profile 不变。
+`0.9.3` 保持该 syntax 与 interchange data-model profile 不变。
 
 ## 概念
 

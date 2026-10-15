@@ -2,8 +2,8 @@
 test "generated catalog aggregate budget counts UTF-8 data and entries" {
   let (_, aggregate_error) = generated_entries_map(
     [
-      CatalogEntry::{ id: "a", message: "界" },
-      CatalogEntry::{ id: "b", message: "x" },
+      CatalogEntry::{ id: "a", message: "界", },
+      CatalogEntry::{ id: "b", message: "x", },
     ],
     2,
     5,
@@ -14,8 +14,8 @@ test "generated catalog aggregate budget counts UTF-8 data and entries" {
   )
   let (_, count_error) = generated_entries_map(
     [
-      CatalogEntry::{ id: "a", message: "" },
-      CatalogEntry::{ id: "b", message: "" },
+      CatalogEntry::{ id: "a", message: "", },
+      CatalogEntry::{ id: "b", message: "", },
     ],
     1,
     10,

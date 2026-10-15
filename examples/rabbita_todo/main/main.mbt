@@ -73,11 +73,12 @@ fn other_locale(locale : @app_i18n.Locale) -> @app_i18n.Locale {
 ///|
 struct Model {
   title : String
-  items : SortedMap[Int, Todo]
-  next : Int
+  items : SortedMap[Int32, Todo]
+  next : Int32
   tab : TodoTab
   locale : @app_i18n.Locale
   catalog_state : CatalogState
+  catalog_request : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -97,11 +98,12 @@ enum LocaleRequestSource {
 enum Msg {
   TitleChanged(String)
   Add
-  Delete(Int)
-  Toggle(Int)
+  Delete(Int32)
+  Toggle(Int32)
   SetTab(TodoTab)
   ToggleLocale
   CatalogLoaded(
+    Int32,
     @app_i18n.Locale,
     @app_i18n.CatalogNamespace,
     Result[String, Error]
@@ -117,6 +119,7 @@ fn initial_model() -> Model {
     tab: All,
     locale: @app_i18n.default_locale(),
     catalog_state: CatalogReady,
+    catalog_request: 0,
   }
 }
 
@@ -141,20 +144,20 @@ fn update_todo(model : Model, msg : Msg) -> Model {
   match msg {
     TitleChanged(title) => { ..model, title, }
     SetTab(tab) => { ..model, tab, }
-    ToggleLocale | CatalogLoaded(_, _, _) => model
+    ToggleLocale | CatalogLoaded(_, _, _, _) => model
     Add if title == "" => model
     Toggle(id) => {
       let todo = items[id]
-      { ..model, items: items.add(id, { ..todo, done: !todo.done }) }
+      { ..model, items: items.add(id, { ..todo, done: !todo.done, }), }
     }
     Add =>
       {
         ..model,
         title: "",
-        items: items.add(next, { title, done: false }),
+        items: items.add(next, { title, done: false, }),
         next: next + 1,
       }
-    Delete(id) => { ..model, items: items.remove(id) }
+    Delete(id) => { ..model, items: items.remove(id), }
   }
 }
 
@@ -213,7 +216,7 @@ fn finish_verified_catalog_load(
       } else {
         model
       }
-    Err(message) => { ..model, catalog_state: CatalogFailed(locale, message) }
+    Err(message) => { ..model, catalog_state: CatalogFailed(locale, message), }
   }
 }
 
@@ -241,7 +244,7 @@ fn commit_locale(
   if request_source is UserPreference {
     @browser_preferences.save_locale_code(locale.code())
   }
-  { ..model, locale, catalog_state: CatalogReady }
+  { ..model, locale, catalog_state: CatalogReady, }
 }
 
 ///|
@@ -255,19 +258,41 @@ fn request_locale(
   if required_namespaces_ready(i18n, target) {
     (commit_locale(model, target, request_source), @rabbita.none)
   } else {
+    let request_id = model.catalog_request + 1
     let requests : Array[@rabbita.Cmd] = []
     for chunk_namespace in required_catalog_namespaces() {
       if !i18n.has_catalog_namespace(target, chunk_namespace) {
+        let metadata = match
+          @app_i18n.catalog_chunk_metadata(target, chunk_namespace) {
+          Some(value) => value
+          None =>
+            return (
+              {
+                ..model,
+                catalog_state: CatalogFailed(
+                  target, "chunk metadata is missing",
+                ),
+              },
+              @rabbita.none,
+            )
+        }
         requests.push(
           @browser_http.get_text(
             "/i18n/\{target.code()}--\{chunk_namespace.code()}.json",
-            emit.map(result => CatalogLoaded(target, chunk_namespace, result)),
+            expected_bytes=metadata.bytes,
+            emit.map(result => {
+              CatalogLoaded(request_id, target, chunk_namespace, result)
+            }),
           ),
         )
       }
     }
     (
-      { ..model, catalog_state: CatalogLoading(target, request_source) },
+      {
+        ..model,
+        catalog_state: CatalogLoading(target, request_source),
+        catalog_request: request_id,
+      },
       @rabbita.batch(requests),
     )
   }
@@ -298,9 +323,10 @@ fn update(
       }
       request_locale(i18n, model, target, UserPreference, emit)
     }
-    CatalogLoaded(locale, chunk_namespace, result) =>
+    CatalogLoaded(request_id, locale, chunk_namespace, result) =>
       match model.catalog_state {
-        CatalogLoading(expected, request_source) if expected == locale =>
+        CatalogLoading(expected, request_source) if expected == locale &&
+          request_id == model.catalog_request =>
           match result {
             Ok(source) =>
               (
@@ -326,7 +352,7 @@ fn update(
 
 ///|
 fn todo(
-  id : Int,
+  id : Int32,
   todo : Val[Todo],
   i18n : @app_i18n.I18n,
   locale : Val[@app_i18n.Locale],
@@ -394,7 +420,7 @@ fn tab_button(
   emit : Emit[Msg],
   current : TodoTab,
   tab : TodoTab,
-  count : Int,
+  count : Int32,
   t : @app_i18n.Translator,
 ) -> Html {
   let class = if current == tab { "tab is-active" } else { "tab" }
@@ -405,7 +431,7 @@ fn tab_button(
 }
 
 ///|
-fn metric_card(label : String, value : Int) -> Html {
+fn metric_card(label : String, value : Int32) -> Html {
   div(class="metric-card", [
     span(class="metric-value", value.to_string()),
     span(class="metric-label", label),

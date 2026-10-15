@@ -29,8 +29,8 @@ let zh_generation_source =
 ///|
 test "generate catalog artifacts and coverage report" {
   guard generate(generation_config, schema_source, [
-      { code: "zh_CN", source: zh_generation_source },
-      { code: "en-US", source: en_generation_source },
+      { code: "zh_CN", source: zh_generation_source, },
+      { code: "en-US", source: en_generation_source, },
     ])
     is Ok(artifacts) else {
     fail("artifact generation should succeed")
@@ -83,8 +83,8 @@ test "standards profile propagates through every generated artifact" {
     new=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
   )
   guard generate(config, schema_source, [
-      { code: "en-US", source: en_generation_source },
-      { code: "zh-CN", source: zh_generation_source },
+      { code: "en-US", source: en_generation_source, },
+      { code: "zh-CN", source: zh_generation_source, },
     ])
     is Ok(artifacts) else {
     fail("standards-mode generation should succeed")
@@ -131,8 +131,8 @@ test "deployment artifacts are deterministic and portable for spaced groups" {
     #|  "account settings": { "title": "账户设置" }
     #|}
   let sources = [
-    LocaleSource::{ code: "en-US", source: spaced_en },
-    LocaleSource::{ code: "zh-CN", source: spaced_zh },
+    LocaleSource::{ code: "en-US", source: spaced_en, },
+    LocaleSource::{ code: "zh-CN", source: spaced_zh, },
   ]
   guard generate(generation_config, spaced_schema, sources) is Ok(first) else {
     fail("first generation should succeed")
@@ -148,8 +148,8 @@ test "deployment artifacts are deterministic and portable for spaced groups" {
 ///|
 test "source and fallback locales must be complete" {
   let result = generate(generation_config, schema_source, [
-    { code: "en-US", source: zh_generation_source },
-    { code: "zh-CN", source: zh_generation_source },
+    { code: "en-US", source: zh_generation_source, },
+    { code: "zh-CN", source: zh_generation_source, },
   ])
   guard result is Err(message) else { fail("incomplete source should fail") }
   assert_true(
@@ -165,8 +165,8 @@ test "blank source translations are incomplete" {
     #|  "counter": { "count": "{$count :number} clicks" }
     #|}
   guard generate(generation_config, schema_source, [
-      { code: "en-US", source: blank_source },
-      { code: "zh-CN", source: zh_generation_source },
+      { code: "en-US", source: blank_source, },
+      { code: "zh-CN", source: zh_generation_source, },
     ])
     is Err(message) else {
     fail("blank source translation should fail completeness")
@@ -219,8 +219,8 @@ test "release coverage can be enforced or reported only" {
     new="\"minimumCoverage\": 1.0",
   )
   let sources = [
-    { code: "en-US", source: en_generation_source },
-    { code: "zh-CN", source: zh_generation_source },
+    { code: "en-US", source: en_generation_source, },
+    { code: "zh-CN", source: zh_generation_source, },
   ]
   guard generate(strict_config, schema_source, sources) is Err(message) else {
     fail("strict coverage should fail")
@@ -235,18 +235,18 @@ test "release coverage can be enforced or reported only" {
 ///|
 test "generation rejects undeclared and duplicate locale sources" {
   guard generate(generation_config, schema_source, [
-      { code: "en-US", source: en_generation_source },
-      { code: "zh-CN", source: zh_generation_source },
-      { code: "fr", source: "{}" },
+      { code: "en-US", source: en_generation_source, },
+      { code: "zh-CN", source: zh_generation_source, },
+      { code: "fr", source: "{}", },
     ])
     is Err(undeclared) else {
     fail("undeclared locale source should fail")
   }
   assert_true(undeclared.contains("not declared in config: fr"))
   guard generate(generation_config, schema_source, [
-      { code: "en-US", source: en_generation_source },
-      { code: "zh-CN", source: zh_generation_source },
-      { code: "en_US", source: en_generation_source },
+      { code: "en-US", source: en_generation_source, },
+      { code: "zh-CN", source: zh_generation_source, },
+      { code: "en_US", source: en_generation_source, },
     ])
     is Err(duplicate) else {
     fail("duplicate normalized locale source should fail")
@@ -258,14 +258,14 @@ test "generation rejects undeclared and duplicate locale sources" {
 test "generation budgets use aggregate UTF-8 bytes and locale count" {
   assert_eq(
     validate_locale_source_budget(
-      [{ code: "en", source: "a" }, { code: "zh", source: "界" }],
+      [{ code: "en", source: "a", }, { code: "zh", source: "界", }],
       2,
       4,
     ),
     Ok(()),
   )
   guard validate_locale_source_budget(
-      [{ code: "en", source: "aa" }, { code: "zh", source: "界" }],
+      [{ code: "en", source: "aa", }, { code: "zh", source: "界", }],
       2,
       4,
     )
@@ -274,7 +274,7 @@ test "generation budgets use aggregate UTF-8 bytes and locale count" {
   }
   assert_true(byte_error.contains("aggregate UTF-8 limit"))
   guard validate_locale_source_budget(
-      [{ code: "en", source: "" }, { code: "zh", source: "" }],
+      [{ code: "en", source: "", }, { code: "zh", source: "", }],
       1,
       4,
     )

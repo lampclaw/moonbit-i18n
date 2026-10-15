@@ -2,15 +2,15 @@
 const XLIFF_NAMESPACE : String = "urn:oasis:names:tc:xliff:document:2.0"
 
 ///|
-const XLIFF_MAX_SOURCE_BYTES : Int = 67108864
+const XLIFF_MAX_SOURCE_BYTES : Int32 = 67108864
 
 ///|
-const XLIFF_MAX_UNITS : Int = 100000
+const XLIFF_MAX_UNITS : Int32 = 100000
 
 ///|
 fn validate_generated_xliff_budget(
   source : String,
-  max_bytes : Int,
+  max_bytes : Int32,
 ) -> Result[Unit, String] {
   if @utf8.encode(source).length() > max_bytes {
     Err("generated XLIFF exceeds the \{max_bytes}-byte UTF-8 limit")
@@ -61,7 +61,7 @@ pub fn pseudo_locale(
   source_locale_code : String,
   source_locale_source : String,
   mode : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   if mode != "en-XA" && mode != "ar-XB" {
     return Err("pseudo locale must be en-XA or ar-XB")
@@ -133,7 +133,7 @@ fn pseudo_message(source : String, mode : String) -> String {
 ///|
 fn pseudo_complex_message(source : String, mode : String) -> String {
   let chars = source.to_array()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < chars.length() {
     let open = match find_double_open(chars, cursor) {
@@ -161,7 +161,7 @@ fn pseudo_complex_message(source : String, mode : String) -> String {
 }
 
 ///|
-fn find_double_open(chars : Array[Char], start : Int) -> Int? {
+fn find_double_open(chars : Array[Char], start : Int32) -> Int32? {
   let mut cursor = start
   while cursor + 1 < chars.length() {
     if chars[cursor] == '{' && chars[cursor + 1] == '{' {
@@ -173,7 +173,7 @@ fn find_double_open(chars : Array[Char], start : Int) -> Int? {
 }
 
 ///|
-fn find_quoted_pattern_close(chars : Array[Char], start : Int) -> Int? {
+fn find_quoted_pattern_close(chars : Array[Char], start : Int32) -> Int32? {
   let mut cursor = start
   while cursor < chars.length() {
     if chars[cursor] == '\\' {
@@ -196,7 +196,7 @@ fn find_quoted_pattern_close(chars : Array[Char], start : Int) -> Int? {
 }
 
 ///|
-fn find_expression_close(chars : Array[Char], start : Int) -> Int? {
+fn find_expression_close(chars : Array[Char], start : Int32) -> Int32? {
   let mut quoted = false
   let mut cursor = start + 1
   while cursor < chars.length() {
@@ -218,8 +218,8 @@ fn find_expression_close(chars : Array[Char], start : Int) -> Int? {
 fn write_char_range(
   out : StringBuilder,
   chars : Array[Char],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Unit {
   for i = start; i < end; i = i + 1 {
     out.write_char(chars[i])
@@ -227,7 +227,7 @@ fn write_char_range(
 }
 
 ///|
-fn chars_to_string(chars : Array[Char], start : Int, end : Int) -> String {
+fn chars_to_string(chars : Array[Char], start : Int32, end : Int32) -> String {
   let out : Array[Char] = []
   for i = start; i < end; i = i + 1 {
     out.push(chars[i])
@@ -247,7 +247,7 @@ fn wrap_pseudo(source : String, mode : String) -> String {
 ///|
 fn pseudo_pattern(source : String) -> String {
   let chars = source.to_array()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < chars.length() {
     if chars[cursor] == '\\' && cursor + 1 < chars.length() {

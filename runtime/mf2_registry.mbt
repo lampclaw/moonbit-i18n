@@ -106,14 +106,14 @@ pub struct Mf2FunctionValue {
 /// callbacks and non-fatal issues.
 pub fn Mf2FunctionValue::new(
   format~ : () -> Result[FormatterOutput, Mf2FunctionFailure],
-  raw? : MessageValue? = None,
-  match_key? : ((String) -> Result[Bool, Mf2FunctionFailure])? = None,
-  better_than? : ((String, String) -> Result[Bool, Mf2FunctionFailure])? = None,
-  direction? : Mf2Direction = Mf2DirectionUnknown,
-  isolate? : Bool = false,
-  id? : String? = None,
-  inherited_options? : Array[FormatOption] = [],
-  issues? : Array[Mf2FunctionFailure] = [],
+  raw~ : MessageValue? = None,
+  match_key~ : ((String) -> Result[Bool, Mf2FunctionFailure])? = None,
+  better_than~ : ((String, String) -> Result[Bool, Mf2FunctionFailure])? = None,
+  direction~ : Mf2Direction = Mf2DirectionUnknown,
+  isolate~ : Bool = false,
+  id~ : String? = None,
+  inherited_options~ : Array[FormatOption] = [],
+  issues~ : Array[Mf2FunctionFailure] = [],
 ) -> Mf2FunctionValue {
   {
     raw,
@@ -132,10 +132,10 @@ pub fn Mf2FunctionValue::new(
 /// Creates a format-only text value for a simple custom function.
 pub fn Mf2FunctionValue::text(
   value : String,
-  direction? : Mf2Direction = Mf2DirectionUnknown,
+  direction~ : Mf2Direction = Mf2DirectionUnknown,
 ) -> Mf2FunctionValue {
   Mf2FunctionValue::new(raw=Some(TextValue(value)), direction~, format=() => {
-    Ok({ value, parts: [] })
+    Ok({ value, parts: [], })
   })
 }
 
@@ -161,7 +161,7 @@ pub fn Mf2FunctionHandler::new(
     Array[Mf2FunctionOption],
   ) -> Result[Mf2FunctionValue, Mf2FunctionFailure],
 ) -> Mf2FunctionHandler {
-  { name: @normalization.nfc(name), resolve }
+  { name: @normalization.nfc(name), resolve, }
 }
 
 ///|
@@ -174,7 +174,7 @@ pub struct Mf2FunctionRegistry {
 ///|
 /// Creates the pinned default registry using a platform formatter provider.
 pub fn Mf2FunctionRegistry::new(formatter : Formatter) -> Mf2FunctionRegistry {
-  { formatter, custom_handlers: [] }
+  { formatter, custom_handlers: [], }
 }
 
 ///|
@@ -374,3 +374,27 @@ fn mf2_public_failure_to_private(
     Mf2FunctionFormatting(message) => Mf2HandlerFormatting(message)
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FunctionCallContext with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FunctionCallContext with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FunctionOption with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FunctionOption with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FunctionFailure with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FunctionFailure with @debug.Debug::{to_repr}

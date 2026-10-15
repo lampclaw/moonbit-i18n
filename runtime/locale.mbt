@@ -23,7 +23,7 @@ pub(all) struct LocaleError {
   /// Human-readable diagnostic detail.
   message : String
   /// Zero-based subtag position, or zero for a whole-tag failure.
-  subtag_index : Int
+  subtag_index : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -42,9 +42,9 @@ priv struct Bcp47Extension {
 fn locale_error(
   code : LocaleErrorCode,
   message : String,
-  subtag_index : Int,
+  subtag_index : Int32,
 ) -> LocaleError {
-  { code, message, subtag_index }
+  { code, message, subtag_index, }
 }
 
 ///|
@@ -231,7 +231,7 @@ pub fn canonicalize_locale_tag(tag : String) -> Result[String, LocaleError] {
         ),
       )
     }
-    extensions.push({ singleton, subtags })
+    extensions.push({ singleton, subtags, })
   }
   let private_use : Array[String] = []
   if cursor < parts.length() && parts[cursor].to_lower() == "x" {
@@ -312,7 +312,7 @@ pub fn strict_locale_lookup_chain(
 pub fn negotiate_locale_code(
   requested : Array[String],
   supported : Array[String],
-  fallback? : String? = None,
+  fallback~ : String? = None,
 ) -> Result[String?, LocaleError] {
   let canonical_supported : Array[String] = []
   let seen : Map[String, Bool] = Map([])
@@ -566,7 +566,7 @@ fn ascii_upper(value : String) -> String {
 ///|
 fn ascii_title(value : String) -> String {
   let chars = value.to_array()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for i = 0; i < chars.length(); i = i + 1 {
     out.write_char(
       if i == 0 {
@@ -582,7 +582,7 @@ fn ascii_title(value : String) -> String {
 ///|
 fn locale_is_ascii_letter(char : Char) -> Bool {
   match char {
-    'a'..='z' | 'A'..='Z' => true
+    'a'..<='z' | 'A'..<='Z' => true
     _ => false
   }
 }
@@ -590,7 +590,23 @@ fn locale_is_ascii_letter(char : Char) -> Bool {
 ///|
 fn locale_is_ascii_digit(char : Char) -> Bool {
   match char {
-    '0'..='9' => true
+    '0'..<='9' => true
     _ => false
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleErrorCode with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleErrorCode with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleError with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleError with @debug.Debug::{to_repr}

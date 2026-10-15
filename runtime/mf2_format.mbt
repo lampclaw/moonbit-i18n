@@ -4,7 +4,7 @@ pub const MF2_RESOLUTION_PROFILE : String = "unicode-mf2-ldml48.2-resolution-v1"
 
 ///|
 /// Maximum UTF-8 size emitted by one standalone MF2 formatting operation.
-pub const MF2_MAX_OUTPUT_BYTES : Int = 65536
+pub const MF2_MAX_OUTPUT_BYTES : Int32 = 65536
 
 ///|
 /// Direction metadata used by MF2 bidirectional isolation.
@@ -42,9 +42,9 @@ pub(all) struct Mf2Input {
 pub fn Mf2Input::new(
   name : String,
   value : MessageValue,
-  direction? : Mf2Direction = Mf2DirectionUnknown,
+  direction~ : Mf2Direction = Mf2DirectionUnknown,
 ) -> Mf2Input {
-  { name: @normalization.nfc(name), value, direction }
+  { name: @normalization.nfc(name), value, direction, }
 }
 
 ///|
@@ -64,12 +64,12 @@ pub struct Mf2FormattingContext {
 /// providers as ordered fallback locales.
 pub fn Mf2FormattingContext::new(
   locale~ : String,
-  fallback_locales? : Array[String] = [],
-  inputs? : Array[Mf2Input] = [],
-  direction? : Mf2Direction = Mf2DirectionUnknown,
-  time_zone? : String = "UTC",
-  fallback? : String = "",
-  bidi_isolation? : Mf2BidiIsolation = Mf2DefaultBidiIsolation,
+  fallback_locales~ : Array[String] = [],
+  inputs~ : Array[Mf2Input] = [],
+  direction~ : Mf2Direction = Mf2DirectionUnknown,
+  time_zone~ : String = "UTC",
+  fallback~ : String = "",
+  bidi_isolation~ : Mf2BidiIsolation = Mf2DefaultBidiIsolation,
 ) -> Result[Mf2FormattingContext, LocaleError] {
   let locales : Array[String] = []
   let primary = match canonicalize_locale_tag(locale) {
@@ -377,7 +377,7 @@ fn mf2_plain_resolved(
   let rendered = message_value_to_string(value)
   {
     raw: Some(value),
-    render: () => Ok({ value: rendered, parts: [] }),
+    render: () => Ok({ value: rendered, parts: [], }),
     match_key: None,
     better_than: None,
     direction,
@@ -395,7 +395,7 @@ fn mf2_fallback_resolved(source : String) -> Mf2ResolvedValue {
   let rendered = "{" + source + "}"
   {
     raw: None,
-    render: () => Ok({ value: rendered, parts: [] }),
+    render: () => Ok({ value: rendered, parts: [], }),
     match_key: None,
     better_than: None,
     direction: Mf2DirectionUnknown,
@@ -413,7 +413,7 @@ fn mf2_resolve_variable(
   name : String,
   bindings : Map[String, Mf2ResolvedValue],
   inputs : Map[String, Mf2ResolvedValue],
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Mf2ResolvedValue {
   let resolved = match bindings.get(name) {
@@ -424,7 +424,7 @@ fn mf2_resolve_variable(
     Some(value) =>
       if value.fallback_source is Some(_) {
         let fallback = mf2_fallback_resolved("$" + name)
-        { ..fallback, function_name: value.function_name }
+        { ..fallback, function_name: value.function_name, }
       } else {
         value
       }
@@ -477,7 +477,7 @@ fn mf2_resolve_expression(
           }
           let fallback = mf2_expression_fallback(expression)
           return if function_ref.name == "string" {
-            { ..fallback, function_name: Some("string") }
+            { ..fallback, function_name: Some("string"), }
           } else {
             fallback
           }
@@ -579,7 +579,7 @@ fn mf2_resolve_options(
   options : Array[Mf2ModelOption],
   bindings : Map[String, Mf2ResolvedValue],
   inputs : Map[String, Mf2ResolvedValue],
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Array[Mf2ResolvedOption] {
   let result : Array[Mf2ResolvedOption] = []
@@ -638,7 +638,7 @@ fn mf2_resolve_options(
 fn mf2_resolve_universal_options(
   options : Array[Mf2ResolvedOption],
   markup : Bool,
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Mf2UniversalResolution {
   let handler_options : Array[Mf2ResolvedOption] = []
@@ -696,18 +696,18 @@ fn mf2_resolve_universal_options(
         }
       _ => {
         handler_options.push(option)
-        structured_options.push({ name: option.name, value: option.value })
+        structured_options.push({ name: option.name, value: option.value, })
       }
     }
   }
-  { handler_options, structured_options, direction, isolate, id }
+  { handler_options, structured_options, direction, isolate, id, }
 }
 
 ///|
 fn mf2_push_handler_failure(
   errors : Array[Mf2Error],
   failure : Mf2HandlerFailure,
-  offset : Int,
+  offset : Int32,
 ) -> Unit {
   let (kind, code, message) = match failure {
     Mf2HandlerBadOperand(message) =>
@@ -728,7 +728,7 @@ fn mf2_push_handler_failure(
     }) {
     return
   }
-  errors.push({ kind, code, message, offset })
+  errors.push({ kind, code, message, offset, })
 }
 
 ///|
@@ -738,7 +738,7 @@ fn mf2_message_fallback(
 ) -> Mf2FormatResult {
   let source = if context.fallback.is_empty() ||
     mf2_count_output_segment(
-      { bytes: 0, trailing_high_surrogate: false },
+      { bytes: 0, trailing_high_surrogate: false, },
       context.fallback,
       MF2_MAX_OUTPUT_BYTES - 2,
     )
@@ -808,7 +808,7 @@ fn mf2_select_pattern(
     None =>
       match variants.last() {
         Some(variant) => variant.value
-        None => { parts: [] }
+        None => { parts: [], }
       }
   }
 }
@@ -894,7 +894,7 @@ fn mf2_push_bad_selector_once(
 
 ///|
 priv struct Mf2OutputBudget {
-  bytes : Int
+  bytes : Int32
   trailing_high_surrogate : Bool
 }
 
@@ -906,7 +906,7 @@ priv struct Mf2OutputBudget {
 fn mf2_count_output_segment(
   budget : Mf2OutputBudget,
   value : String,
-  limit : Int,
+  limit : Int32,
 ) -> Mf2OutputBudget? {
   let mut bytes = budget.bytes
   let mut trailing_high_surrogate = budget.trailing_high_surrogate
@@ -929,7 +929,7 @@ fn mf2_count_output_segment(
     bytes = bytes + width
     trailing_high_surrogate = high
   }
-  Some({ bytes, trailing_high_surrogate })
+  Some({ bytes, trailing_high_surrogate, })
 }
 
 ///|
@@ -955,7 +955,7 @@ fn mf2_format_pattern(
   provider : Mf2FunctionProvider,
   errors : Array[Mf2Error],
 ) -> Mf2FormatResult {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let parts : Array[Mf2FormattedPart] = []
   let mut budget : Mf2OutputBudget = {
     bytes: 0,
@@ -983,7 +983,7 @@ fn mf2_format_pattern(
             let fallback = mf2_expression_fallback(expression)
             let output = match (fallback.render)() {
               Ok(value) => value
-              Err(_) => FormatterOutput::{ value: "{�}", parts: [] }
+              Err(_) => FormatterOutput::{ value: "{�}", parts: [], }
             }
             (output, fallback)
           }
@@ -1062,7 +1062,7 @@ fn mf2_format_pattern(
       }
     }
   }
-  { value: out.to_string(), parts, errors: errors.copy() }
+  { value: out.to_string(), parts, errors: errors.copy(), }
 }
 
 ///|
@@ -1084,3 +1084,59 @@ fn mf2_bidi_start(
     Mf2DirectionUnknown => Some("\u{2068}")
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2Direction with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2Direction with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2BidiIsolation with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2BidiIsolation with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2Input with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2Input with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FormattedExpression with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FormattedExpression with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FormattedMarkup with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FormattedMarkup with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FormattedPart with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FormattedPart with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2FormatResult with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2FormatResult with @debug.Debug::{to_repr}

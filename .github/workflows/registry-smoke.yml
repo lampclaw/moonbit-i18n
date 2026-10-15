@@ -7,19 +7,24 @@ on:
         description: Published lampclaw/i18n version to verify
         required: true
         type: string
-  push:
-    tags:
-      - "v[0-9]*.[0-9]*.[0-9]*"
+      revision:
+        description: Full 40-character source commit SHA for the published version
+        required: true
+        type: string
+      archive_sha256:
+        description: SHA-256 of the verified published package archive
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
-  MOONBIT_TOOLCHAIN: 0.10.9+6e6c44045
+  MOONBIT_TOOLCHAIN: 0.10.15+943464bfa
   MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
-  MOON_VERSION: 0.1.20260819
-  MOONC_VERSION: 0.10.9
+  MOON_VERSION: 0.1.20261012
+  MOONC_VERSION: 0.10.15
   NODE_VERSION: 26.7.0
   LAMPCLAW_TEST_BIN: "1"
 
@@ -36,6 +41,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.revision }}
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -80,13 +87,17 @@ jobs:
         shell: bash
         env:
           DISPATCH_VERSION: ${{ inputs.version }}
+          RELEASE_REVISION: ${{ inputs.revision }}
+          RELEASE_ARCHIVE_SHA256: ${{ inputs.archive_sha256 }}
         run: |
           version="$DISPATCH_VERSION"
-          if [ -z "$version" ]; then
-            version="${GITHUB_REF_NAME#v}"
-          fi
           if ! printf '%s\n' "$version" | grep -Eq '^0\.[0-9]+\.[0-9]+$'; then
             echo "Registry smoke requires a stable pre-1.0 version, got: $version" >&2
             exit 1
           fi
+          printf '%s\n' "$RELEASE_REVISION" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s\n' "$RELEASE_ARCHIVE_SHA256" | grep -Eq '^[0-9a-f]{64}$'
+          test "$(git rev-parse HEAD)" = "$RELEASE_REVISION"
+          test "$(node scripts/version-contract.mjs get)" = "$version"
+          node scripts/verify-mooncakes.mjs "$version" "$RELEASE_ARCHIVE_SHA256"
           node scripts/registry-smoke.mjs "$version"

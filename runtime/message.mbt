@@ -1,38 +1,38 @@
 ///|
 /// Maximum UTF-8 size accepted for one MF2 message.
-pub const MF2_MAX_MESSAGE_BYTES : Int = 65536
+pub const MF2_MAX_MESSAGE_BYTES : Int32 = 65536
 
 ///|
 /// Maximum number of declarations accepted in one MF2 message.
-pub const MF2_MAX_DECLARATIONS : Int = 4096
+pub const MF2_MAX_DECLARATIONS : Int32 = 4096
 
 ///|
 /// Maximum number of matcher variants accepted in one MF2 message.
-pub const MF2_MAX_VARIANTS : Int = 4096
+pub const MF2_MAX_VARIANTS : Int32 = 4096
 
 ///|
 /// Maximum number of selectors accepted in one MF2 matcher.
-pub const MF2_MAX_SELECTORS : Int = 64
+pub const MF2_MAX_SELECTORS : Int32 = 64
 
 ///|
 /// Maximum number of parts accepted in one MF2 pattern model.
-pub const MF2_MAX_PATTERN_PARTS : Int = 65536
+pub const MF2_MAX_PATTERN_PARTS : Int32 = 65536
 
 ///|
 /// Maximum parameter count accepted by a message contract.
-pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
+pub const MF2_MAX_CONTRACT_PARAMS : Int32 = 64
 
 ///|
 /// Maximum rich-markup tag count accepted by a message contract.
-pub const MF2_MAX_CONTRACT_TAGS : Int = 64
+pub const MF2_MAX_CONTRACT_TAGS : Int32 = 64
 
 ///|
 /// Maximum number of arguments accepted by a formatting operation.
-pub const MF2_MAX_ARGUMENTS : Int = 64
+pub const MF2_MAX_ARGUMENTS : Int32 = 64
 
 ///|
 /// Maximum options accepted on one expression or markup element.
-pub const MF2_MAX_OPTIONS : Int = 64
+pub const MF2_MAX_OPTIONS : Int32 = 64
 
 ///|
 /// Typed values that may be supplied to an MF2 message.
@@ -40,7 +40,7 @@ pub(all) enum MessageValue {
   /// A Unicode string value.
   TextValue(String)
   /// A signed integer value.
-  IntValue(Int)
+  IntValue(Int32)
   /// A floating-point number value.
   DoubleValue(Double)
   /// A Boolean value.
@@ -279,7 +279,7 @@ pub(all) struct Mf2Error {
   /// Human-readable diagnostic detail.
   message : String
   /// Character offset associated with the failure.
-  offset : Int
+  offset : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -311,16 +311,16 @@ pub(all) struct MessageContract {
 ///|
 /// Creates a permissive contract for low-level runtime integration.
 pub fn MessageContract::open() -> MessageContract {
-  { params: [], allowed_tags: [], enforce: false }
+  { params: [], allowed_tags: [], enforce: false, }
 }
 
 ///|
 /// Creates an enforced contract with typed parameters and allowed markup.
 pub fn MessageContract::new(
   params : Array[MessageParamSpec],
-  allowed_tags? : Array[String] = [],
+  allowed_tags~ : Array[String] = [],
 ) -> MessageContract {
-  { params, allowed_tags, enforce: true }
+  { params, allowed_tags, enforce: true, }
 }
 
 ///|
@@ -367,7 +367,7 @@ pub struct Expression {
   operand : Operand
   function_name : String
   options : Array[ParsedOption]
-  offset : Int
+  offset : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -426,7 +426,7 @@ priv struct ResolvedBinding {
 }
 
 ///|
-fn mf2_error(kind : Mf2ErrorKind, message : String, offset : Int) -> Mf2Error {
+fn mf2_error(kind : Mf2ErrorKind, message : String, offset : Int32) -> Mf2Error {
   let code = match kind {
     Mf2SyntaxError => Mf2SyntaxCode
     Mf2DataModelError => Mf2DataModelCode
@@ -434,7 +434,7 @@ fn mf2_error(kind : Mf2ErrorKind, message : String, offset : Int) -> Mf2Error {
     Mf2FormattingError => Mf2FormattingCode
     Mf2LimitError => Mf2LimitCode
   }
-  { kind, code, message, offset }
+  { kind, code, message, offset, }
 }
 
 ///|
@@ -757,7 +757,7 @@ fn compile_complex_message(
       Ok(value) => value
       Err(error) => return Err(error)
     }
-    variants.push({ keys, pattern })
+    variants.push({ keys, pattern, })
     cursor = skip_layout(chars, extracted.1)
   }
   if variants.is_empty() {
@@ -778,13 +778,13 @@ fn compile_complex_message(
       ),
     )
   }
-  Ok({ declarations, match_names, variants, pattern: None })
+  Ok({ declarations, match_names, variants, pattern: None, })
 }
 
 ///|
 fn parse_input_declaration(
   line : String,
-  offset : Int,
+  offset : Int32,
   contract : MessageContract,
   declared_names : Array[String],
 ) -> Result[Declaration, Mf2Error] {
@@ -815,7 +815,7 @@ fn parse_input_declaration(
 ///|
 fn parse_local_declaration(
   line : String,
-  offset : Int,
+  offset : Int32,
   contract : MessageContract,
   declared_names : Array[String],
 ) -> Result[Declaration, Mf2Error] {
@@ -867,12 +867,12 @@ fn parse_local_declaration(
 ///|
 fn parse_pattern(
   source : String,
-  base_offset : Int,
+  base_offset : Int32,
   contract : MessageContract,
 ) -> Result[Pattern, Mf2Error] {
   let chars = source.to_array()
   let nodes : Array[PatternNode] = []
-  let text = StringBuilder::new()
+  let text = StringBuilder()
   let tag_stack : Array[String] = []
   let mut has_markup = false
   let mut cursor = 0
@@ -987,13 +987,13 @@ fn parse_pattern(
       ),
     )
   }
-  Ok({ nodes, has_markup })
+  Ok({ nodes, has_markup, })
 }
 
 ///|
 fn parse_markup_open(
   source : String,
-  offset : Int,
+  offset : Int32,
   contract : MessageContract,
 ) -> Result[(String, Array[ParsedOption], Bool), Mf2Error] {
   let tokens = match tokenize(source, offset) {
@@ -1054,7 +1054,7 @@ fn parse_markup_open(
 ///|
 fn parse_expression(
   source : String,
-  offset : Int,
+  offset : Int32,
   contract : MessageContract,
 ) -> Result[Expression, Mf2Error] {
   let tokens = match tokenize(source, offset) {
@@ -1185,14 +1185,14 @@ fn parse_expression(
         )
       }
   }
-  Ok({ operand, function_name, options, offset })
+  Ok({ operand, function_name, options, offset, })
 }
 
 ///|
 fn validate_option_variable(
   option : ParsedOption,
   contract : MessageContract,
-  offset : Int,
+  offset : Int32,
 ) -> Result[Unit, Mf2Error] {
   match option.value {
     VariableOption(name) if contract.enforce =>
@@ -1216,7 +1216,7 @@ fn validate_expression_operand_type(
   name : String,
   typ : String,
   function_name : String,
-  offset : Int,
+  offset : Int32,
 ) -> Result[Unit, Mf2Error] {
   if typ == "Local" || function_name.is_empty() || function_name == "string" {
     return Ok(())
@@ -1252,7 +1252,7 @@ fn supported_function(name : String) -> Bool {
 fn validate_function_options(
   function_name : String,
   options : Array[ParsedOption],
-  offset : Int,
+  offset : Int32,
 ) -> Result[Unit, Mf2Error] {
   let display_function = if function_name.is_empty() {
     "string"
@@ -1312,7 +1312,7 @@ fn validate_function_options(
 fn validate_literal_function_option(
   function_name : String,
   option : ParsedOption,
-  offset : Int,
+  offset : Int32,
 ) -> Result[Unit, Mf2Error] {
   let value = match option.value {
     LiteralOption(value) => value
@@ -1391,7 +1391,7 @@ fn currency_code_is_valid(value : String) -> Bool {
 ///|
 fn parse_option_token(
   token : String,
-  offset : Int,
+  offset : Int32,
 ) -> Result[ParsedOption, Mf2Error] {
   let (name, raw_value) = match token.split_once("=") {
     Some(value) => value
@@ -1422,13 +1422,13 @@ fn parse_option_token(
     // MF2 option identifiers and numeric literals are valid unquoted values.
     LiteralOption(value_token)
   }
-  Ok({ name: option_name, value })
+  Ok({ name: option_name, value, })
 }
 
 ///|
-fn tokenize(source : String, offset : Int) -> Result[Array[String], Mf2Error] {
+fn tokenize(source : String, offset : Int32) -> Result[Array[String], Mf2Error] {
   let tokens : Array[String] = []
-  let current = StringBuilder::new()
+  let current = StringBuilder()
   let mut quoted = false
   let chars = source.to_array()
   let mut cursor = 0
@@ -1490,7 +1490,7 @@ pub fn format_text(
       mf2_error(Mf2FormattingError, "MF2 markup requires the parts API", 0),
     )
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   for node in pattern.nodes {
     match node {
       PatternText(value) => out.write_string(value)
@@ -1675,7 +1675,7 @@ fn resolve_expression(
           )
       }
     LiteralOperand(value) =>
-      { name: "", value: TextValue(value), function_name: "", options: [] }
+      { name: "", value: TextValue(value), function_name: "", options: [], }
   }
   let own_options = match
     resolve_options(expression.options, bindings, expression.offset) {
@@ -1705,14 +1705,14 @@ fn resolve_expression(
       }
     _ => base.value
   }
-  Ok({ name: base.name, value, function_name, options })
+  Ok({ name: base.name, value, function_name, options, })
 }
 
 ///|
 fn resolve_options(
   options : Array[ParsedOption],
   bindings : Array[ResolvedBinding],
-  offset : Int,
+  offset : Int32,
 ) -> Result[Array[FormatOption], Mf2Error] {
   let resolved : Array[FormatOption] = []
   for option in options {
@@ -1731,7 +1731,7 @@ fn resolve_options(
             )
         }
     }
-    resolved.push({ name: option.name, value })
+    resolved.push({ name: option.name, value, })
   }
   Ok(resolved)
 }
@@ -1769,9 +1769,9 @@ fn choose_pattern(
     Some(pattern) => Ok(pattern)
     None => {
       let mut best_pattern : Pattern? = None
-      let mut best_ranks : Array[Int] = []
+      let mut best_ranks : Array[Int32] = []
       for variant in compiled.variants {
-        let ranks : Array[Int] = []
+        let ranks : Array[Int32] = []
         let mut matches = true
         for i = 0; i < compiled.match_names.length(); i = i + 1 {
           let binding = match find_binding(bindings, compiled.match_names[i]) {
@@ -1816,7 +1816,7 @@ fn selector_rank(
   binding : ResolvedBinding,
   locale : String,
   formatter : Formatter,
-) -> Result[Int, Mf2Error] {
+) -> Result[Int32, Mf2Error] {
   if key == "*" {
     return Ok(0)
   }
@@ -1856,7 +1856,7 @@ fn selector_rank(
 }
 
 ///|
-fn ranks_better(candidate : Array[Int], current : Array[Int]) -> Bool {
+fn ranks_better(candidate : Array[Int32], current : Array[Int32]) -> Bool {
   if current.is_empty() {
     return true
   }
@@ -1876,7 +1876,7 @@ fn format_resolved(
   binding : ResolvedBinding,
   locale : String,
   formatter : Formatter,
-  offset : Int,
+  offset : Int32,
 ) -> Result[String, Mf2Error] {
   let function_name = if binding.function_name.is_empty() {
     "string"
@@ -1904,7 +1904,7 @@ fn format_resolved(
       }
       let options = formatter_number_options(binding.options)
       if function_name == "integer" {
-        options.push({ name: "integer", value: "true" })
+        options.push({ name: "integer", value: "true", })
       }
       match (formatter.format_number)(locale, number, options) {
         Ok(value) => Ok(value)
@@ -1975,7 +1975,7 @@ fn formatter_offset_number_options(
 ///|
 fn numeric_binding_value(
   binding : ResolvedBinding,
-  offset : Int,
+  offset : Int32,
 ) -> Result[Double, Mf2Error] {
   let raw = match message_value_to_double(binding.value) {
     Some(value) if !value.is_nan() && !value.is_inf() => value
@@ -2044,7 +2044,7 @@ pub fn validate_mf2_message(
   source : String,
   params : Array[String],
 ) -> Result[Unit, String] {
-  let specs = params.map(name => MessageParamSpec::{ name, typ: "String" })
+  let specs = params.map(name => MessageParamSpec::{ name, typ: "String", })
   match compile_mf2_message(source, MessageContract::new(specs)) {
     Ok(_) => Ok(())
     Err(errors) => Err(errors[0].message)
@@ -2214,7 +2214,7 @@ fn contract_with_names(
   let params = contract.params.copy()
   for name in names {
     if find_param_spec(params, name) is None {
-      params.push({ name, typ: "Local" })
+      params.push({ name, typ: "Local", })
     }
   }
   { ..contract, params, }
@@ -2337,7 +2337,7 @@ fn push_pattern_text(nodes : Array[PatternNode], text : StringBuilder) -> Unit {
 }
 
 ///|
-fn find_expression_end(chars : Array[Char], start : Int) -> Int? {
+fn find_expression_end(chars : Array[Char], start : Int32) -> Int32? {
   let mut quoted = false
   let mut cursor = start + 1
   while cursor < chars.length() {
@@ -2358,8 +2358,8 @@ fn find_expression_end(chars : Array[Char], start : Int) -> Int? {
 ///|
 fn extract_quoted_pattern(
   chars : Array[Char],
-  start : Int,
-) -> Result[(String, Int), Mf2Error] {
+  start : Int32,
+) -> Result[(String, Int32), Mf2Error] {
   if !starts_with_chars(chars, start, "{{") {
     return Err(mf2_error(Mf2SyntaxError, "expected quoted pattern", start))
   }
@@ -2396,7 +2396,7 @@ fn extract_quoted_pattern(
 }
 
 ///|
-fn find_quoted_pattern_start(chars : Array[Char], start : Int) -> Int? {
+fn find_quoted_pattern_start(chars : Array[Char], start : Int32) -> Int32? {
   let mut cursor = start
   while cursor + 1 < chars.length() {
     if chars[cursor] == '{' && chars[cursor + 1] == '{' {
@@ -2408,7 +2408,7 @@ fn find_quoted_pattern_start(chars : Array[Char], start : Int) -> Int? {
 }
 
 ///|
-fn chars_slice(chars : Array[Char], start : Int, end : Int) -> String {
+fn chars_slice(chars : Array[Char], start : Int32, end : Int32) -> String {
   let result : Array[Char] = []
   for i = start; i < end; i = i + 1 {
     result.push(chars[i])
@@ -2417,7 +2417,11 @@ fn chars_slice(chars : Array[Char], start : Int, end : Int) -> String {
 }
 
 ///|
-fn starts_with_chars(chars : Array[Char], start : Int, value : String) -> Bool {
+fn starts_with_chars(
+  chars : Array[Char],
+  start : Int32,
+  value : String,
+) -> Bool {
   let expected = value.to_array()
   if start + expected.length() > chars.length() {
     return false
@@ -2431,7 +2435,7 @@ fn starts_with_chars(chars : Array[Char], start : Int, value : String) -> Bool {
 }
 
 ///|
-fn line_end(chars : Array[Char], start : Int) -> Int {
+fn line_end(chars : Array[Char], start : Int32) -> Int32 {
   let mut cursor = start
   while cursor < chars.length() &&
         chars[cursor] != '\n' &&
@@ -2442,7 +2446,7 @@ fn line_end(chars : Array[Char], start : Int) -> Int {
 }
 
 ///|
-fn skip_layout(chars : Array[Char], start : Int) -> Int {
+fn skip_layout(chars : Array[Char], start : Int32) -> Int32 {
   let mut cursor = start
   while cursor < chars.length() && is_layout_char(chars[cursor]) {
     cursor = cursor + 1
@@ -2454,3 +2458,163 @@ fn skip_layout(chars : Array[Char], start : Int) -> Int {
 fn is_layout_char(char : Char) -> Bool {
   char == ' ' || char == '\t' || char == '\n' || char == '\r'
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend MessageValue with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend MessageValue with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend MessageArg with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend MessageArg with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend FormatOption with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend FormatOption with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend FormatterPart with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend FormatterPart with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend FormatterOutput with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend FormatterOutput with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend FormatterIssue with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend FormatterIssue with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ErrorKind with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ErrorKind with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ErrorCode with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ErrorCode with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2Error with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2Error with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend MessageParamSpec with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend MessageParamSpec with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend MessageContract with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend MessageContract with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend MessagePart with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend MessagePart with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Operand with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Operand with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend OptionExpression with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend OptionExpression with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend ParsedOption with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend ParsedOption with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Expression with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Expression with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend PatternNode with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend PatternNode with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Pattern with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Pattern with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Declaration with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Declaration with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Variant with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Variant with @debug.Debug::{to_repr}

@@ -31,7 +31,7 @@ test "locale and MF2 failures retain locale source identity" {
   let result = generate_with_diagnostics(
     config,
     schema,
-    [{ code: "en-US", source: locale }],
+    [{ code: "en-US", source: locale, }],
     config_path="config.json",
     schema_path="schema.json",
     locale_directory="locales",
@@ -69,7 +69,7 @@ test "omitted profile is a path-aware error" {
   guard generate_with_diagnostics(
       config,
       schema,
-      [{ code: "en-US", source: locale }],
+      [{ code: "en-US", source: locale, }],
       config_path="localization/config.json",
       schema_path="localization/schema.json",
       locale_directory="localization/locales",
@@ -93,7 +93,7 @@ test "legacy profiles emit path-aware migration warnings" {
   guard generate_with_diagnostics(
       config,
       schema,
-      [{ code: "en-US", source: locale }],
+      [{ code: "en-US", source: locale, }],
       config_path="localization/config.json",
       schema_path="localization/schema.json",
       locale_directory="localization/locales",
@@ -117,7 +117,7 @@ test "standards profile rejects private datetime with a stable diagnostic" {
   guard generate_with_diagnostics(
       config,
       schema,
-      [{ code: "en-US", source: locale }],
+      [{ code: "en-US", source: locale, }],
       config_path="config.json",
       schema_path="schema.json",
       locale_directory="locales",

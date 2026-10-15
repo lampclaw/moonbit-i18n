@@ -1,6 +1,9 @@
 ///|
-fn runtime_catalog(locale : String, messages : Array[CatalogEntry]) -> Catalog {
-  Catalog::from_generated_entries(
+fn runtime_catalog(
+  locale : String,
+  messages : Array[@runtime.CatalogEntry],
+) -> @runtime.Catalog {
+  @runtime.Catalog::from_generated_entries(
     locale_code=locale,
     contract_hash=TEST_CONTRACT_HASH,
     entries=messages,
@@ -11,9 +14,9 @@ fn runtime_catalog(locale : String, messages : Array[CatalogEntry]) -> Catalog {
 fn runtime_chunk(
   locale : String,
   chunk_namespace : String,
-  messages : Array[CatalogEntry],
-) -> Catalog {
-  Catalog::from_generated_chunk_entries(
+  messages : Array[@runtime.CatalogEntry],
+) -> @runtime.Catalog {
+  @runtime.Catalog::from_generated_chunk_entries(
     locale_code=locale,
     chunk_namespace~,
     contract_hash=TEST_CONTRACT_HASH,
@@ -23,10 +26,10 @@ fn runtime_chunk(
 
 ///|
 fn test_i18n(
-  fallback? : String = "en-US",
-  diagnostic_capacity? : Int = 256,
-) -> I18n {
-  I18n::new(
+  fallback~ : String = "en-US",
+  diagnostic_capacity~ : Int32 = 256,
+) -> @runtime.I18n {
+  @runtime.I18n::new(
     fallback_locale_code=fallback,
     contract_hash=TEST_CONTRACT_HASH,
     diagnostic_capacity~,
@@ -34,7 +37,7 @@ fn test_i18n(
 }
 
 ///|
-fn install_for_test(i18n : I18n, catalog : Catalog) -> Unit {
+fn install_for_test(i18n : @runtime.I18n, catalog : @runtime.Catalog) -> Unit {
   guard i18n.install_generated_catalog(catalog) is Ok(_) else {
     abort("catalog installation failed")
   }
@@ -46,18 +49,18 @@ test "translator formats parameters and falls back per message" {
   install_for_test(
     i18n,
     runtime_catalog("en-US", [
-      { id: "common.save", message: "Save" },
-      { id: "auth.welcome", message: "Hello {$name}" },
+      { id: "common.save", message: "Save", },
+      { id: "auth.welcome", message: "Hello {$name}", },
     ]),
   )
   install_for_test(
     i18n,
-    runtime_catalog("fr", [{ id: "auth.welcome", message: "Bonjour {$name}" }]),
+    runtime_catalog("fr", [{ id: "auth.welcome", message: "Bonjour {$name}", }]),
   )
   let translator = i18n.translator_from_code("fr-FR")
   assert_eq(
     translator.try_t("auth.welcome", [
-      { name: "name", value: TextValue("Luca") },
+      { name: "name", value: TextValue("Luca"), },
     ]),
     Ok("Bonjour Luca"),
   )
@@ -74,11 +77,11 @@ test "format failures continue through the locale fallback chain" {
   let i18n = test_i18n()
   install_for_test(
     i18n,
-    runtime_catalog("fr", [{ id: "welcome", message: "Bonjour {$name}" }]),
+    runtime_catalog("fr", [{ id: "welcome", message: "Bonjour {$name}", }]),
   )
   install_for_test(
     i18n,
-    runtime_catalog("en-US", [{ id: "welcome", message: "Welcome" }]),
+    runtime_catalog("en-US", [{ id: "welcome", message: "Welcome", }]),
   )
   assert_eq(i18n.translator("fr").try_t("welcome", []), Ok("Welcome"))
   let batch = i18n.take_diagnostics()
@@ -90,7 +93,7 @@ test "format failures continue through the locale fallback chain" {
 ///|
 test "runtime rejects stale contracts and installs transactionally" {
   let i18n = test_i18n()
-  let stale = Catalog::from_generated_entries(
+  let stale = @runtime.Catalog::from_generated_entries(
     locale_code="en-US",
     contract_hash="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     entries=[],
@@ -98,10 +101,10 @@ test "runtime rejects stale contracts and installs transactionally" {
   assert_true(i18n.install_generated_catalog(stale) is Err(_))
   install_for_test(
     i18n,
-    runtime_catalog("en-US", [{ id: "hello", message: "Hello" }]),
+    runtime_catalog("en-US", [{ id: "hello", message: "Hello", }]),
   )
   let malformed = runtime_catalog("en-US", [
-    { id: "hello", message: "Broken {" },
+    { id: "hello", message: "Broken {", },
   ])
   assert_true(i18n.install_generated_catalog(malformed) is Err(_))
   assert_eq(i18n.translator("en-US").t("hello", []), "Hello")
@@ -110,19 +113,19 @@ test "runtime rejects stale contracts and installs transactionally" {
 ///|
 test "runtime validates metadata on in-memory generated catalogs" {
   let i18n = test_i18n()
-  let invalid_hash = Catalog::from_generated_entries(
+  let invalid_hash = @runtime.Catalog::from_generated_entries(
     locale_code="en-US",
     contract_hash="not-a-hash",
     entries=[],
   )
   assert_true(i18n.install_generated_catalog(invalid_hash) is Err(_))
-  let invalid_locale = Catalog::from_generated_entries(
+  let invalid_locale = @runtime.Catalog::from_generated_entries(
     locale_code="en--US",
     contract_hash=TEST_CONTRACT_HASH,
     entries=[],
   )
   assert_true(i18n.install_generated_catalog(invalid_locale) is Err(_))
-  let invalid_direction = Catalog::from_generated_entries(
+  let invalid_direction = @runtime.Catalog::from_generated_entries(
     locale_code="en-US",
     contract_hash=TEST_CONTRACT_HASH,
     direction="sideways",
@@ -135,7 +138,7 @@ test "runtime validates metadata on in-memory generated catalogs" {
 test "runtime installs catalog JSON for a normalized locale" {
   let i18n = test_i18n(fallback="zh-CN")
   let source = runtime_catalog("en-US", [
-    { id: "common.hello", message: "Hello" },
+    { id: "common.hello", message: "Hello", },
   ]).to_json_string()
   assert_true(i18n.install_catalog_source_for("en_us", source) is Ok(_))
   assert_true(i18n.has_catalog("EN-us"))
@@ -149,10 +152,10 @@ test "runtime installs catalog JSON for a normalized locale" {
 test "runtime installs independent chunks and reports namespace readiness" {
   let i18n = test_i18n()
   let common = runtime_chunk("zh-CN", "common", [
-    { id: "common.hello", message: "你好" },
+    { id: "common.hello", message: "你好", },
   ])
   let account = runtime_chunk("zh-CN", "account", [
-    { id: "account.title", message: "账户" },
+    { id: "account.title", message: "账户", },
   ])
   assert_true(
     i18n.install_catalog_chunk_source_for(
@@ -183,19 +186,19 @@ test "locale negotiation includes chunk-only locales after successful installati
   install_for_test(
     i18n,
     runtime_catalog("en-US", [
-      { id: "common.hello", message: "Hello" },
-      { id: "common.save", message: "Save" },
+      { id: "common.hello", message: "Hello", },
+      { id: "common.save", message: "Save", },
     ]),
   )
   assert_eq(i18n.translator_from_code("fr-FR").locale_code(), "en-US")
   let malformed = runtime_chunk("fr", "common", [
-    { id: "common.hello", message: "Broken {" },
+    { id: "common.hello", message: "Broken {", },
   ])
   assert_true(i18n.install_generated_catalog(malformed) is Err(_))
   assert_eq(i18n.translator_from_code("fr-FR").locale_code(), "en-US")
   install_for_test(
     i18n,
-    runtime_chunk("fr", "common", [{ id: "common.hello", message: "Bonjour" }]),
+    runtime_chunk("fr", "common", [{ id: "common.hello", message: "Bonjour", }]),
   )
   assert_eq(i18n.translator_from_code("fr").locale_code(), "fr")
   let translator = i18n.translator_from_code("FR_fr")
@@ -209,7 +212,7 @@ test "locale negotiation includes chunk-only locales after successful installati
   assert_eq(diagnostics.entries[0].used_locale, "en-US")
   install_for_test(
     i18n,
-    runtime_chunk("fr", "account", [{ id: "account.title", message: "Compte" }]),
+    runtime_chunk("fr", "account", [{ id: "account.title", message: "Compte", }]),
   )
   assert_eq(i18n.catalog_locale_codes(), ["en-US", "fr"])
   assert_eq(i18n.translator_from_code("fr-BE").t("account.title", []), "Compte")
@@ -222,16 +225,16 @@ test "locale negotiation prefers regional chunks and preserves message fallback"
   let i18n = test_i18n()
   install_for_test(
     i18n,
-    runtime_chunk("en-US", "common", [{ id: "common.save", message: "Save" }]),
+    runtime_chunk("en-US", "common", [{ id: "common.save", message: "Save", }]),
   )
   install_for_test(
     i18n,
-    runtime_catalog("fr", [{ id: "common.save", message: "Enregistrer" }]),
+    runtime_catalog("fr", [{ id: "common.save", message: "Enregistrer", }]),
   )
   install_for_test(
     i18n,
     runtime_chunk("fr-CA", "account", [
-      { id: "account.title", message: "Compte canadien" },
+      { id: "account.title", message: "Compte canadien", },
     ]),
   )
   let regional = i18n.translator_from_code("fr-CA")
@@ -252,25 +255,25 @@ test "catalog installation rejects conflicting directions within a locale" {
   install_for_test(
     i18n,
     runtime_chunk("ar", "common", [
-      { id: "common.hello", message: "مرحبا" },
+      { id: "common.hello", message: "مرحبا", },
     ]),
   )
-  let conflicting_chunk = Catalog::from_generated_chunk_entries(
+  let conflicting_chunk = @runtime.Catalog::from_generated_chunk_entries(
     locale_code="ar",
     chunk_namespace="account",
     contract_hash=TEST_CONTRACT_HASH,
     direction="rtl",
-    entries=[{ id: "account.title", message: "الحساب" }],
+    entries=[{ id: "account.title", message: "الحساب", }],
   )
   assert_true(
     i18n.install_generated_catalog(conflicting_chunk)
     is Err("catalog direction mismatch for ar: expected ltr, got rtl"),
   )
-  let conflicting_whole = Catalog::from_generated_entries(
+  let conflicting_whole = @runtime.Catalog::from_generated_entries(
     locale_code="ar",
     contract_hash=TEST_CONTRACT_HASH,
     direction="rtl",
-    entries=[{ id: "common.hello", message: "مرحبا" }],
+    entries=[{ id: "common.hello", message: "مرحبا", }],
   )
   assert_true(
     i18n.install_generated_catalog(conflicting_whole)
@@ -284,11 +287,11 @@ test "catalog installation rejects conflicting directions within a locale" {
 test "chunk replacement is atomic and rejects incompatible identity" {
   let i18n = test_i18n()
   let valid = runtime_chunk("fr", "common", [
-    { id: "common.save", message: "Enregistrer" },
+    { id: "common.save", message: "Enregistrer", },
   ])
   assert_true(i18n.install_generated_catalog(valid) is Ok(_))
   let malformed = runtime_chunk("fr", "common", [
-    { id: "common.save", message: "Broken {" },
+    { id: "common.save", message: "Broken {", },
   ])
   assert_true(i18n.install_generated_catalog(malformed) is Err(_))
   assert_eq(i18n.translator("fr").t("common.save", []), "Enregistrer")
@@ -316,8 +319,8 @@ test "whole catalogs and chunks expose complete compatibility accessors" {
   install_for_test(
     i18n,
     runtime_catalog("fr", [
-      { id: "account.title", message: "Compte" },
-      { id: "common.save", message: "Sauvegarder" },
+      { id: "account.title", message: "Compte", },
+      { id: "common.save", message: "Sauvegarder", },
     ]),
   )
   assert_true(i18n.has_whole_catalog("fr"))
@@ -330,20 +333,20 @@ test "whole catalogs and chunks expose complete compatibility accessors" {
   install_for_test(
     i18n,
     runtime_chunk("fr", "common", [
-      { id: "common.save", message: "Enregistrer" },
+      { id: "common.save", message: "Enregistrer", },
     ]),
   )
   install_for_test(
     i18n,
-    runtime_chunk("fr", "route", [{ id: "route.title", message: "Route" }]),
+    runtime_chunk("fr", "route", [{ id: "route.title", message: "Route", }]),
   )
   assert_eq(i18n.catalog_namespaces("fr"), ["account", "common", "route"])
   assert_eq(i18n.translator("fr").t("common.save", []), "Enregistrer")
   install_for_test(
     i18n,
     runtime_catalog("fr", [
-      { id: "account.title", message: "Nouveau compte" },
-      { id: "common.save", message: "Base" },
+      { id: "account.title", message: "Nouveau compte", },
+      { id: "common.save", message: "Base", },
     ]),
   )
   assert_eq(i18n.translator("fr").t("account.title", []), "Nouveau compte")
@@ -398,7 +401,7 @@ test "parts translation uses the same compiled matcher and fallback path" {
   install_for_test(
     i18n,
     runtime_catalog("en-US", [
-      { id: "rich", message: "{#strong}Hello{/strong}" },
+      { id: "rich", message: "{#strong}Hello{/strong}", },
     ]),
   )
   assert_eq(
@@ -413,7 +416,7 @@ test "translator searches parent locale catalogs" {
   install_for_test(i18n, runtime_catalog("en-US", []))
   install_for_test(
     i18n,
-    runtime_catalog("zh", [{ id: "common.hello", message: "你好" }]),
+    runtime_catalog("zh", [{ id: "common.hello", message: "你好", }]),
   )
   assert_eq(i18n.translator("zh-Hans-CN").t("common.hello", []), "你好")
   let batch = i18n.take_diagnostics()
@@ -424,10 +427,10 @@ test "translator searches parent locale catalogs" {
 test "catalog source adapters and metadata accessors are total" {
   let i18n = test_i18n()
   assert_eq(i18n.contract_hash(), TEST_CONTRACT_HASH)
-  assert_eq(i18n.profile(), CATALOG_PROFILE)
+  assert_eq(i18n.profile(), @runtime.CATALOG_PROFILE)
   assert_true(i18n.install_catalog_source("not-json") is Err(_))
   assert_true(i18n.install_catalog_source_for("en--US", "{}") is Err(_))
-  let source = runtime_catalog("en-US", [{ id: "hello", message: "Hello" }]).to_json_string()
+  let source = runtime_catalog("en-US", [{ id: "hello", message: "Hello", }]).to_json_string()
   assert_true(i18n.install_catalog_source(source) is Ok(_))
   assert_true(i18n.find_catalog("en-US") is Some(_))
   assert_false(i18n.has_catalog("en--US"))
@@ -436,7 +439,7 @@ test "catalog source adapters and metadata accessors are total" {
 
 ///|
 test "profile mismatch and invalid construction inputs fail safely" {
-  let invalid = I18n::new(
+  let invalid = @runtime.I18n::new(
     fallback_locale_code="bad--locale",
     contract_hash=TEST_CONTRACT_HASH,
     diagnostic_capacity=-1,
@@ -445,7 +448,7 @@ test "profile mismatch and invalid construction inputs fail safely" {
   assert_true(
     invalid.install_generated_catalog(runtime_catalog("en-US", [])) is Ok(_),
   )
-  let wrong_profile = I18n::new(
+  let wrong_profile = @runtime.I18n::new(
     fallback_locale_code="en-US",
     contract_hash=TEST_CONTRACT_HASH,
     profile="another-profile",
@@ -461,7 +464,7 @@ test "structured formatting failure is returned when no fallback succeeds" {
   let i18n = test_i18n()
   install_for_test(
     i18n,
-    runtime_catalog("en-US", [{ id: "welcome", message: "Hello {$name}" }]),
+    runtime_catalog("en-US", [{ id: "welcome", message: "Hello {$name}", }]),
   )
   let translator = i18n.translator("en-US")
   guard translator.try_t("welcome", []) is Err(error) else {
@@ -472,7 +475,7 @@ test "structured formatting failure is returned when no fallback succeeds" {
   assert_eq(translator.translate_raw("welcome", []), None)
   assert_eq(
     translator.translate_raw("welcome", [
-      { name: "name", value: TextValue("MoonBit") },
+      { name: "name", value: TextValue("MoonBit"), },
     ]),
     Some("Hello MoonBit"),
   )
@@ -484,8 +487,8 @@ test "parts convenience paths cover success, missing, and formatting errors" {
   install_for_test(
     i18n,
     runtime_catalog("en-US", [
-      { id: "rich", message: "{#b}Hi{/b}" },
-      { id: "broken", message: "Hi {$name}" },
+      { id: "rich", message: "{#b}Hi{/b}", },
+      { id: "broken", message: "Hi {$name}", },
     ]),
   )
   let translator = i18n.translator("en-US")

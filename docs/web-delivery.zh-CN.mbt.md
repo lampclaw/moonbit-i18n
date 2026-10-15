@@ -120,6 +120,9 @@ async function loadRouteNamespaces(baseURL, locale, names, install) {
 维护中的 Rabbita Todo 示例遵循这一边界：内嵌英文，独立请求中文 `common` 和
 `todo_ui` chunk；失败时保留英文，只重试缺失 chunk，并且只有两个必要 namespace
 都通过后才持久化显式语言选择。
+`0.9.3` 为每次请求的响应头和 body 设置 10 秒超时，按实际流入字节执行生成 metadata
+长度与 64 KiB 硬上限，并在现有 SHA-256/catalog 校验之前严格解码 UTF-8。
+请求编号将重试与更早尝试的迟到结果隔离。
 
 ## 公开的 release 预算
 
@@ -127,8 +130,8 @@ release gate 会读取生成 manifest、验证每个 chunk hash，并强制以�
 
 | 产物 | 预算 |
 | --- | ---: |
-| 浏览器 release JavaScript | 448 KiB |
-| gzip 后的浏览器 JavaScript | 128 KiB |
+| 浏览器 release JavaScript | 512 KiB |
+| gzip 后的浏览器 JavaScript | 160 KiB |
 | 所有 embedded-locale chunk | 8 KiB |
 | 单个动态 namespace chunk | 64 KiB |
 | deployment manifest | 64 KiB |
@@ -147,6 +150,14 @@ MF2 syntax/data-model 校验器、resolver、bidi 行为和默认 function dispa
 2,068、1,108 和 2,131 字节，raw 预算余量为 2,824 字节。这些是包含框架的完整
 应用体积。应用拥有的同源文本 loader 避免链接 Rabbita 的通用 HTTP stack；后续
 framework 或编译器升级仍必须通过该门禁。
+
+`0.9.3` 的迁移在 2026-10-14 获得明确的体积预算例外授权。
+MoonBit `0.10.15+943464bfa`、Rabbita `0.16.5`、Warren `0.4.5`（内置 Evol minifier）
+构建得到 raw 496,495 字节、gzip 145,326 字节，超过原有 448 KiB / 128 KiB 上限；
+兼容旧版 Rabbita 与 Terser 压缩的对照结果同样超限。审查后的新上限为
+512 KiB / 160 KiB，余量分别为 27,793 / 18,514 字节。上述 chunk/manifest 测量值
+保持不变，性能、profile 与 conformance 门槛仍须通过。这是有实测依据的构建基线
+变更，不代表格式化能力扩展或体积优化。
 
 0.4 不新增 framework-specific package：目前还没有两个独立消费者需要同一套
 lifecycle adapter、且有明确维护者负责它的证据。

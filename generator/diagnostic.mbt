@@ -2,11 +2,11 @@
 /// A one-based source location plus its zero-based UTF-8 byte offset.
 pub(all) struct SourcePosition {
   /// Zero-based UTF-8 byte offset.
-  byte_offset : Int
+  byte_offset : Int32
   /// One-based source line.
-  line : Int
+  line : Int32
   /// One-based Unicode-scalar column.
-  column : Int
+  column : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -95,8 +95,8 @@ fn full_source_span(source : String) -> SourceSpan {
     }
   }
   {
-    start: { byte_offset: 0, line: 1, column: 1 },
-    end: { byte_offset: @utf8.encode(source).length(), line, column },
+    start: { byte_offset: 0, line: 1, column: 1, },
+    end: { byte_offset: @utf8.encode(source).length(), line, column, },
   }
 }
 
@@ -182,10 +182,10 @@ pub fn generate_with_diagnostics(
   config_source : String,
   schema_source : String,
   sources : Array[LocaleSource],
-  config_path? : String = "<config>",
-  schema_path? : String = "<schema>",
-  locale_directory? : String = "<locales>",
-  enforce_coverage? : Bool = true,
+  config_path~ : String = "<config>",
+  schema_path~ : String = "<schema>",
+  locale_directory~ : String = "<locales>",
+  enforce_coverage~ : Bool = true,
 ) -> Result[Artifacts, Array[Diagnostic]] {
   match generate(config_source, schema_source, sources, enforce_coverage~) {
     Ok(artifacts) => {
@@ -224,3 +224,35 @@ pub fn generate_with_diagnostics(
     }
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend SourcePosition with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend SourcePosition with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend SourceSpan with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend SourceSpan with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend DiagnosticSeverity with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend DiagnosticSeverity with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Diagnostic with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Diagnostic with @debug.Debug::{to_repr}

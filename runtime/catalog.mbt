@@ -1,6 +1,6 @@
 ///|
 /// Catalog wire-format version accepted by this runtime.
-pub const CATALOG_VERSION : Int = 2
+pub const CATALOG_VERSION : Int32 = 2
 
 ///|
 /// Formatter profile recorded in generated catalogs and contract hashes.
@@ -49,11 +49,11 @@ fn message_profile_allows_draft_datetime(profile : String) -> Bool {
 
 ///|
 /// Maximum UTF-8 size accepted for one serialized catalog.
-pub const CATALOG_MAX_SOURCE_BYTES : Int = 16777216
+pub const CATALOG_MAX_SOURCE_BYTES : Int32 = 16777216
 
 ///|
 /// Maximum number of messages accepted in one catalog.
-pub const CATALOG_MAX_MESSAGES : Int = 100000
+pub const CATALOG_MAX_MESSAGES : Int32 = 100000
 
 ///|
 /// One identifier and MF2 message embedded in a generated catalog.
@@ -67,7 +67,7 @@ pub(all) struct CatalogEntry {
 ///|
 /// A validated locale catalog. Construct it from generated entries or JSON.
 pub struct Catalog {
-  catalog_version : Int
+  catalog_version : Int32
   profile : String
   contract_hash : String
   locale_code : String
@@ -103,7 +103,7 @@ pub fn Catalog::profile(self : Catalog) -> String {
 
 ///|
 /// Returns the catalog wire-format version.
-pub fn Catalog::catalog_version(self : Catalog) -> Int {
+pub fn Catalog::catalog_version(self : Catalog) -> Int32 {
   self.catalog_version
 }
 
@@ -120,8 +120,8 @@ pub fn Catalog::from_generated_entries(
   locale_code~ : String,
   contract_hash~ : String,
   entries~ : Array[CatalogEntry],
-  direction? : String = "ltr",
-  profile? : String = CATALOG_PROFILE,
+  direction~ : String = "ltr",
+  profile~ : String = CATALOG_PROFILE,
 ) -> Catalog {
   catalog_from_generated_entries(
     locale_code~,
@@ -141,8 +141,8 @@ pub fn Catalog::from_generated_chunk_entries(
   chunk_namespace~ : String,
   contract_hash~ : String,
   entries~ : Array[CatalogEntry],
-  direction? : String = "ltr",
-  profile? : String = CATALOG_PROFILE,
+  direction~ : String = "ltr",
+  profile~ : String = CATALOG_PROFILE,
 ) -> Catalog {
   catalog_from_generated_entries(
     locale_code~,
@@ -222,7 +222,7 @@ fn validate_catalog_namespace(
 ///|
 fn is_ascii_letter(char : Char) -> Bool {
   match char {
-    'a'..='z' | 'A'..='Z' => true
+    'a'..<='z' | 'A'..<='Z' => true
     _ => false
   }
 }
@@ -230,7 +230,7 @@ fn is_ascii_letter(char : Char) -> Bool {
 ///|
 fn is_ascii_digit(char : Char) -> Bool {
   match char {
-    '0'..='9' => true
+    '0'..<='9' => true
     _ => false
   }
 }
@@ -238,8 +238,8 @@ fn is_ascii_digit(char : Char) -> Bool {
 ///|
 fn generated_entries_map(
   entries : Array[CatalogEntry],
-  max_messages : Int,
-  max_data_bytes : Int,
+  max_messages : Int32,
+  max_data_bytes : Int32,
 ) -> (Map[String, String], String?) {
   let messages : Map[String, String] = Map([])
   if entries.length() > max_messages {
@@ -280,7 +280,7 @@ pub fn Catalog::find(self : Catalog, id : String) -> String? {
 
 ///|
 /// Returns the number of messages in the catalog.
-pub fn Catalog::message_count(self : Catalog) -> Int {
+pub fn Catalog::message_count(self : Catalog) -> Int32 {
   self.entries.length()
 }
 
@@ -613,3 +613,11 @@ fn valid_contract_hash(value : String) -> Bool {
   }
   true
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend CatalogEntry with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend CatalogEntry with @debug.Debug::{to_repr}

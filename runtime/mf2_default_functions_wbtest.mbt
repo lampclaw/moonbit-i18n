@@ -2,9 +2,9 @@
 fn mf2_test_resolved_option(
   name : String,
   value : String,
-  literal? : Bool = true,
+  literal~ : Bool = true,
 ) -> Mf2ResolvedOption {
-  { name, raw: Some(TextValue(value)), value, literal }
+  { name, raw: Some(TextValue(value)), value, literal, }
 }
 
 ///|
@@ -52,7 +52,7 @@ test "default numeric option validators cover the pinned stable vocabulary" {
     is Ok(normalized) else {
     fail("zero minimum integer digits must be normalized")
   }
-  assert_eq(normalized, { name: "minimumIntegerDigits", value: "1" })
+  assert_eq(normalized, { name: "minimumIntegerDigits", value: "1", })
   assert_true(mf2_digit_size_option("0"))
   assert_true(mf2_digit_size_option("99"))
   assert_true(!mf2_digit_size_option("00"))
@@ -64,8 +64,8 @@ test "default numeric option validators cover the pinned stable vocabulary" {
 ///|
 test "numeric metadata transforms and selection failures are explicit" {
   let semantic : Array[FormatOption] = [
-    { name: "fractionDigits", value: "2" },
-    { name: "select", value: "exact" },
+    { name: "fractionDigits", value: "2", },
+    { name: "select", value: "exact", },
   ]
   let currency = mf2_number_formatter_options("currency", semantic)
   assert_eq(mf2_option_value(currency, "style"), Some("currency"))
@@ -76,12 +76,12 @@ test "numeric metadata transforms and selection failures are explicit" {
   let percent = mf2_number_formatter_options("percent", [])
   assert_eq(mf2_option_value(percent, "style"), Some("percent"))
   let inherited : Array[FormatOption] = [
-    { name: "minimumFractionDigits", value: "2" },
-    { name: "minimumSignificantDigits", value: "3" },
-    { name: "maximumSignificantDigits", value: "4" },
-    { name: "minimumIntegerDigits", value: "5" },
-    { name: "roundingIncrement", value: "5" },
-    { name: "select", value: "exact" },
+    { name: "minimumFractionDigits", value: "2", },
+    { name: "minimumSignificantDigits", value: "3", },
+    { name: "maximumSignificantDigits", value: "4", },
+    { name: "minimumIntegerDigits", value: "5", },
+    { name: "roundingIncrement", value: "5", },
+    { name: "select", value: "exact", },
   ]
   let as_integer = mf2_number_inherited_options("integer", inherited)
   assert_eq(mf2_option_value(as_integer, "minimumFractionDigits"), None)
@@ -94,7 +94,7 @@ test "numeric metadata transforms and selection failures are explicit" {
   assert_eq(mf2_exact_number_serialization(-0.0, []), "0")
   assert_eq(
     mf2_exact_number_serialization(42.0, [
-      { name: "minimumFractionDigits", value: "2" },
+      { name: "minimumFractionDigits", value: "2", },
     ]),
     "42",
   )

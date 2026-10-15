@@ -49,7 +49,7 @@ pub(all) struct Mf2ModelExpression {
   /// Attributes after applying the specified last-value-wins rule.
   attributes : Array[Mf2ModelAttribute]
   /// Character offset of the opening `{` in the source message.
-  offset : Int
+  offset : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -75,7 +75,7 @@ pub(all) struct Mf2ModelMarkup {
   /// Attributes after applying the specified last-value-wins rule.
   attributes : Array[Mf2ModelAttribute]
   /// Character offset of the opening `{` in the source message.
-  offset : Int
+  offset : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -122,7 +122,7 @@ pub(all) struct Mf2ModelVariant {
   /// Pattern selected by this variant.
   value : Mf2ModelPattern
   /// Character offset of the first key in the source message.
-  offset : Int
+  offset : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -141,21 +141,21 @@ pub(all) enum Mf2MessageModel {
 ///|
 priv struct Mf2SyntaxParser {
   chars : Array[Char]
-  mut cursor : Int
+  mut cursor : Int32
 }
 
 ///|
-fn mf2_syntax_error(message : String, offset : Int) -> Mf2Error {
-  { kind: Mf2SyntaxError, code: Mf2SyntaxCode, message, offset }
+fn mf2_syntax_error(message : String, offset : Int32) -> Mf2Error {
+  { kind: Mf2SyntaxError, code: Mf2SyntaxCode, message, offset, }
 }
 
 ///|
 fn mf2_model_error(
   code : Mf2ErrorCode,
   message : String,
-  offset : Int,
+  offset : Int32,
 ) -> Mf2Error {
-  { kind: Mf2DataModelError, code, message, offset }
+  { kind: Mf2DataModelError, code, message, offset, }
 }
 
 ///|
@@ -179,7 +179,7 @@ pub fn parse_mf2_syntax(source : String) -> Result[Mf2MessageModel, Mf2Error] {
       return Err(mf2_syntax_error("MF2 messages must not contain U+0000", i))
     }
   }
-  let parser = Mf2SyntaxParser::{ chars, cursor: 0 }
+  let parser = Mf2SyntaxParser::{ chars, cursor: 0, }
   parser.parse_message()
 }
 
@@ -467,7 +467,7 @@ fn Mf2SyntaxParser::parse_variant(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok({ keys, value, offset })
+  Ok({ keys, value, offset, })
 }
 
 ///|
@@ -495,7 +495,7 @@ fn Mf2SyntaxParser::parse_pattern(
   quoted : Bool,
 ) -> Result[Mf2ModelPattern, Mf2Error] {
   let parts : Array[Mf2ModelPatternPart] = []
-  let text = StringBuilder::new()
+  let text = StringBuilder()
   while self.cursor < self.chars.length() {
     if quoted && self.starts_with("}}") {
       break
@@ -583,7 +583,7 @@ fn Mf2SyntaxParser::parse_placeholder_expression(
 ///|
 fn Mf2SyntaxParser::parse_expression_body(
   self : Mf2SyntaxParser,
-  offset : Int,
+  offset : Int32,
 ) -> Result[Mf2ModelExpression, Mf2Error] {
   let arg : Mf2ModelValue? = if self.peek() == Some('$') {
     let name = match self.parse_variable() {
@@ -657,7 +657,7 @@ fn Mf2SyntaxParser::parse_expression_body(
   if !self.consume('}') {
     return Err(mf2_syntax_error("unclosed expression", self.cursor))
   }
-  Ok({ arg, function_ref, attributes, offset })
+  Ok({ arg, function_ref, attributes, offset, })
 }
 
 ///|
@@ -696,13 +696,13 @@ fn Mf2SyntaxParser::parse_function(
     }
     options.push(option)
   }
-  Ok({ name, options })
+  Ok({ name, options, })
 }
 
 ///|
 fn Mf2SyntaxParser::parse_markup(
   self : Mf2SyntaxParser,
-  offset : Int,
+  offset : Int32,
   closing : Bool,
 ) -> Result[Mf2ModelMarkup, Mf2Error] {
   self.skip_optional_layout()
@@ -772,7 +772,7 @@ fn Mf2SyntaxParser::parse_markup(
   } else {
     Mf2MarkupOpen
   }
-  Ok({ kind, name, options, attributes, offset })
+  Ok({ kind, name, options, attributes, offset, })
 }
 
 ///|
@@ -801,7 +801,7 @@ fn Mf2SyntaxParser::parse_model_option(
     }
     Mf2ModelLiteral(literal)
   }
-  Ok({ name, value })
+  Ok({ name, value, })
 }
 
 ///|
@@ -829,7 +829,7 @@ fn Mf2SyntaxParser::parse_attribute(
     self.cursor = before_layout
     None
   }
-  Ok({ name, value })
+  Ok({ name, value, })
 }
 
 ///|
@@ -893,7 +893,7 @@ fn Mf2SyntaxParser::parse_name(
     self.cursor = offset
     return Err(mf2_syntax_error("invalid MF2 name", offset))
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   out.write_char(first)
   self.cursor = self.cursor + 1
   while self.peek().map(is_mf2_name_char).unwrap_or(false) {
@@ -926,7 +926,7 @@ fn Mf2SyntaxParser::parse_quoted_literal(
   if !self.consume('|') {
     return Err(mf2_syntax_error("expected quoted literal", self.cursor))
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   while self.cursor < self.chars.length() {
     let char = self.chars[self.cursor]
     if char == '|' {
@@ -952,7 +952,7 @@ fn Mf2SyntaxParser::parse_unquoted_literal(
   self : Mf2SyntaxParser,
 ) -> Result[String, Mf2Error] {
   let offset = self.cursor
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   while self.peek().map(is_mf2_name_char).unwrap_or(false) {
     guard self.peek() is Some(char) else { break }
     out.write_char(char)
@@ -1080,7 +1080,7 @@ fn is_mf2_name_start(char : Char) -> Bool {
 }
 
 ///|
-fn is_mf2_supplementary_name_start(code : Int) -> Bool {
+fn is_mf2_supplementary_name_start(code : Int32) -> Bool {
   code >= 0x10000 && code <= 0x10fffd && (code & 0xffff) <= 0xfffd
 }
 
@@ -1106,8 +1106,8 @@ fn is_mf2_simple_start_char(char : Char) -> Bool {
 ///|
 fn mf2_range_has_whitespace(
   chars : Array[Char],
-  start : Int,
-  end : Int,
+  start : Int32,
+  end : Int32,
 ) -> Bool {
   for i = start; i < end; i = i + 1 {
     if is_mf2_whitespace(chars[i]) {
@@ -1243,7 +1243,7 @@ fn validate_mf2_pattern_options(
 ///|
 fn validate_mf2_option_names(
   options : Array[Mf2ModelOption],
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Unit {
   let names : Map[String, Bool] = Map([])
@@ -1381,7 +1381,7 @@ pub fn serialize_mf2_model(
   if !errors.is_empty() {
     return Err(errors)
   }
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   match model {
     Mf2PatternMessage(declarations, pattern) => {
       write_mf2_declarations(out, declarations)
@@ -1754,7 +1754,7 @@ fn validate_mf2_pattern_shape(
 ///|
 fn validate_mf2_model_options(
   options : Array[Mf2ModelOption],
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Unit {
   if options.length() > MF2_MAX_OPTIONS {
@@ -1778,7 +1778,7 @@ fn validate_mf2_model_options(
 ///|
 fn validate_mf2_model_attributes(
   attributes : Array[Mf2ModelAttribute],
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Unit {
   for attribute in attributes {
@@ -1794,10 +1794,10 @@ fn validate_mf2_model_attributes(
 fn validate_mf2_model_name(
   value : String,
   identifier : Bool,
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Unit {
-  let parser = Mf2SyntaxParser::{ chars: value.to_array(), cursor: 0 }
+  let parser = Mf2SyntaxParser::{ chars: value.to_array(), cursor: 0, }
   let parsed = if identifier {
     parser.parse_identifier()
   } else {
@@ -1818,7 +1818,7 @@ fn validate_mf2_model_name(
 ///|
 fn validate_mf2_model_string(
   value : String,
-  offset : Int,
+  offset : Int32,
   errors : Array[Mf2Error],
 ) -> Unit {
   if value.to_array().any(char => char.to_int() == 0) {
@@ -2174,7 +2174,7 @@ fn parse_mf2_expression_json(json : Json) -> Result[Mf2ModelExpression, String] 
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  Ok({ arg, function_ref, attributes, offset: 0 })
+  Ok({ arg, function_ref, attributes, offset: 0, })
 }
 
 ///|
@@ -2200,7 +2200,7 @@ fn parse_mf2_markup_json(json : Json) -> Result[Mf2ModelMarkup, String] {
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  Ok({ kind, name, options, attributes, offset: 0 })
+  Ok({ kind, name, options, attributes, offset: 0, })
 }
 
 ///|
@@ -2216,7 +2216,7 @@ fn parse_mf2_function_json(json : Json) -> Result[Mf2ModelFunction, String] {
     Ok(value) => value
     Err(message) => return Err(message)
   }
-  Ok({ name, options })
+  Ok({ name, options, })
 }
 
 ///|
@@ -2252,7 +2252,7 @@ fn parse_mf2_options_json(
           Ok(value) => value
           Err(message) => return Err(message)
         }
-        options.push({ name: pair.0, value })
+        options.push({ name: pair.0, value, })
       }
     _ => return Err("MF2 options must be an object")
   }
@@ -2279,7 +2279,7 @@ fn parse_mf2_attributes_json(
               Err(message) => return Err(message)
             }
         }
-        attributes.push({ name: pair.0, value })
+        attributes.push({ name: pair.0, value, })
       }
     _ => return Err("MF2 attributes must be an object")
   }
@@ -2316,5 +2316,109 @@ fn parse_mf2_variant_json(json : Json) -> Result[Mf2ModelVariant, String] {
       }
     None => return Err("MF2 variant is missing value")
   }
-  Ok({ keys, value, offset: 0 })
+  Ok({ keys, value, offset: 0, })
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelValue with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelValue with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelOption with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelOption with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelAttribute with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelAttribute with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelFunction with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelFunction with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelExpression with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelExpression with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelMarkupKind with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelMarkupKind with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelMarkup with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelMarkup with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelPatternPart with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelPatternPart with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelPattern with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelPattern with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelDeclaration with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelDeclaration with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelVariantKey with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelVariantKey with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2ModelVariant with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2ModelVariant with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Mf2MessageModel with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Mf2MessageModel with @debug.Debug::{to_repr}

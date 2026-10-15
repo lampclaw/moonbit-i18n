@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  MOONBIT_TOOLCHAIN: 0.10.9+6e6c44045
+  MOONBIT_TOOLCHAIN: 0.10.15+943464bfa
   MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
-  MOON_VERSION: 0.1.20260819
-  MOONC_VERSION: 0.10.9
+  MOON_VERSION: 0.1.20261012
+  MOONC_VERSION: 0.10.15
   NODE_VERSION: 26.7.0
 
 jobs:
@@ -139,7 +139,7 @@ jobs:
 
       - name: Rabbita Todo release build
         run: |
-          moon install moonbit-community/warren@0.3.2
+          moon install moonbit-community/warren@0.4.5
           cd examples/rabbita_todo
           warren build --browser-entry main --dist dist
           node ../../scripts/check-web-size.mjs dist
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publish archive contents
         run: |
-          # Moon 0.1.20260819 writes the package list to stderr.
+          # Capture both streams; Moon's progress messages use stderr.
           package_list="$(moon package --frozen --list 2>&1)"
           printf '%s\n' "$package_list"
           if printf '%s\n' "$package_list" | grep -E \
@@ -248,7 +248,7 @@ jobs:
 
       - name: Install browser tooling
         run: |
-          moon install moonbit-community/warren@0.3.2
+          moon install moonbit-community/warren@0.4.5
           npm ci
           npx playwright install --with-deps "${{ matrix.browser }}"
 

@@ -5,8 +5,8 @@
 This document defines the supported `0.x` Web release line. A target is supported
 only when it is named here and exercised by the release gates.
 
-Release `0.9.2` retains the exact MoonBit and dependency baseline introduced
-by `0.9.1`, including the versions below. It preserves the supported target set,
+The `0.9.3` maintenance version updates the MoonBit build baseline
+and compatible dependencies. It preserves the supported target set,
 public and generated APIs, profiles, CLI and wire contracts, and Node/browser
 host policy.
 
@@ -14,7 +14,7 @@ host policy.
 
 | Surface | Release gate | Support level |
 |---|---|---|
-| MoonBit toolchain | archive `0.10.9+6e6c44045`, Moon `0.1.20260819`, moonc `0.10.9` | Pinned compatibility and CI release gate |
+| MoonBit toolchain | archive `0.10.15+943464bfa`, Moon `0.1.20261012`, moonc `0.10.15` | Pinned compatibility and CI release gate |
 | JavaScript runtime | Node.js `26.7.0` | Sole server/runtime and product gate |
 | Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.62.1` | Generated facade, upstream MF2 suites, differential cases, and application scenarios |
 | CLI operating systems | Ubuntu 24.04, macOS 15, Windows 2025 | Wasm `moonx`, native CLI, and installed launcher |
@@ -51,6 +51,19 @@ the JavaScript product-conformance statement.
   versions, profiles, and diagnostics are recorded in
   `docs/contracts/1.0-candidate.json`. CI treats unreviewed drift as a release
   failure.
+  The reviewed `0.9.3` compiler representation is recorded separately in
+  `docs/contracts/0.9.3-toolchain.json`. Removing only the explicit declarations
+  of existing derived Eq/Debug methods must recover the original interface
+  hashes; the original candidate snapshot is not overwritten.
+
+The parser and async pins are `0.4.4` and `0.22.4`.
+`moonbit-community/normalization@0.5.2` replaces the earlier package coordinate
+while retaining the same Unicode 16.0.0 normalization tables. This build migration
+does not advance the pinned Unicode/CLDR or Node `Intl` contract.
+
+The repository retains only `main` and has no release tags. Record each release
+with its full source commit SHA, exact package version, and archive SHA-256.
+Registry smoke is manual and requires those three values.
 
 The exact shipped message syntax and semantics are defined by the
 [MF2-derived profile](mf2-profile.mbt.md), not by planned roadmap work.

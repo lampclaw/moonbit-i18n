@@ -55,7 +55,7 @@ fn mf2_resolve_string_function(
   Mf2ProviderValue(
     {
       raw: Some(TextValue(rendered)),
-      render: () => Ok({ value: rendered, parts: [] }),
+      render: () => Ok({ value: rendered, parts: [], }),
       match_key: Some(key => Ok(normalized == key)),
       better_than: Some((_left, _right) => Ok(false)),
       direction: operand.direction,
@@ -196,8 +196,8 @@ fn mf2_resolve_number_function(
   if function_name == "percent" &&
     mf2_option_value(semantic_options, "minimumFractionDigits") is None &&
     mf2_option_value(semantic_options, "maximumFractionDigits") is None {
-    semantic_options.push({ name: "minimumFractionDigits", value: "0" })
-    semantic_options.push({ name: "maximumFractionDigits", value: "0" })
+    semantic_options.push({ name: "minimumFractionDigits", value: "0", })
+    semantic_options.push({ name: "maximumFractionDigits", value: "0", })
   }
   let formatter_options = mf2_number_formatter_options(
     function_name, semantic_options,
@@ -601,7 +601,7 @@ fn mf2_validate_number_option(
     | "maximumSignificantDigits" if value == "0" => "1"
     _ => value
   }
-  Ok({ name: option.name, value: normalized })
+  Ok({ name: option.name, value: normalized, })
 }
 
 ///|
@@ -618,15 +618,21 @@ fn mf2_number_formatter_options(
   }
   match mf2_option_value(semantic, "fractionDigits") {
     Some(value) if value != "auto" => {
-      mf2_replace_format_option(result, { name: "minimumFractionDigits", value })
-      mf2_replace_format_option(result, { name: "maximumFractionDigits", value })
+      mf2_replace_format_option(result, {
+        name: "minimumFractionDigits",
+        value,
+      })
+      mf2_replace_format_option(result, {
+        name: "maximumFractionDigits",
+        value,
+      })
     }
     _ => ()
   }
   match function_name {
-    "integer" => result.push({ name: "integer", value: "true" })
-    "currency" => result.push({ name: "style", value: "currency" })
-    "percent" => result.push({ name: "style", value: "percent" })
+    "integer" => result.push({ name: "integer", value: "true", })
+    "currency" => result.push({ name: "style", value: "currency", })
+    "percent" => result.push({ name: "style", value: "percent", })
     _ => ()
   }
   result
@@ -982,7 +988,7 @@ fn mf2_validate_datetime_option(
     _ => true
   }
   if valid {
-    Ok({ name: option.name, value })
+    Ok({ name: option.name, value, })
   } else {
     Err(
       Mf2HandlerBadOption(
@@ -999,7 +1005,7 @@ fn mf2_datetime_formatter_options(
   time_zone : String,
 ) -> Array[FormatOption] {
   let result : Array[FormatOption] = []
-  result.push({ name: "timeZone", value: time_zone })
+  result.push({ name: "timeZone", value: time_zone, })
   for option in semantic {
     if option.name == "hour12" || option.name == "calendar" {
       result.push(option)
@@ -1047,15 +1053,15 @@ fn mf2_datetime_formatter_options(
           None => "minute"
         }
     }
-    result.push({ name: "hour", value: "numeric" })
+    result.push({ name: "hour", value: "numeric", })
     if precision == "minute" || precision == "second" {
-      result.push({ name: "minute", value: "2-digit" })
+      result.push({ name: "minute", value: "2-digit", })
     }
     if precision == "second" {
-      result.push({ name: "second", value: "2-digit" })
+      result.push({ name: "second", value: "2-digit", })
     }
     match mf2_option_value(semantic, "timeZoneStyle") {
-      Some(value) => result.push({ name: "timeZoneName", value })
+      Some(value) => result.push({ name: "timeZoneName", value, })
       None => ()
     }
   }
@@ -1113,7 +1119,7 @@ fn mf2_add_date_fields(
     })
   }
   if day {
-    result.push({ name: "day", value: "numeric" })
+    result.push({ name: "day", value: "numeric", })
   }
 }
 
@@ -1162,7 +1168,7 @@ fn mf2_validate_date_literal(value : String) -> Mf2DateLiteralInfo? {
     return None
   }
   if chars.length() == 10 {
-    return Some({ has_zone: false })
+    return Some({ has_zone: false, })
   }
   guard chars[10] == 'T' &&
     mf2_ascii_digits(chars, 11, 2) &&
@@ -1193,10 +1199,10 @@ fn mf2_validate_date_literal(value : String) -> Mf2DateLiteralInfo? {
     }
   }
   if cursor == chars.length() {
-    return Some({ has_zone: false })
+    return Some({ has_zone: false, })
   }
   if chars[cursor] == 'Z' && cursor + 1 == chars.length() {
-    return Some({ has_zone: true })
+    return Some({ has_zone: true, })
   }
   guard (chars[cursor] == '+' || chars[cursor] == '-') &&
     cursor + 6 == chars.length() &&
@@ -1210,12 +1216,12 @@ fn mf2_validate_date_literal(value : String) -> Mf2DateLiteralInfo? {
   if zone_hour > 14 || zone_minute > 59 || (zone_hour == 14 && zone_minute != 0) {
     None
   } else {
-    Some({ has_zone: true })
+    Some({ has_zone: true, })
   }
 }
 
 ///|
-fn mf2_ascii_digits(chars : Array[Char], start : Int, length : Int) -> Bool {
+fn mf2_ascii_digits(chars : Array[Char], start : Int32, length : Int32) -> Bool {
   if start < 0 || length < 0 || start + length > chars.length() {
     return false
   }
@@ -1228,7 +1234,11 @@ fn mf2_ascii_digits(chars : Array[Char], start : Int, length : Int) -> Bool {
 }
 
 ///|
-fn mf2_ascii_number(chars : Array[Char], start : Int, length : Int) -> Int {
+fn mf2_ascii_number(
+  chars : Array[Char],
+  start : Int32,
+  length : Int32,
+) -> Int32 {
   let mut value = 0
   for index = start; index < start + length; index = index + 1 {
     value = value * 10 + chars[index].to_int() - '0'.to_int()
@@ -1237,7 +1247,7 @@ fn mf2_ascii_number(chars : Array[Char], start : Int, length : Int) -> Int {
 }
 
 ///|
-fn mf2_days_in_month(year : Int, month : Int) -> Int {
+fn mf2_days_in_month(year : Int32, month : Int32) -> Int32 {
   match month {
     2 =>
       if year % 400 == 0 || (year % 4 == 0 && year % 100 != 0) {

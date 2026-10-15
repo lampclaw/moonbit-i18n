@@ -108,7 +108,7 @@ test "custom handler and callback failures remain typed" {
       ) => {
         Ok(
           Mf2FunctionValue::new(
-            format=() => Ok({ value: "value", parts: [] }),
+            format=() => Ok({ value: "value", parts: [], }),
             match_key=Some(_key => Err(Mf2FunctionBadVariantKey("invalid key"))),
             better_than=Some((_left, _right) => {
               Err(Mf2FunctionBadSelector("ranking failed"))

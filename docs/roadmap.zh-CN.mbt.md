@@ -14,7 +14,7 @@
 `lampclaw/i18n` 的目标是成为 MoonBit 原生、生成优先、类型安全、标准驱动的国际化
 基础设施，具有可移植核心和可替换的目标平台 formatter。
 
-`0.9.2` 维护版本已经超出原型阶段，并保持 `0.9.0` 冻结的 1.0 candidate 基线：
+`0.9.3` 维护版本已经超出原型阶段，并保持 `0.9.0` 冻结的 1.0 candidate 基线：
 
 - 应用代码使用生成的类型安全 MoonBit facade，而不是裸字符串消息 ID；
 - schema、locale 资源、生成源码、catalog 和所有权 manifest 构成确定性的 authoring
@@ -329,6 +329,15 @@ requirement matrix 与独立 differential report 达到这个 scope 内门槛。
 分块安装的 locale 协商，并增量执行现有 MF2 文本输出上限，不引入公开 API、
 profile、wire 契约或受支持 target 变化。其验收门槛仍是完整的四 target、
 conformance、浏览器、打包与 registry 门禁。
+
+`0.9.3` 维护版本将构建基线迁移到 MoonBit `0.10.15+943464bfa`，显式保留
+原先隐式可调用的派生方法，并为应用持有的 chunk loader 增加时间、字节上限与重试
+请求隔离。原始 candidate 快照保持不变，编译器表示的审查记录放在
+`docs/contracts/0.9.3-toolchain.json`；不修改 MF2 profile、catalog wire format
+或 Node/浏览器 host 政策。仓库只保留 `main` 且已删除发布标签，因此追溯方式改为
+完整源码 commit SHA、精确包版本与归档校验和。发布前仍须通过相同的四 target、
+浏览器、覆盖率、性能、体积、打包与跨平台门禁。比赛材料和发布记录须明确区分
+本地证据与该精确版本已完成的 registry、CI 结果。
 
 维护中的 Rabbita 应用因有意使用 Draft function 而选择 experimental datetime profile；
 不使用 Draft function 的稳定 consumer 迁移到 v2。原始 `0.9.0` candidate 发布门槛

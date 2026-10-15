@@ -7,19 +7,22 @@ complete generator-first workflow. Maintained application source imports its
 own generated package and application-owned browser adapter; it does not
 import the i18n runtime.
 
+This example uses the `0.9.3` maintenance version. The commands below use the
+matching local CLI so source checkouts can regenerate their own artifacts.
+
 ## Generate and validate
 
 Run from the repository root:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.2 generate \
+moon run --target wasm cmd/i18n -- generate \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.2 check \
+moon run --target wasm cmd/i18n -- check \
   examples/rabbita_todo/localization/config.json \
   examples/rabbita_todo/localization/schema.json \
   examples/rabbita_todo/localization/locales \
@@ -42,7 +45,7 @@ different profile. Applications without date/time functions should use stable
 ~~~bash
 npm ci
 cd examples/rabbita_todo
-moon install moonbit-community/warren@0.3.2
+moon install moonbit-community/warren@0.4.5
 warren dev --browser-entry main
 ~~~
 
@@ -52,8 +55,8 @@ For a release build:
 warren build --browser-entry main --dist dist
 ~~~
 
-The repository-local Terser `5.50.0` pin makes Warren's release minification
-reproducible after `npm ci`.
+Warren `0.4.5` bundles its pinned Evol minifier for release builds. Node remains
+`26.7.0` and Playwright remains `1.62.1` for the browser acceptance gates.
 
 ## Architecture
 
@@ -88,6 +91,11 @@ application compares each exact UTF-8 byte count and SHA-256 with generated
 deployment metadata before asking the facade to validate and install it. A
 failed request, integrity mismatch, or invalid chunk leaves the current locale
 unchanged and exposes a retry state; a retry requests only missing namespaces.
+Each fetch has a 10-second deadline covering headers and body. Streaming reads
+count actual bytes, enforce the metadata length and a 64 KiB ceiling, and decode
+strict UTF-8 across chunk boundaries. Failed requests are aborted and their
+streams cancelled. Attempt IDs prevent late responses from a failed attempt
+from modifying a newer attempt for the same locale.
 The `contract` namespace is intentionally left unloaded to exercise normal
 message-level English fallback.
 

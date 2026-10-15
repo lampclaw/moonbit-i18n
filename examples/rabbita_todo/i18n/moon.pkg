@@ -3,6 +3,7 @@
 import {
   "lampclaw/i18n/runtime",
   "lampclaw/i18n/runtime/js" @runtime_js,
+  "moonbitlang/core/debug",
 }
 
 supported_targets = "js"

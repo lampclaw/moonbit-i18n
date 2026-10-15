@@ -1,7 +1,7 @@
 ///|
 priv struct Mf2TestFunctionState {
   input : Double
-  decimal_places : Int
+  decimal_places : Int32
   fails_format : Bool
   fails_select : Bool
 }
@@ -38,7 +38,7 @@ fn mf2_resolve_test_string(operand : Mf2ResolvedValue?) -> Mf2ProviderResult {
   Mf2ProviderValue(
     {
       raw: Some(TextValue(rendered)),
-      render: () => Ok({ value: rendered, parts: [] }),
+      render: () => Ok({ value: rendered, parts: [], }),
       match_key: Some(key => Ok(@normalization.nfc(rendered) == key)),
       better_than: Some((_left, _right) => Ok(false)),
       direction: Mf2DirectionUnknown,
@@ -94,7 +94,7 @@ fn mf2_resolve_test_number(
   Mf2ProviderValue(
     {
       raw: Some(DoubleValue(number)),
-      render: () => Ok({ value: rendered, parts: [] }),
+      render: () => Ok({ value: rendered, parts: [], }),
       match_key: Some(key => {
         Ok(
           match parse_numeric_literal(key) {
@@ -138,8 +138,8 @@ fn mf2_resolve_test_function(
     match option.name {
       "decimalPlaces" =>
         match option.value {
-          "0" => state = { ..state, decimal_places: 0 }
-          "1" => state = { ..state, decimal_places: 1 }
+          "0" => state = { ..state, decimal_places: 0, }
+          "1" => state = { ..state, decimal_places: 1, }
           _ =>
             return Mf2ProviderFailure(
               Mf2HandlerBadOption("decimalPlaces must be 0 or 1"),
@@ -148,11 +148,11 @@ fn mf2_resolve_test_function(
       "fails" =>
         match option.value {
           "never" =>
-            state = { ..state, fails_format: false, fails_select: false }
-          "format" => state = { ..state, fails_format: true }
-          "select" => state = { ..state, fails_select: true }
+            state = { ..state, fails_format: false, fails_select: false, }
+          "format" => state = { ..state, fails_format: true, }
+          "select" => state = { ..state, fails_select: true, }
           "always" =>
-            state = { ..state, fails_format: true, fails_select: true }
+            state = { ..state, fails_format: true, fails_select: true, }
           _ =>
             return Mf2ProviderFailure(
               Mf2HandlerBadOption("fails has an invalid value"),
@@ -168,7 +168,7 @@ fn mf2_resolve_test_function(
   } else if state.fails_format {
     () => Err(Mf2HandlerBadOption("test function formatting failed"))
   } else {
-    () => Ok({ value: formatted, parts: [] })
+    () => Ok({ value: formatted, parts: [], })
   }
   let match_key : ((String) -> Result[Bool, Mf2HandlerFailure])? = if name ==
     "test:format" {
@@ -202,10 +202,10 @@ fn mf2_resolve_test_function(
       id: None,
       options: [],
       metadata: [
-        { name: "test:input", value: state.input.to_string() },
-        { name: "test:decimalPlaces", value: state.decimal_places.to_string() },
-        { name: "test:failsFormat", value: state.fails_format.to_string() },
-        { name: "test:failsSelect", value: state.fails_select.to_string() },
+        { name: "test:input", value: state.input.to_string(), },
+        { name: "test:decimalPlaces", value: state.decimal_places.to_string(), },
+        { name: "test:failsFormat", value: state.fails_format.to_string(), },
+        { name: "test:failsSelect", value: state.fails_select.to_string(), },
       ],
       fallback_source: None,
       function_name: Some(name),
@@ -258,7 +258,7 @@ fn mf2_test_state_from_operand(
 }
 
 ///|
-fn mf2_test_number_string(value : Double, decimal_places : Int) -> String {
+fn mf2_test_number_string(value : Double, decimal_places : Int32) -> String {
   let sign = if value < 0.0 { "-" } else { "" }
   let absolute = if value < 0.0 { -value } else { value }
   let integer = absolute.trunc().to_int()
@@ -272,9 +272,9 @@ fn mf2_test_number_string(value : Double, decimal_places : Int) -> String {
 
 ///|
 fn mf2_test_context(
-  inputs? : Array[Mf2Input] = [],
-  direction? : Mf2Direction = Mf2DirectionUnknown,
-  bidi_isolation? : Mf2BidiIsolation = Mf2NoBidiIsolation,
+  inputs~ : Array[Mf2Input] = [],
+  direction~ : Mf2Direction = Mf2DirectionUnknown,
+  bidi_isolation~ : Mf2BidiIsolation = Mf2NoBidiIsolation,
 ) -> Mf2FormattingContext {
   match
     Mf2FormattingContext::new(
@@ -448,7 +448,7 @@ test "u:dir and u:id control structured expression output" {
   }
   assert_eq(expression.direction, Mf2LeftToRight)
   assert_eq(expression.id, Some("foo"))
-  assert_eq(expression.attributes, [{ name: "note", value: Some("label") }])
+  assert_eq(expression.attributes, [{ name: "note", value: Some("label"), }])
 }
 
 ///|

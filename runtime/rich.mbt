@@ -96,3 +96,11 @@ pub fn validate_rich_tags(
     Ok(())
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend RichPart with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend RichPart with @debug.Debug::{to_repr}
