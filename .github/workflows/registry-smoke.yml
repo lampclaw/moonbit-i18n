@@ -1,6 +1,20 @@
 name: Registry smoke
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        description: Published lampclaw/i18n version to verify
+        required: true
+        type: string
+      revision:
+        description: Full 40-character source commit SHA for the published version
+        required: true
+        type: string
+      archive_sha256:
+        description: SHA-256 of the verified published package archive
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       version:

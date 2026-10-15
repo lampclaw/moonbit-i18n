@@ -36,7 +36,8 @@ Invoke `moon publish` exactly once. A non-zero or ambiguous result is never an
 authorization to retry: first verify the exact version on mooncakes.io and run
 `node scripts/registry-smoke.mjs "$version"`. Only after the registry assets,
 README/API rendering, and clean-module smoke pass, manually dispatch Registry
-smoke on Linux, macOS, and Windows with `version`, `revision`, and `archive_sha256`.
+smoke on Linux, macOS, and Windows with `version`, `revision`, and `archive_sha256`,
+or submit the Git-based verification request described below.
 Record the source commit, exact version, archive SHA-256, CI runs,
 registry URL, publish timestamps/status, and known limitations under
 `docs/releases/<version>-acceptance.md`.
@@ -162,8 +163,9 @@ from the published archive.
       version-contract gates before it contacts the registry.
 - [ ] Commit the reviewed release tree, confirm it is clean and synchronized
       with `origin/main`, and record its full SHA and package archive checksum.
-      Publish only `lampclaw/i18n` from that commit. Keep Registry smoke manual
-      so it cannot race the registry build; do not create release tags or branches.
+      Publish only `lampclaw/i18n` from that commit. Request Registry smoke only
+      after publication and local Registry verification, so it cannot race the
+      registry build; do not create release tags or branches.
 - [ ] Capture the complete output and status of the real `moon publish`. If it
       returns non-zero after an accepted or ambiguous response, inspect
       mooncakes.io for `lampclaw/i18n@<version>` before considering any retry.
@@ -246,6 +248,24 @@ metadata and public library API docs, and record the final registry URL and
 archive checksum. The executable-only CLI need not appear as an empty API
 page; its exact-version execution is the delivery proof. A `202` response
 alone is not the final proof; the clean exact-version consumer smoke is.
+
+### Verification through Git SSH
+
+When the operator has Git SSH access but no GitHub API login, submit the same
+three inputs by committing `.github/workflows/registry-request.yml` on `main`
+after local exact-version Registry verification passes. This request workflow
+calls `registry-smoke.yml` through `workflow_call`. It must trigger only on
+changes to its own file on `main`, carry read-only repository permissions, and
+contain the literal published version, full release source SHA, and verified
+archive SHA-256. The reusable workflow validates those values, checks out the
+exact release source, and verifies the downloaded archive on all three systems.
+
+Create or update the request only after publishing, never in the release
+source commit. A normal source push must not trigger Registry verification.
+The separate request commit is an auditable operator action and is not the
+published source identity. Record both the release source and request commit
+in the acceptance record. This path uses the existing SSH credential and
+requires no new branch, tag, token, or repository write permission in CI.
 
 ## 0.1.0 release record — 2026-08-13
 
