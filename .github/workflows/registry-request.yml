@@ -1,0 +1,17 @@
+name: Registry verification request
+
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/registry-request.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  registry:
+    uses: ./.github/workflows/registry-smoke.yml
+    with:
+      version: "0.9.3"
+      revision: "64f92c01c49d265cbfa02d4b7093ed1e5af58949"
+      archive_sha256: "76a0f136ad3fab01a44057efcf482d2d0a3ee3f850f07073517df1277feb41ac"
