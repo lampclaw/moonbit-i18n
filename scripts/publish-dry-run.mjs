@@ -79,7 +79,11 @@ if (!archiveValidationPassed || !registryConfirmed) {
     "dry run did not satisfy both archive-validation and registry-confirmation conditions",
   );
 }
-if (result.status !== 0 && result.status !== 255) {
+const historicalExitMismatch = result.status === 255 && (
+  (moonVersion.includes("moon 0.1.20260803 ") && mooncakeVersion.includes("mooncake-bin 0.1.20260731 ")) ||
+  (moonVersion.includes("moon 0.1.20260819 ") && mooncakeVersion.includes("mooncake-bin 0.1.20260805 "))
+);
+if (result.status !== 0 && !historicalExitMismatch) {
   throw new Error(`moon publish --dry-run exited with status ${result.status}`);
 }
 
@@ -96,7 +100,7 @@ const checksum = createHash("sha256")
   .update(readFileSync(archive))
   .digest("hex");
 const statusSummary =
-  result.status === 255
+  historicalExitMismatch
     ? "accepted fully verified publish-client exit mismatch (255)"
     : "client exited successfully (0)";
 console.log(`release dry run passed: ${statusSummary}`);

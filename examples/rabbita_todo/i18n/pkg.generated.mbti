@@ -33,6 +33,9 @@ pub(all) struct CatalogChunkMetadata {
   sha256 : String
   bytes : Int
 } derive(Eq, @debug.Debug)
+pub fn CatalogChunkMetadata::equal(Self, Self) -> Bool
+pub fn CatalogChunkMetadata::not_equal(Self, Self) -> Bool
+pub fn CatalogChunkMetadata::to_repr(Self) -> @debug.Repr
 
 pub(all) enum CatalogNamespace {
   CatalogCommon
@@ -40,6 +43,9 @@ pub(all) enum CatalogNamespace {
   CatalogTodoUi
 } derive(Eq, @debug.Debug)
 pub fn CatalogNamespace::code(Self) -> String
+pub fn CatalogNamespace::equal(Self, Self) -> Bool
+pub fn CatalogNamespace::not_equal(Self, Self) -> Bool
+pub fn CatalogNamespace::to_repr(Self) -> @debug.Repr
 
 pub(all) enum CommonText {
   CatalogError
@@ -48,15 +54,24 @@ pub(all) enum CommonText {
   CurrentLanguage
   SwitchLanguage
 } derive(Eq, @debug.Debug)
+pub fn CommonText::equal(Self, Self) -> Bool
+pub fn CommonText::not_equal(Self, Self) -> Bool
+pub fn CommonText::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ContractParts {
   RichNotice
 } derive(Eq, @debug.Debug)
+pub fn ContractParts::equal(Self, Self) -> Bool
+pub fn ContractParts::not_equal(Self, Self) -> Bool
+pub fn ContractParts::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ContractText {
   FormattedNumber(Int)
   LastUpdated(Int64)
 } derive(Eq, @debug.Debug)
+pub fn ContractText::equal(Self, Self) -> Bool
+pub fn ContractText::not_equal(Self, Self) -> Bool
+pub fn ContractText::to_repr(Self) -> @debug.Repr
 
 pub struct I18n {
   runtime : @runtime.I18n
@@ -76,12 +91,18 @@ pub fn I18n::translator_from_codes(Self, Array[String]) -> Translator
 pub(all) enum I18nParts {
   Contract(ContractParts)
 } derive(Eq, @debug.Debug)
+pub fn I18nParts::equal(Self, Self) -> Bool
+pub fn I18nParts::not_equal(Self, Self) -> Bool
+pub fn I18nParts::to_repr(Self) -> @debug.Repr
 
 pub(all) enum I18nText {
   Common(CommonText)
   Contract(ContractText)
   TodoUi(TodoUiText)
 } derive(Eq, @debug.Debug)
+pub fn I18nText::equal(Self, Self) -> Bool
+pub fn I18nText::not_equal(Self, Self) -> Bool
+pub fn I18nText::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Locale {
   EnUS
@@ -89,7 +110,10 @@ pub(all) enum Locale {
 } derive(Eq, @debug.Debug)
 pub fn Locale::code(Self) -> String
 pub fn Locale::direction(Self) -> String
+pub fn Locale::equal(Self, Self) -> Bool
 pub fn Locale::html_lang(Self) -> String
+pub fn Locale::not_equal(Self, Self) -> Bool
+pub fn Locale::to_repr(Self) -> @debug.Repr
 
 pub(all) enum TodoUiText {
   ActiveCount(Int)
@@ -113,6 +137,9 @@ pub(all) enum TodoUiText {
   TabStats
   Title
 } derive(Eq, @debug.Debug)
+pub fn TodoUiText::equal(Self, Self) -> Bool
+pub fn TodoUiText::not_equal(Self, Self) -> Bool
+pub fn TodoUiText::to_repr(Self) -> @debug.Repr
 
 pub struct Translator {
   runtime : @runtime.Translator

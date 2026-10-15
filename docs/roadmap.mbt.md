@@ -18,7 +18,7 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The `0.9.2` maintenance version is beyond a prototype and preserves the
+The `0.9.3` maintenance version is beyond a prototype and preserves the
 1.0 candidate baseline frozen in `0.9.0`:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
@@ -409,6 +409,19 @@ locale negotiation and incremental enforcement of the existing MF2 text-output
 limit. It adds no public API, profile, wire-contract, or supported-target change.
 Its acceptance gate remains the complete four-target, conformance, browser,
 package, and registry suite.
+
+The `0.9.3` maintenance release migrates the build to MoonBit
+`0.10.15+943464bfa`, preserves previously implicit derived methods explicitly,
+and bounds the application-owned chunk loader in time and bytes, with
+retry-attempt isolation. It preserves the original candidate snapshot and
+records the reviewed compiler representation in `docs/contracts/0.9.3-toolchain.json`.
+MF2 profiles, catalog wire formats, and the Node/browser host policy are unchanged.
+Repository traceability now uses full source commit SHAs, exact versions, and
+archive checksums because only `main` is retained and release tags were removed.
+Before publishing, the same four-target, browser, coverage, performance, size,
+package, and cross-platform release gates apply. Competition materials and
+release records must distinguish local evidence from completed registry and CI
+results for the exact version.
 
 The maintained Rabbita application deliberately selects the experimental
 datetime profile; stable consumers without Draft functions migrate to v2. The

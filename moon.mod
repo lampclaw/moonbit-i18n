@@ -1,6 +1,6 @@
 name = "lampclaw/i18n"
 
-version = "0.9.2"
+version = "0.9.3"
 
 preferred_target = "native"
 
@@ -19,32 +19,7 @@ description = "Typed internationalization, MF2 formatting, and catalog tooling f
 import {
   "Milky2018/xml@0.4.0",
   "moonbitlang/x@0.5.1",
-  "moonbitlang/parser@0.3.18",
-  "moonbitlang/async@0.21.0",
-  "tonyfettes/normalization@0.4.0",
+  "moonbitlang/parser@0.4.4",
+  "moonbitlang/async@0.22.4",
+  "moonbit-community/normalization@0.5.2",
 }
-
-options(
-  exclude: [
-    ".github/**",
-    "_build/**",
-    "examples/**",
-    "moon.work",
-    "benchmarks/**",
-    "scripts/**",
-    "tests/**",
-    "AGENTS.md",
-    "CONTRIBUTING.md",
-    "docs/release-checklist.md",
-    "docs/releases/**",
-    "package.json",
-    "package-lock.json",
-    "playwright.config.mjs",
-    "node_modules/**",
-    "playwright-report/**",
-    "test-results/**",
-    "**/*_test.mbt",
-    "**/*_wbtest.mbt",
-    "**/pkg.generated.mbti",
-  ],
-)

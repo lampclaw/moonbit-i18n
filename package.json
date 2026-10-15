@@ -9,7 +9,6 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "messageformat": "4.0.0",
-    "terser": "5.50.0"
+    "messageformat": "4.0.0"
   }
 }

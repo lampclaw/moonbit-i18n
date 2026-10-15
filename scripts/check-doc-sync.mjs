@@ -59,8 +59,8 @@ for (const source of [profile, profileZh]) {
     assert.ok(source.includes(token), `MF2 profile docs missing release evidence: ${token}`);
   }
 }
-assert.ok(profile.includes("seven Rabbita application scenarios"));
-assert.ok(profileZh.includes("七个 Rabbita 应用场景"));
+assert.ok(profile.includes("thirteen Rabbita application scenarios"));
+assert.ok(profileZh.includes("十三个 Rabbita 应用场景"));
 
 const migration = await read("docs/message-profile-migration.mbt.md");
 const migrationZh = await read("docs/message-profile-migration.zh-CN.mbt.md");
@@ -107,7 +107,7 @@ for (const source of [lifecycle, lifecycleZh]) {
 const webDelivery = await read("docs/web-delivery.mbt.md");
 const webDeliveryZh = await read("docs/web-delivery.zh-CN.mbt.md");
 for (const source of [webDelivery, webDeliveryZh]) {
-  for (const token of ["448 KiB", "128 KiB", "429 KiB", "116 KiB", "76 KiB"]) {
+  for (const token of ["512 KiB", "160 KiB", "496,495", "145,326", "448 KiB", "128 KiB", "429 KiB", "116 KiB", "76 KiB"]) {
     assert.ok(source.includes(token), `Web size evidence missing ${token}`);
   }
 }

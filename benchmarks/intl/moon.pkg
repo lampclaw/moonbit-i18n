@@ -1,0 +1,5 @@
+import {
+  "lampclaw/i18n/runtime",
+  "lampclaw/i18n/runtime/js",
+  "moonbitlang/core/bench",
+} for "test"

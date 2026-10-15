@@ -1,7 +1,10 @@
 ///|
-fn mf2_registry_test_context() -> Mf2FormattingContext {
+fn mf2_registry_test_context() -> @runtime.Mf2FormattingContext {
   match
-    Mf2FormattingContext::new(locale="en-US", bidi_isolation=Mf2NoBidiIsolation) {
+    @runtime.Mf2FormattingContext::new(
+      locale="en-US",
+      bidi_isolation=Mf2NoBidiIsolation,
+    ) {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
@@ -10,11 +13,11 @@ fn mf2_registry_test_context() -> Mf2FormattingContext {
 ///|
 test "portable registry exposes pinned defaults and namespaced custom handlers" {
   assert_eq(
-    MF2_DEFAULT_REGISTRY_PROFILE,
+    @runtime.MF2_DEFAULT_REGISTRY_PROFILE,
     "unicode-mf2-ldml48.2-default-functions-v1",
   )
-  let registry = Mf2FunctionRegistry::portable()
-  let handler = Mf2FunctionHandler::new(name="app:echo", resolve=(
+  let registry = @runtime.Mf2FunctionRegistry::portable()
+  let handler = @runtime.Mf2FunctionHandler::new(name="app:echo", resolve=(
     _context,
     operand,
     options,
@@ -29,17 +32,21 @@ test "portable registry exposes pinned defaults and namespaced custom handlers" 
       }
     }
     Ok(
-      Mf2FunctionValue::new(raw=operand.raw(), direction=operand.direction(), format=() => {
-        match operand.format() {
-          Ok(output) => Ok({ value: prefix + output.value, parts: [] })
-          Err(failure) => Err(failure)
-        }
-      }),
+      @runtime.Mf2FunctionValue::new(
+        raw=operand.raw(),
+        direction=operand.direction(),
+        format=() => {
+          match operand.format() {
+            Ok(output) => Ok({ value: prefix + output.value, parts: [], })
+            Err(failure) => Err(failure)
+          }
+        },
+      ),
     )
   })
   assert_eq(registry.register_custom(handler), Ok(()))
   assert_eq(registry.custom_names(), ["app:echo"])
-  let result = format_mf2(
+  let result = @runtime.format_mf2(
     "{hello :app:echo prefix=hi-}",
     mf2_registry_test_context(),
     registry,
@@ -50,11 +57,13 @@ test "portable registry exposes pinned defaults and namespaced custom handlers" 
 
 ///|
 test "custom registry rejects reserved unnamespaced and normalized duplicates" {
-  let registry = Mf2FunctionRegistry::portable()
+  let registry = @runtime.Mf2FunctionRegistry::portable()
   let make = name => {
-    Mf2FunctionHandler::new(name~, resolve=(_context, _operand, _options) => {
-      Ok(Mf2FunctionValue::text("ok"))
-    })
+    @runtime.Mf2FunctionHandler::new(name~, resolve=(
+      _context,
+      _operand,
+      _options,
+    ) => Ok(@runtime.Mf2FunctionValue::text("ok")))
   }
   assert_true(registry.register_custom(make("plain")) is Err(_))
   assert_true(registry.register_custom(make("u:reserved")) is Err(_))

@@ -1,17 +1,17 @@
 ///|
 #cfg(target="js")
 test "formats numbers and plural categories with bounded Intl adapters" {
-  let formatter = formatter()
+  let formatter = @js.formatter()
   assert_eq((formatter.format_number)("en-US", 1234.5, []), Ok("1,234.5"))
   assert_eq(
     (formatter.format_number)("en-US", 1234.5, [
-      { name: "useGrouping", value: "true" },
+      { name: "useGrouping", value: "true", },
     ]),
     Ok("1,234.5"),
   )
   assert_eq(
     (formatter.format_number)("en-US", 1234.5, [
-      { name: "useGrouping", value: "false" },
+      { name: "useGrouping", value: "false", },
     ]),
     Ok("1234.5"),
   )
@@ -26,11 +26,11 @@ test "formats numbers and plural categories with bounded Intl adapters" {
 ///|
 #cfg(target="js")
 test "formats InstantMillis using deterministic UTC defaults" {
-  let formatter = formatter()
+  let formatter = @js.formatter()
   assert_eq(
     (formatter.format_datetime)("en-US", 1785974400000L, [
-      { name: "timeZone", value: "UTC" },
-      { name: "dateStyle", value: "long" },
+      { name: "timeZone", value: "UTC", },
+      { name: "dateStyle", value: "long", },
     ]),
     Ok("August 6, 2026"),
   )
@@ -39,30 +39,30 @@ test "formats InstantMillis using deterministic UTC defaults" {
 ///|
 #cfg(target="js")
 test "Intl exceptions and invalid options stay inside the Result boundary" {
-  let formatter = formatter()
+  let formatter = @js.formatter()
   assert_true(
     (formatter.format_number)("not_a_locale!", 1.0, [])
     is Err(PlatformFormatterFailure(_)),
   )
   assert_true(
     (formatter.format_number)("en-US", 1.0, [
-      { name: "maximumFractionDigits", value: "bogus" },
+      { name: "maximumFractionDigits", value: "bogus", },
     ])
     is Err(InvalidFormatterOption(_)),
   )
   assert_true(
     (formatter.format_datetime)("en-US", 0L, [
-      { name: "timeZone", value: "Not/AZone" },
+      { name: "timeZone", value: "Not/AZone", },
     ])
     is Err(InvalidFormatterOption(_)),
   )
   assert_true(
-    (formatter.format_number)("en-US", 1.0, [{ name: "style", value: "bogus" }])
+    (formatter.format_number)("en-US", 1.0, [{ name: "style", value: "bogus", }])
     is Err(InvalidFormatterOption(_)),
   )
   assert_true(
     (formatter.plural_category_with_options)("en-US", 1.0, false, [
-      { name: "unknown", value: "value" },
+      { name: "unknown", value: "value", },
     ])
     is Err(InvalidFormatterOption(_)),
   )
@@ -79,7 +79,7 @@ test "pinned MF2 defaults format and select through Intl" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let number = format_mf2(
+  let number = @js.format_mf2(
     "hello {4.2 :number minimumFractionDigits=2}", context,
   )
   assert_eq(number.value, "hello 4.20")
@@ -89,16 +89,16 @@ test "pinned MF2 defaults format and select through Intl" {
   }
   assert_true(expression.fields.any(part => part.kind == "integer"))
   assert_true(expression.fields.any(part => part.kind == "fraction"))
-  let integer = format_mf2("{-4.9 :integer}", context)
+  let integer = @js.format_mf2("{-4.9 :integer}", context)
   assert_eq(integer.value, "-4")
   assert_eq(integer.errors, [])
-  let currency = format_mf2("{42 :currency currency=EUR}", context)
+  let currency = @js.format_mf2("{42 :currency currency=EUR}", context)
   assert_eq(currency.value, "€42.00")
   assert_eq(currency.errors, [])
-  let percent = format_mf2("{0.42 :percent}", context)
+  let percent = @js.format_mf2("{0.42 :percent}", context)
   assert_eq(percent.value, "42%")
   assert_eq(percent.errors, [])
-  let selected = format_mf2(
+  let selected = @js.format_mf2(
     ".input {$n :number} .match $n 1 {{exact}} one {{plural}} * {{other}}",
     match
       @runtime.Mf2FormattingContext::new(
@@ -126,17 +126,17 @@ test "draft date defaults use semantic fields and deterministic UTC" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let date = format_mf2("{|2006-01-02| :date length=long}", context)
+  let date = @js.format_mf2("{|2006-01-02| :date length=long}", context)
   assert_eq(date.value, "January 2, 2006")
   assert_eq(date.errors, [])
-  let datetime = format_mf2(
+  let datetime = @js.format_mf2(
     "{|2006-01-02T15:04:06Z| :datetime timePrecision=second timeZoneStyle=short}",
     context,
   )
   assert_eq(datetime.errors, [])
   assert_true(datetime.value.contains("2006"))
   assert_true(datetime.value.contains("3:04:06"))
-  let invalid = format_mf2("{|2006-02-30| :date}", context)
+  let invalid = @js.format_mf2("{|2006-02-30| :date}", context)
   assert_true(
     invalid.errors.any(error => error.code == @runtime.Mf2BadOperandCode),
   )
@@ -150,26 +150,26 @@ test "standards-mode catalogs format through the generated-runtime path" {
     fallback_locale_code="en-US",
     contract_hash=hash,
     profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
-    formatter=formatter(),
+    formatter=@js.formatter(),
   )
   let catalog = @runtime.Catalog::from_generated_entries(
     locale_code="en-US",
     contract_hash=hash,
     profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
     entries=[
-      { id: "number", message: "Total {$value :number}" },
+      { id: "number", message: "Total {$value :number}", },
       {
         id: "plural",
         message: ".input {$count :number} .match $count one {{One item}} * {{{$count} items}}",
       },
-      { id: "rich", message: "{#strong}Typed{/strong} output" },
+      { id: "rich", message: "{#strong}Typed{/strong} output", },
     ],
     direction="ltr",
   )
   assert_true(runtime.install_generated_catalog(catalog) is Ok(_))
   let translator = runtime.translator("en-US")
   guard translator.try_t("number", [
-      { name: "value", value: @runtime.DoubleValue(1234.5) },
+      { name: "value", value: @runtime.DoubleValue(1234.5), },
     ])
     is Ok(number) else {
     fail("standards-mode number should format")
@@ -179,7 +179,7 @@ test "standards-mode catalogs format through the generated-runtime path" {
     fallback_locale_code="en-US",
     contract_hash=hash,
     profile=@runtime.MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE,
-    formatter=formatter(),
+    formatter=@js.formatter(),
   )
   let date_catalog = @runtime.Catalog::from_generated_entries(
     locale_code="en-US",
@@ -197,14 +197,14 @@ test "standards-mode catalogs format through the generated-runtime path" {
   guard experimental
     .translator("en-US")
     .try_t("date", [
-      { name: "when", value: @runtime.InstantMillis(1785974400000L) },
+      { name: "when", value: @runtime.InstantMillis(1785974400000L), },
     ])
     is Ok(date) else {
     fail("experimental standards-mode date should format")
   }
   assert_true(date.contains("Aug"))
   assert_eq(
-    translator.try_t("plural", [{ name: "count", value: @runtime.IntValue(1) }]),
+    translator.try_t("plural", [{ name: "count", value: @runtime.IntValue(1), }]),
     Ok("One item"),
   )
   assert_eq(
@@ -220,7 +220,7 @@ test "standards-mode catalogs format through the generated-runtime path" {
     locale_code="en-US",
     contract_hash=hash,
     profile=@runtime.MF2_STANDARD_MESSAGE_PROFILE,
-    entries=[{ id: "private", message: "{$when :lampclaw:datetime}" }],
+    entries=[{ id: "private", message: "{$when :lampclaw:datetime}", }],
   )
   assert_true(runtime.install_generated_catalog(private_catalog) is Err(_))
 }
@@ -239,7 +239,7 @@ test "locale-formatted values use the formatter context direction" {
   let result = @runtime.format_mf2(
     "{1 :number}",
     context,
-    @runtime.Mf2FunctionRegistry::new(formatter()),
+    @runtime.Mf2FunctionRegistry::new(@js.formatter()),
   )
   assert_eq(result.value, "1")
   assert_eq(result.errors, [])
@@ -256,13 +256,13 @@ test "stable numeric option surface maps to Node 26 Intl semantics" {
     Ok(value) => value
     Err(error) => abort(error.message)
   }
-  let rounded = format_mf2(
+  let rounded = @js.format_mf2(
     "{1234.56 :number useGrouping=never signDisplay=always maximumFractionDigits=1 roundingMode=floor}",
     context,
   )
   assert_eq(rounded.value, "+1234.5")
   assert_eq(rounded.errors, [])
-  let hidden_currency = format_mf2(
+  let hidden_currency = @js.format_mf2(
     "{42 :currency currency=EUR currencyDisplay=never fractionDigits=2}", context,
   )
   assert_eq(hidden_currency.value, "42.00")
@@ -274,13 +274,13 @@ test "stable numeric option surface maps to Node 26 Intl semantics" {
   assert_true(
     !currency_expression.fields.any(field => field.kind == "currency"),
   )
-  let inherited = format_mf2(
+  let inherited = @js.format_mf2(
     ".local $n = {42 :number signDisplay=always minimumFractionDigits=2} {{{$n :number maximumFractionDigits=3}}}",
     context,
   )
   assert_eq(inherited.value, "+42.00")
   assert_eq(inherited.errors, [])
-  let bad_select = format_mf2(
+  let bad_select = @js.format_mf2(
     ".local $mode = {exact} {{value {1 :number select=$mode}}}", context,
   )
   assert_eq(bad_select.value, "value 1")
@@ -308,7 +308,7 @@ test "stable numeric option surface maps to Node 26 Intl semantics" {
     "{0.425 :percent maximumFractionDigits=1 roundingMode=halfEven}",
   ]
   for message in supported_options {
-    let rendered = format_mf2(message, context)
+    let rendered = @js.format_mf2(message, context)
     if !rendered.errors.is_empty() {
       fail("Node 26 rejected supported MF2 options in: \{message}")
     }
@@ -318,7 +318,7 @@ test "stable numeric option surface maps to Node 26 Intl semantics" {
 ///|
 #cfg(not(target="js"))
 test "portable formatter fallback stays deterministic" {
-  let portable = formatter()
+  let portable = @js.formatter()
   assert_eq((portable.format_number)("en-US", 1234.5, []), Ok("1234.5"))
   assert_true(
     (portable.plural_category)("en-US", 1.0, false)

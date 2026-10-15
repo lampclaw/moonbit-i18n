@@ -77,7 +77,7 @@ pub fn parse_config(source : String) -> Result[I18nConfig, String] {
           Some(String("ltr")) | None => "ltr"
           _ => return Err("locale direction must be ltr or rtl: \{raw_code}")
         }
-        locales.push({ code, direction })
+        locales.push({ code, direction, })
       }
     _ => return Err("locales must be an object")
   }
@@ -189,7 +189,7 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
             None => []
             _ => return Err("schema params must be an array: \{id}")
           }
-          entries.push({ group, key, text: "", params })
+          entries.push({ group, key, text: "", params, })
         }
       }
     _ => return Err("schema messages must be an object")
@@ -265,7 +265,7 @@ pub fn parse_schema(source : String) -> Result[Schema, String] {
     _ => return Err("schema parts must be an object")
   }
   parts.sort_by((left, right) => left.0.lexical_compare(right.0))
-  Ok({ entries, descriptions, parts })
+  Ok({ entries, descriptions, parts, })
 }
 
 ///|
@@ -275,7 +275,7 @@ pub fn parse_locale(
   locale_code : String,
   source : String,
   schema : Schema,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleResource, String] {
   if @utf8.encode(source).length() > @runtime.CATALOG_MAX_SOURCE_BYTES {
     return Err("locale source exceeds the input size limit")
@@ -366,7 +366,7 @@ pub fn parse_locale(
   entries.sort_by((left, right) => {
     message_id(left).lexical_compare(message_id(right))
   })
-  Ok({ locale, entries })
+  Ok({ locale, entries, })
 }
 
 ///|
@@ -566,7 +566,7 @@ fn parse_schema_params(
       typ == "InstantMillis") {
       return Err("unsupported schema param type: \{id}.\{name} uses \{typ}")
     }
-    params.push({ name, typ })
+    params.push({ name, typ, })
   }
   Ok(params)
 }

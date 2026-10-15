@@ -58,6 +58,9 @@ pub(all) struct Artifacts {
   coverage_report : String
   contract_hash : String
 } derive(Eq, @debug.Debug)
+pub fn Artifacts::equal(Self, Self) -> Bool
+pub fn Artifacts::not_equal(Self, Self) -> Bool
+pub fn Artifacts::to_repr(Self) -> @debug.Repr
 
 pub(all) struct CatalogChunkArtifact {
   locale : String
@@ -68,6 +71,9 @@ pub(all) struct CatalogChunkArtifact {
   bytes : Int
   message_count : Int
 } derive(Eq, @debug.Debug)
+pub fn CatalogChunkArtifact::equal(Self, Self) -> Bool
+pub fn CatalogChunkArtifact::not_equal(Self, Self) -> Bool
+pub fn CatalogChunkArtifact::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Diagnostic {
   code : String
@@ -76,13 +82,19 @@ pub(all) struct Diagnostic {
   path : String
   span : SourceSpan
 } derive(Eq, @debug.Debug)
+pub fn Diagnostic::equal(Self, Self) -> Bool
+pub fn Diagnostic::not_equal(Self, Self) -> Bool
 pub fn Diagnostic::to_human_string(Self) -> String
 pub fn Diagnostic::to_json_string(Self) -> String
+pub fn Diagnostic::to_repr(Self) -> @debug.Repr
 
 pub(all) enum DiagnosticSeverity {
   Error
   Warning
 } derive(Eq, @debug.Debug)
+pub fn DiagnosticSeverity::equal(Self, Self) -> Bool
+pub fn DiagnosticSeverity::not_equal(Self, Self) -> Bool
+pub fn DiagnosticSeverity::to_repr(Self) -> @debug.Repr
 pub fn DiagnosticSeverity::to_string(Self) -> String
 
 pub(all) struct Entry {
@@ -91,6 +103,9 @@ pub(all) struct Entry {
   text : String
   params : Array[Param]
 } derive(Eq, @debug.Debug)
+pub fn Entry::equal(Self, Self) -> Bool
+pub fn Entry::not_equal(Self, Self) -> Bool
+pub fn Entry::to_repr(Self) -> @debug.Repr
 
 pub(all) struct I18nConfig {
   message_profile : String
@@ -102,54 +117,84 @@ pub(all) struct I18nConfig {
   locales : Array[LocaleConfig]
   minimum_coverage : Double
 } derive(Eq, @debug.Debug)
+pub fn I18nConfig::equal(Self, Self) -> Bool
+pub fn I18nConfig::not_equal(Self, Self) -> Bool
+pub fn I18nConfig::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LocaleConfig {
   code : String
   direction : String
 } derive(Eq, @debug.Debug)
+pub fn LocaleConfig::equal(Self, Self) -> Bool
+pub fn LocaleConfig::not_equal(Self, Self) -> Bool
+pub fn LocaleConfig::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LocaleMigrationArtifacts {
   locale_source : String
   report : String
 } derive(Eq, @debug.Debug)
+pub fn LocaleMigrationArtifacts::equal(Self, Self) -> Bool
+pub fn LocaleMigrationArtifacts::not_equal(Self, Self) -> Bool
+pub fn LocaleMigrationArtifacts::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LocaleResource {
   locale : String
   entries : Array[Entry]
 } derive(Eq, @debug.Debug)
+pub fn LocaleResource::equal(Self, Self) -> Bool
+pub fn LocaleResource::not_equal(Self, Self) -> Bool
+pub fn LocaleResource::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LocaleSource {
   code : String
   source : String
 } derive(Eq, @debug.Debug)
+pub fn LocaleSource::equal(Self, Self) -> Bool
+pub fn LocaleSource::not_equal(Self, Self) -> Bool
+pub fn LocaleSource::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Param {
   name : String
   typ : String
 } derive(Eq, @debug.Debug)
+pub fn Param::equal(Self, Self) -> Bool
+pub fn Param::not_equal(Self, Self) -> Bool
+pub fn Param::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Schema {
   entries : Array[Entry]
   descriptions : Array[(String, String)]
   parts : Array[(String, Array[String])]
 } derive(Eq, @debug.Debug)
+pub fn Schema::equal(Self, Self) -> Bool
+pub fn Schema::not_equal(Self, Self) -> Bool
+pub fn Schema::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SourcePosition {
   byte_offset : Int
   line : Int
   column : Int
 } derive(Eq, @debug.Debug)
+pub fn SourcePosition::equal(Self, Self) -> Bool
+pub fn SourcePosition::not_equal(Self, Self) -> Bool
+pub fn SourcePosition::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SourceSpan {
   start : SourcePosition
   end : SourcePosition
 } derive(Eq, @debug.Debug)
+pub fn SourceSpan::equal(Self, Self) -> Bool
+pub fn SourceSpan::not_equal(Self, Self) -> Bool
+pub fn SourceSpan::to_repr(Self) -> @debug.Repr
 
 pub(all) struct XliffImportArtifacts {
   locale_source : String
   exchange_state : String
   report : String
 } derive(Eq, @debug.Debug)
+pub fn XliffImportArtifacts::equal(Self, Self) -> Bool
+pub fn XliffImportArtifacts::not_equal(Self, Self) -> Bool
+pub fn XliffImportArtifacts::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

@@ -8,7 +8,7 @@ test "Todo update adds, toggles, and deletes an item" {
   let titled = update_todo(empty_model(), TitleChanged("Ship i18n"))
   let added = update_todo(titled, Add)
   assert_eq(added.items.length(), 1)
-  assert_eq(added.items[0], { title: "Ship i18n", done: false })
+  assert_eq(added.items[0], { title: "Ship i18n", done: false, })
   let toggled = update_todo(added, Toggle(0))
   assert_eq(toggled.items[0].done, true)
   assert_eq(update_todo(toggled, Delete(0)).items.length(), 0)
@@ -153,4 +153,12 @@ test "catalog completion is atomic and preserves the current locale on failure" 
   assert_eq(ready.catalog_state, CatalogReady)
   assert_true(required_namespaces_ready(i18n, @app_i18n.ZhCN))
   assert_false(i18n.has_catalog(@app_i18n.ZhCN))
+}
+
+///|
+test "generated facade preserves derived methods" {
+  let locale = @app_i18n.EnUS
+  assert_true(locale.equal(@app_i18n.EnUS))
+  assert_true(locale.not_equal(@app_i18n.ZhCN))
+  assert_eq(locale.to_repr().to_string(), "EnUS")
 }

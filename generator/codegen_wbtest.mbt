@@ -93,8 +93,8 @@ test "generated bindings are stable regardless of schema JSON order" {
 ///|
 test "indexed entry lookup handles prefix-like group names" {
   let entries = [
-    Entry::{ group: "a-b", key: "first", text: "", params: [] },
-    Entry::{ group: "a", key: "second", text: "", params: [] },
+    Entry::{ group: "a-b", key: "first", text: "", params: [], },
+    Entry::{ group: "a", key: "second", text: "", params: [], },
   ]
   entries.sort_by((left, right) => {
     message_id(left).lexical_compare(message_id(right))

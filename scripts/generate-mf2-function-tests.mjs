@@ -123,7 +123,7 @@ const body = cases
       `    Ok(value) => value`,
       `    Err(error) => abort(error.message)`,
       `  }`,
-      `  let result_${index} = format_mf2(${moonString(test.source)}, context_${index})`,
+      `  let result_${index} = @js.format_mf2(${moonString(test.source)}, context_${index})`,
     ];
     if (test.expected !== undefined) {
       lines.push(`  assert_eq(result_${index}.value, ${moonString(test.expected)})`);

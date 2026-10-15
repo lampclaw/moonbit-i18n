@@ -2,10 +2,10 @@
 extern "js" fn format_number_parts_js(
   locale : String,
   value : Double,
-  names : Array[String],
-  values : Array[String],
+  names : FixedArray[String],
+  values : FixedArray[String],
   include_parts : Bool,
-) -> Array[String] =
+) -> FixedArray[String] =
   #| (() => {
   #|   const cache = new Map()
   #|   const limit = 128
@@ -127,10 +127,10 @@ extern "js" fn format_datetime_parts_js(
   locale : String,
   kind : String,
   raw_value : String,
-  names : Array[String],
-  values : Array[String],
+  names : FixedArray[String],
+  values : FixedArray[String],
   include_parts : Bool,
-) -> Array[String] =
+) -> FixedArray[String] =
   #| (() => {
   #|   const cache = new Map()
   #|   const limit = 128
@@ -284,9 +284,9 @@ extern "js" fn plural_category_options_js(
   locale : String,
   value : Double,
   ordinal : Bool,
-  names : Array[String],
-  values : Array[String],
-) -> Array[String] =
+  names : FixedArray[String],
+  values : FixedArray[String],
+) -> FixedArray[String] =
   #| (() => {
   #|   const cache = new Map()
   #|   const limit = 128
@@ -342,7 +342,7 @@ extern "js" fn plural_category_options_js(
 
 ///|
 fn formatter_output_result(
-  raw : Array[String],
+  raw : FixedArray[String],
 ) -> Result[@runtime.FormatterOutput, @runtime.FormatterIssue] {
   if raw.length() < 2 {
     return Err(@runtime.PlatformFormatterFailure("invalid Intl bridge result"))
@@ -352,10 +352,10 @@ fn formatter_output_result(
       let parts : Array[@runtime.FormatterPart] = []
       let mut index = 2
       while index + 1 < raw.length() {
-        parts.push({ kind: raw[index], value: raw[index + 1] })
+        parts.push({ kind: raw[index], value: raw[index + 1], })
         index = index + 2
       }
-      Ok({ value: raw[1], parts })
+      Ok({ value: raw[1], parts, })
     }
     "invalid" => Err(@runtime.InvalidFormatterOption(raw[1]))
     "unsupported" => Err(@runtime.UnsupportedOperation(raw[1]))
@@ -365,7 +365,7 @@ fn formatter_output_result(
 
 ///|
 fn formatter_result(
-  raw : Array[String],
+  raw : FixedArray[String],
 ) -> Result[String, @runtime.FormatterIssue] {
   match formatter_output_result(raw) {
     Ok(output) => Ok(output.value)
@@ -383,8 +383,8 @@ fn number_parts(
     format_number_parts_js(
       locale,
       value,
-      options.map(option => option.name),
-      options.map(option => option.value),
+      FixedArray::from_iter(options.iter().map(option => option.name)),
+      FixedArray::from_iter(options.iter().map(option => option.value)),
       true,
     ),
   )
@@ -400,8 +400,8 @@ fn number_text(
     format_number_parts_js(
       locale,
       value,
-      options.map(option => option.name),
-      options.map(option => option.value),
+      FixedArray::from_iter(options.iter().map(option => option.name)),
+      FixedArray::from_iter(options.iter().map(option => option.value)),
       false,
     ),
   )
@@ -428,8 +428,8 @@ fn datetime_parts(
       locale,
       kind,
       raw,
-      options.map(option => option.name),
-      options.map(option => option.value),
+      FixedArray::from_iter(options.iter().map(option => option.name)),
+      FixedArray::from_iter(options.iter().map(option => option.value)),
       true,
     ),
   )
@@ -446,8 +446,8 @@ fn datetime_text(
       locale,
       "instant",
       value.to_string(),
-      options.map(option => option.name),
-      options.map(option => option.value),
+      FixedArray::from_iter(options.iter().map(option => option.name)),
+      FixedArray::from_iter(options.iter().map(option => option.value)),
       false,
     ),
   )
@@ -465,8 +465,8 @@ fn plural_result(
       locale,
       value,
       ordinal,
-      options.map(option => option.name),
-      options.map(option => option.value),
+      FixedArray::from_iter(options.iter().map(option => option.name)),
+      FixedArray::from_iter(options.iter().map(option => option.value)),
     ),
   )
 }

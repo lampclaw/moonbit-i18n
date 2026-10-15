@@ -1,6 +1,6 @@
 # Contributing
 
-Use toolchain archive `0.10.9+6e6c44045` (Moon `0.1.20260819`, moonc `0.10.9`)
+Use toolchain archive `0.10.15+943464bfa` (Moon `0.1.20261012`, moonc `0.10.15`)
 and Node.js `26.7.0` for the engineering and product gates. Dependency versions
 in `moon.mod` must stay exact.
 
@@ -67,15 +67,16 @@ roadmap documents plus `CHANGELOG.md` must be updated in the release commit;
 `node scripts/check-doc-sync.mjs` and `node scripts/check-api-docs.mjs` are
 blocking gates, not post-publish cleanup.
 
-After publishing a stable release, push its verified signed tag to dispatch
-the `Registry smoke` workflow with the exact version. It validates `moon add`, pinned `moonx` execution,
+After publishing a stable release, manually dispatch the `Registry smoke`
+workflow with its exact version, full 40-character source commit SHA, and
+archive SHA-256. Do not create release branches or tags. It validates `moon add`, pinned `moonx` execution,
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
 Older Moon / `mooncake-bin` pairs used for earlier releases have a known
 dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
 rules in the repository's release checklist; do not treat exit 255 as a
-general success code. This release tracks the behavior locally and does not
-require an upstream report. Maintainers should run
+general success code. The exception is restricted to the exact historical
+client pair that produced it. Maintainers should run
 `node scripts/publish-dry-run.mjs`; the helper can only perform a dry run and
 will reject every response that does not meet the documented conditions.

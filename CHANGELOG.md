@@ -6,6 +6,41 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-10-15
+
+### Changed
+
+- Move the supported build baseline to MoonBit `0.10.15+943464bfa`
+  (Moon `0.1.20261012`), parser `0.4.4`, async `0.22.4`, and
+  `moonbit-community/normalization@0.5.2`. The normalization dependency retains
+  the same Unicode 16.0.0 data. The example uses Rabbita `0.16.5` and Warren
+  `0.4.5`; Node `26.7.0` and Playwright `1.62.1` remain pinned.
+- Preserve previously implicit `Eq` and `Debug` methods with explicit exports.
+  Keep the original 1.0 candidate snapshot and separately record the reviewed
+  compiler representation; CI verifies both the new hashes and the original
+  signatures after removing only those derived-method declarations.
+- Use `.moonignore` for archive exclusions supported by the new Moon release.
+  Keep benchmark packages under the excluded `benchmarks/` directory so
+  extracted consumers do not inherit unused test-only imports.
+- Record the approved build-migration size exception: 496,495 raw JavaScript
+  bytes and 145,326 gzip bytes, with ceilings of 512 KiB / 160 KiB (formerly
+  448 KiB / 128 KiB). Catalog, conformance, coverage, and performance limits
+  remain unchanged. Warren now uses its bundled Evol minifier; remove the
+  unused Terser development dependency.
+- Replace deleted repository tag links with immutable source commits. Releases
+  are identified by full source SHA, exact package version, and archive SHA-256;
+  Registry smoke is dispatched manually with all three values.
+
+### Fixed
+
+- Bound each application-owned catalog request to 10 seconds, including
+  response-body reading. Decode strict UTF-8 incrementally, reject bytes beyond
+  generated metadata or the 64 KiB chunk ceiling, and cancel failed streams.
+- Ignore completions from earlier loading attempts, preserve the active locale
+  and saved preference on failure, and retry only missing catalog chunks.
+  Six new scenarios run in each of Chromium, Firefox, and WebKit, including
+  invalid UTF-8 and same-length catalog tampering before installation.
+
 ## [0.9.2] - 2026-09-18
 
 ### Fixed
@@ -471,19 +506,20 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.2...HEAD
-[0.9.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.1...v0.9.2
-[0.9.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.9.0...v0.9.1
-[0.9.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.8.0...v0.9.0
-[0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.6.0...v0.7.0
-[0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.5.0...v0.6.0
-[0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.1...v0.3.0
-[0.2.1]: https://github.com/lampclaw/moonbit-i18n/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.3...v0.1.0
-[0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.2...v0.1.0-rc.3
-[0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/v0.1.0-rc.1...v0.1.0-rc.2
-[0.1.0-rc.1]: https://github.com/lampclaw/moonbit-i18n/tree/v0.1.0-rc.1
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/53d04dddbb4e9982bba6342daa5d674ac3f328e6...HEAD
+[0.9.3]: https://github.com/lampclaw/moonbit-i18n/compare/53d04dddbb4e9982bba6342daa5d674ac3f328e6...HEAD
+[0.9.2]: https://github.com/lampclaw/moonbit-i18n/compare/26726f59e510171b0e7905a460282acda52ace0c...53d04dddbb4e9982bba6342daa5d674ac3f328e6
+[0.9.1]: https://github.com/lampclaw/moonbit-i18n/compare/cc947d2224cbca74ffe2aebaf458e71fdceb4d7e...26726f59e510171b0e7905a460282acda52ace0c
+[0.9.0]: https://github.com/lampclaw/moonbit-i18n/compare/232b4b31d6616ee39ab2e3e140166b5e9ec1d4ee...cc947d2224cbca74ffe2aebaf458e71fdceb4d7e
+[0.8.0]: https://github.com/lampclaw/moonbit-i18n/compare/a043da698eda10fd7bddca6e56a2c1e2acf8aba7...232b4b31d6616ee39ab2e3e140166b5e9ec1d4ee
+[0.7.0]: https://github.com/lampclaw/moonbit-i18n/compare/bdb9beab6432591e028c9aed3f876b520b5546c5...a043da698eda10fd7bddca6e56a2c1e2acf8aba7
+[0.6.0]: https://github.com/lampclaw/moonbit-i18n/compare/e67fe243e47710743ae906d85fa359a6267ef3f5...bdb9beab6432591e028c9aed3f876b520b5546c5
+[0.5.0]: https://github.com/lampclaw/moonbit-i18n/compare/b2fe8a4dfa532d0d85bf1830d8c88c5f6b6c607b...e67fe243e47710743ae906d85fa359a6267ef3f5
+[0.4.0]: https://github.com/lampclaw/moonbit-i18n/compare/71f037f4fc64a95bd707358f54f67d7037cd9821...b2fe8a4dfa532d0d85bf1830d8c88c5f6b6c607b
+[0.3.0]: https://github.com/lampclaw/moonbit-i18n/compare/3cf795119c56da758e3fc49def9c9071c62f26ae...71f037f4fc64a95bd707358f54f67d7037cd9821
+[0.2.1]: https://github.com/lampclaw/moonbit-i18n/compare/1fb8f442d6a0fc0e7278b814dfb7d617b973234c...3cf795119c56da758e3fc49def9c9071c62f26ae
+[0.2.0]: https://github.com/lampclaw/moonbit-i18n/compare/9bc0398f3f9ae5408fb61d3a431a97fbb34e8cc3...1fb8f442d6a0fc0e7278b814dfb7d617b973234c
+[0.1.0]: https://github.com/lampclaw/moonbit-i18n/compare/52e7f7d07acd76c3043cb655e9989add13fdc922...9bc0398f3f9ae5408fb61d3a431a97fbb34e8cc3
+[0.1.0-rc.3]: https://github.com/lampclaw/moonbit-i18n/compare/ccd10e158d48ca0a1f8168e7ca0788c916461146...52e7f7d07acd76c3043cb655e9989add13fdc922
+[0.1.0-rc.2]: https://github.com/lampclaw/moonbit-i18n/compare/c6d1e32981c280c850b62d70be077d921a83c14e...ccd10e158d48ca0a1f8168e7ca0788c916461146
+[0.1.0-rc.1]: https://github.com/lampclaw/moonbit-i18n/tree/c6d1e32981c280c850b62d70be077d921a83c14e

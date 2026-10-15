@@ -2,10 +2,12 @@
 
 [English](mf2-profile.mbt.md)
 
+`0.9.3` 维护工作更新编译器表示与应用 loader 的可靠性，不改变此标准 profile。
+
 `0.9.0` 以 LDML 48.2 正式发布的 Unicode MessageFormat 2.0 文本为基线，冻结了
 JavaScript conformance candidate。`0.9.2` 保持该 candidate，修复只通过分块安装的
 locale 协商，并增量执行现有文本输出上限。精确 MoonBit 构建工具与依赖版本
-继续使用 `0.9.1` 的基线。Authoring 必须显式选择以下 message profile 之一：
+在 `0.9.3` 中见[支持政策](support-policy.zh-CN.mbt.md)。Authoring 必须显式选择以下 message profile 之一：
 
 - `unicode-mf2-ldml48.2-js-v2` 是推荐的稳定 profile，包含稳定的 `:string`、
   `:number`、`:integer`、`:offset`、`:currency`、`:percent`，并拒绝 Draft
@@ -57,7 +59,7 @@ conformance 声明。
 
 ## Conformance 声明
 
-`0.9.2` JavaScript backend 仍是固定 stable MF2 范围的 release candidate，证据包括：
+`0.9.3` JavaScript backend 仍是固定 stable MF2 范围的 release candidate，证据包括：
 
 - 270 个上游 syntax/data-model case（114 well-formed、133 syntax error、23
   data-model）；
@@ -70,7 +72,7 @@ conformance 声明。
 - 相对独立 `messageformat@4.0.0` 的 24 个 differential case，其中 20 个 stable、
   4 个 experimental date/time，无法解释的 semantic failure 为零；
 - 在真实 Chromium、Firefox、WebKit 中运行相同 syntax、resolution、function 与
-  differential suite，并验证七个 Rabbita 应用场景。
+  differential suite，并验证十三个 Rabbita 应用场景。
 
 记录的 Node host 是 26.7.0，包含 ICU 78.3、CLDR 48.0、Unicode 17.0、tz 2026c。
 浏览器测试会记录自己的 `Intl` fingerprint，使 host data 差异可见，不会被误判为 engine
@@ -78,7 +80,7 @@ bug。
 
 声明刻意限制在稳定 JavaScript profile。Draft date/time 属于 experimental，Draft
 `:unit` 暂缓，custom function 属于扩展，Native/Wasm 尚未携带项目自有 CLDR formatter。
-因此 `0.9.2` 不声明在所有 backend 上覆盖每个 optional 或 Draft MF2 功能。
+因此 `0.9.3` 不声明在所有 backend 上覆盖每个 optional 或 Draft MF2 功能。
 
 ## 契约纪律
 

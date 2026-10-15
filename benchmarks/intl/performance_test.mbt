@@ -1,6 +1,6 @@
 ///|
 test "cached Intl number formatting" (bench : @bench.T) {
-  let intl = formatter()
+  let intl = @js.formatter()
   // Prime the cache so the benchmark measures the steady-state hot path.
   ignore((intl.format_number)("en-US", 1234.5, []))
   bench.bench(name="intl-number-cache-hit", fn() {
@@ -22,7 +22,7 @@ test "MF2 default number registry formatting" (bench : @bench.T) {
     Ok(value) => value
     Err(_) => fail("default-function benchmark context must be valid")
   }
-  let registry = mf2_registry()
+  let registry = @js.mf2_registry()
   ignore(@runtime.format_mf2_model(model, context, registry))
   bench.bench(name="mf2-default-number-format", fn() {
     bench.keep(@runtime.format_mf2_model(model, context, registry))

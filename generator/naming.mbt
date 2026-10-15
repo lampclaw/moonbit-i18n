@@ -159,7 +159,7 @@ fn entries_for(entries : Array[Entry], group : String) -> Array[Entry] {
 
 ///|
 fn pascal(name : String) -> String {
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut upper_next = true
   for char in name.to_array() {
     if char == '-' || char == '_' || char == ' ' {
@@ -229,7 +229,7 @@ fn is_moonbit_keyword(value : String) -> Bool {
 ///|
 fn is_ascii_letter(char : Char) -> Bool {
   match char {
-    'a'..='z' | 'A'..='Z' => true
+    'a'..<='z' | 'A'..<='Z' => true
     _ => false
   }
 }
@@ -237,7 +237,7 @@ fn is_ascii_letter(char : Char) -> Bool {
 ///|
 fn is_ascii_digit(char : Char) -> Bool {
   match char {
-    '0'..='9' => true
+    '0'..<='9' => true
     _ => false
   }
 }
@@ -245,7 +245,7 @@ fn is_ascii_digit(char : Char) -> Bool {
 ///|
 fn is_lower_ascii(char : Char) -> Bool {
   match char {
-    'a'..='z' => true
+    'a'..<='z' => true
     _ => false
   }
 }

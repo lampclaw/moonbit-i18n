@@ -33,11 +33,11 @@ priv struct OwnershipManifest {
 
 ///|
 #cfg(target="native")
-extern "C" fn exit(code : Int) = "exit"
+extern "C" fn exit(code : Int32) = "exit"
 
 ///|
 #cfg(target="wasm")
-fn exit(code : UInt) = "wasi_snapshot_preview1" "proc_exit"
+fn exit(code : UInt32) = "wasi_snapshot_preview1" "proc_exit"
 
 ///|
 fn[T] cli_fail(message : String) -> T raise CliError {
@@ -118,14 +118,14 @@ fn valid_generated_filename(name : String) -> Bool {
   }
   let chars = name.to_array()
   guard (match chars[0] {
-    'a'..='z' | 'A'..='Z' | '0'..='9' => true
+    'a'..<='z' | 'A'..<='Z' | '0'..<='9' => true
     _ => false
   }) else {
     return false
   }
   for char in chars {
     guard (match char {
-      'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | '_' | '-' => true
+      'a'..<='z' | 'A'..<='Z' | '0'..<='9' | '.' | '_' | '-' => true
       _ => false
     }) else {
       return false
@@ -141,7 +141,7 @@ fn valid_nonce(nonce : String) -> Bool {
   }
   for char in nonce.to_array() {
     guard (match char {
-      'a'..='z' | 'A'..='Z' | '0'..='9' | '-' => true
+      'a'..<='z' | 'A'..<='Z' | '0'..<='9' | '-' => true
       _ => false
     }) else {
       return false
@@ -210,9 +210,7 @@ async fn ensure_directory(path : String) -> Unit raise CliError {
         if attempt == 7 {
           cli_fail("cannot create directory \{path}: \{err}")
         }
-        @async.pause() catch {
-          _ => ()
-        }
+        @async.pause()
       }
     } noraise {
       _ => return
@@ -247,7 +245,7 @@ async fn read_file(path : String) -> String raise CliError {
 ///|
 async fn read_file_limited(
   path : String,
-  max_bytes : Int,
+  max_bytes : Int32,
 ) -> String raise CliError {
   if max_bytes < 0 {
     cli_fail("invalid negative byte limit for \{path}")
@@ -298,7 +296,7 @@ async fn write_file(path : String, content : String) -> Unit raise CliError {
 async fn write_new_file(
   path : String,
   content : String,
-  permission : Int,
+  permission : Int32,
 ) -> Unit raise CliError {
   try
     @fs.write_file(path, content, create_mode=CreateNew, permission~, sync=Full)
@@ -369,7 +367,7 @@ fn json_bool_field(object : Map[String, Json], name : String) -> Bool? {
 }
 
 ///|
-fn json_int_field(object : Map[String, Json], name : String) -> Int? {
+fn json_int_field(object : Map[String, Json], name : String) -> Int32? {
   match object.get(name) {
     Some(Number(value, ..)) => {
       let integer = value.to_int()
@@ -953,7 +951,7 @@ async fn open_generation_lock(path : String) -> @fs.File raise CliError {
 async fn generated_file_matches(
   path : String,
   expected : String,
-  limit : Int,
+  limit : Int32,
 ) -> Bool raise CliError {
   if !file_exists(path) || !(file_kind(path) is Regular) {
     return false
@@ -1136,7 +1134,7 @@ async fn write_generated_transaction(
   package_manifest : String,
   catalog_names : Array[String],
   catalog_contents : Array[String],
-  generation_manifest? : String = "",
+  generation_manifest~ : String = "",
 ) -> Unit raise CliError {
   let transaction = GeneratedTransaction::{
     package_dir: resolved_path(package_dir),
@@ -1180,7 +1178,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.9.2"
+const CLI_VERSION : String = "0.9.3"
 
 ///|
 fn usage() -> String {
@@ -1188,15 +1186,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 pseudo --message-profile <profile> <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 export-xliff --message-profile <profile> [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 import-xliff --message-profile <profile> [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 import-i18next --message-profile <profile> <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.2 import-arb --message-profile <profile> <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 pseudo --message-profile <profile> <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 export-xliff --message-profile <profile> [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-xliff --message-profile <profile> [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-i18next --message-profile <profile> <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-arb --message-profile <profile> <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1254,7 +1252,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.9.2\"\n\n" +
+  "version = \"0.9.3\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }
@@ -1449,7 +1447,7 @@ async fn locale_sources(
 ///|
 async fn locale_sources_with_limit(
   input_dir : String,
-  max_total_bytes : Int,
+  max_total_bytes : Int32,
 ) -> Array[@generator.LocaleSource] raise CliError {
   let files = read_dir(input_dir)
   files.sort_by((left, right) => left.lexical_compare(right))
@@ -1680,7 +1678,7 @@ async fn generation_manifest(
 async fn run_generate(
   args : Array[String],
   check_mode : Bool,
-  diagnostic_json? : Bool = false,
+  diagnostic_json~ : Bool = false,
 ) -> Unit raise CliError {
   let allow_partial = args.contains("--allow-partial")
   let values = without_allow_partial(args)
@@ -1792,7 +1790,7 @@ async fn run_generate(
 ///|
 async fn run_coverage(
   args : Array[String],
-  diagnostic_json? : Bool = false,
+  diagnostic_json~ : Bool = false,
 ) -> Unit raise CliError {
   if args.length() != 4 {
     cli_fail(usage())
@@ -1805,7 +1803,7 @@ async fn run_coverage(
 ///|
 async fn run_command(
   args : Array[String],
-  diagnostic_json? : Bool = false,
+  diagnostic_json~ : Bool = false,
 ) -> Unit raise CliError {
   if args.is_empty() {
     cli_fail(usage())
@@ -1870,8 +1868,8 @@ fn cli_diagnostic(
     message,
     path,
     span: {
-      start: { byte_offset: 0, line: 1, column: 1 },
-      end: { byte_offset: 0, line: 1, column: 1 },
+      start: { byte_offset: 0, line: 1, column: 1, },
+      end: { byte_offset: 0, line: 1, column: 1, },
     },
   }
 }

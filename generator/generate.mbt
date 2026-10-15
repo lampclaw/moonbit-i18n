@@ -12,9 +12,9 @@ pub(all) struct CatalogChunkArtifact {
   /// Lowercase SHA-256 of `source` for application-owned integrity checks.
   sha256 : String
   /// UTF-8 byte length of `source`.
-  bytes : Int
+  bytes : Int32
   /// Number of translated messages carried by this chunk.
-  message_count : Int
+  message_count : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -46,7 +46,7 @@ pub fn generate(
   config_source : String,
   schema_source : String,
   sources : Array[LocaleSource],
-  enforce_coverage? : Bool = true,
+  enforce_coverage~ : Bool = true,
 ) -> Result[Artifacts, String] {
   match
     validate_locale_source_budget(
@@ -245,8 +245,8 @@ fn deployment_manifest(
 ///|
 fn validate_locale_source_budget(
   sources : Array[LocaleSource],
-  max_locales : Int,
-  max_total_bytes : Int,
+  max_locales : Int32,
+  max_total_bytes : Int32,
 ) -> Result[Unit, String] {
   if sources.length() > max_locales {
     return Err("locale sources exceed the \{max_locales}-locale limit")
@@ -268,7 +268,7 @@ fn validate_locale_source_budget(
 ///|
 fn validate_generated_code_budget(
   source : String,
-  max_bytes : Int,
+  max_bytes : Int32,
 ) -> Result[Unit, String] {
   if @utf8.encode(source).length() > max_bytes {
     Err("generated MoonBit source exceeds the \{max_bytes}-byte UTF-8 limit")
@@ -290,7 +290,7 @@ fn normalize_sources(
     if find_source(normalized, code) is Some(_) {
       return Err("duplicate locale source: \{code}")
     }
-    normalized.push({ code, source: source.source })
+    normalized.push({ code, source: source.source, })
   }
   Ok(normalized)
 }
@@ -334,21 +334,21 @@ fn coverage(schema : Schema, locale : LocaleResource) -> Double {
 }
 
 ///|
-fn translated_count(locale : LocaleResource) -> Int {
+fn translated_count(locale : LocaleResource) -> Int32 {
   locale.entries.length()
 }
 
 ///|
-fn coverage_percent(value : Double) -> Int {
+fn coverage_percent(value : Double) -> Int32 {
   (value * 100.0).to_int()
 }
 
 ///|
 fn contract_hash(
   schema : Schema,
-  profile? : String = @runtime.CATALOG_PROFILE,
+  profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> String {
-  let canonical = StringBuilder::new()
+  let canonical = StringBuilder()
   canonical.write_string(profile)
   canonical.write_char('\n')
   for entry in schema.entries {
@@ -404,3 +404,19 @@ fn generation_warnings(
   }
   diagnostics
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend CatalogChunkArtifact with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend CatalogChunkArtifact with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Artifacts with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Artifacts with @debug.Debug::{to_repr}

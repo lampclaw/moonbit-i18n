@@ -6,7 +6,7 @@ import {
 }
 
 // Values
-pub fn get_text(String, @cmd.Emit[Result[String, Error]]) -> @cmd.Cmd
+pub fn get_text(String, expected_bytes~ : Int, @cmd.Emit[Result[String, Error]]) -> @cmd.Cmd
 
 // Errors
 pub(all) suberror RequestError {

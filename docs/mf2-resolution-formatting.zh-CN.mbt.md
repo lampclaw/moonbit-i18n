@@ -6,7 +6,7 @@
 无关的 resolution core。它构建在固定 syntax/interchange model 上，现在连接到单独
 version 的 `unicode-mf2-ldml48.2-default-functions-v1` registry，但不改变已有 catalog
 profile 和 canonical JSON authoring 工作流。
-`0.9.2` 保持该 resolution 与 formatting 契约不变。
+`0.9.3` 维护版本保持该 resolution 与 formatting 契约不变。
 
 本阶段实现 parser 与默认 function registry 之间、与目标平台无关的语义：
 

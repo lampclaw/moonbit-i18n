@@ -24,8 +24,8 @@ function collectSample(sample, total) {
       "--release",
       "--target",
       "js",
-      "runtime",
-      "runtime/js",
+      "benchmarks/core",
+      "benchmarks/intl",
     ],
     { cwd: root, encoding: "utf8" },
   );

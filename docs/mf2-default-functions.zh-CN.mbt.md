@@ -5,7 +5,7 @@
 `0.7.0` 增加、`0.8.0` 集成、`0.9.0` 冻结了 syntax 与 resolution profile 之上的
 registry profile `unicode-mf2-ldml48.2-default-functions-v1`。其规范参考点是正式 tag
 `LDML48.2`，commit `7f142fb4f1f5ea6ab1eb34ce2b87e918ca9fd331`。
-`0.9.2` 保持该 registry 及其 formatting 语义不变。
+`0.9.3` 保持该 registry 及其 formatting 语义不变。
 
 ## 支持范围
 

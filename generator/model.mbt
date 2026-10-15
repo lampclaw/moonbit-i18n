@@ -1,22 +1,22 @@
 ///|
 /// Maximum number of locale resources accepted by one generator run.
-pub const I18N_MAX_LOCALES : Int = 1000
+pub const I18N_MAX_LOCALES : Int32 = 1000
 
 ///|
 /// Maximum aggregate UTF-8 size of locale resources in one generator run.
-pub const I18N_MAX_TOTAL_LOCALE_BYTES : Int = 67108864
+pub const I18N_MAX_TOTAL_LOCALE_BYTES : Int32 = 67108864
 
 ///|
 /// Maximum UTF-8 size of generated MoonBit source.
-pub const I18N_MAX_GENERATED_CODE_BYTES : Int = 67108864
+pub const I18N_MAX_GENERATED_CODE_BYTES : Int32 = 67108864
 
 ///|
 /// Maximum typed parameters accepted by one generated message signature.
-pub const I18N_MAX_PARAMS_PER_MESSAGE : Int = @runtime.MF2_MAX_CONTRACT_PARAMS
+pub const I18N_MAX_PARAMS_PER_MESSAGE : Int32 = @runtime.MF2_MAX_CONTRACT_PARAMS
 
 ///|
 /// Maximum rich-markup names accepted by one generated message contract.
-pub const I18N_MAX_PART_TAGS_PER_MESSAGE : Int = @runtime.MF2_MAX_CONTRACT_TAGS
+pub const I18N_MAX_PART_TAGS_PER_MESSAGE : Int32 = @runtime.MF2_MAX_CONTRACT_TAGS
 
 ///|
 /// A named parameter in the authoring schema.
@@ -100,3 +100,59 @@ pub(all) struct LocaleResource {
   /// Sorted translated entries present in this resource.
   entries : Array[Entry]
 } derive(Eq, Debug)
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Param with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Param with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Entry with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Entry with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Schema with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Schema with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleConfig with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleConfig with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend I18nConfig with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend I18nConfig with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleSource with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleSource with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleResource with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleResource with @debug.Debug::{to_repr}

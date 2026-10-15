@@ -1,10 +1,7 @@
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/json",
   "moonbitlang/core/string",
-  "tonyfettes/normalization",
+  "moonbit-community/normalization",
 }
-
-import {
-  "moonbitlang/core/bench",
-} for "test"

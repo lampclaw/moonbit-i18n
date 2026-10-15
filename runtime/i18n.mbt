@@ -23,7 +23,7 @@ pub(all) struct Diagnostic {
   /// Human-readable failure detail.
   detail : String
   /// Number of equivalent occurrences coalesced into this entry.
-  occurrences : Int
+  occurrences : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -32,7 +32,7 @@ pub(all) struct DiagnosticBatch {
   /// Recorded, deduplicated entries.
   entries : Array[Diagnostic]
   /// Number of new diagnostic keys dropped after reaching capacity.
-  dropped : Int
+  dropped : Int32
 } derive(Eq, Debug)
 
 ///|
@@ -71,8 +71,8 @@ pub struct I18n {
   compiled_catalogs : Map[String, Map[String, CatalogCompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
-  diagnostic_capacity : Int
-  mut diagnostic_dropped : Int
+  diagnostic_capacity : Int32
+  mut diagnostic_dropped : Int32
 }
 
 ///|
@@ -86,10 +86,10 @@ pub struct Translator {
 /// Creates an empty registry with a fallback locale and formatter contract.
 pub fn I18n::new(
   fallback_locale_code~ : String,
-  contract_hash? : String = "",
-  profile? : String = CATALOG_PROFILE,
-  formatter? : Formatter = Formatter::basic(),
-  diagnostic_capacity? : Int = 256,
+  contract_hash~ : String = "",
+  profile~ : String = CATALOG_PROFILE,
+  formatter~ : Formatter = Formatter::basic(),
+  diagnostic_capacity~ : Int32 = 256,
 ) -> I18n {
   {
     fallback_locale_code: match normalize_locale_code(fallback_locale_code) {
@@ -920,3 +920,43 @@ fn I18n::record_diagnostic(
     occurrences: 1,
   })
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend DiagnosticKind with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend DiagnosticKind with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend Diagnostic with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend Diagnostic with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend DiagnosticBatch with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend DiagnosticBatch with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend TranslationErrorKind with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend TranslationErrorKind with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend TranslationError with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend TranslationError with @debug.Debug::{to_repr}

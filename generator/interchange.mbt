@@ -1,14 +1,14 @@
 ///|
-const XLIFF_EXCHANGE_STATE_VERSION : Int = 1
+const XLIFF_EXCHANGE_STATE_VERSION : Int32 = 1
 
 ///|
-const INTERCHANGE_REPORT_VERSION : Int = 1
+const INTERCHANGE_REPORT_VERSION : Int32 = 1
 
 ///|
-const XLIFF_MAX_NOTES_PER_UNIT : Int = 64
+const XLIFF_MAX_NOTES_PER_UNIT : Int32 = 64
 
 ///|
-const XLIFF_MAX_DEPTH : Int = 16
+const XLIFF_MAX_DEPTH : Int32 = 16
 
 ///|
 const XLIFF_XML_NAMESPACE : String = "http://www.w3.org/XML/1998/namespace"
@@ -67,8 +67,8 @@ priv struct IdMigrations {
 priv struct ParsedXliff {
   state : ExchangeState
   notices : Array[InterchangeNotice]
-  renamed_units : Int
-  removed_units : Int
+  renamed_units : Int32
+  removed_units : Int32
 }
 
 ///|
@@ -100,7 +100,7 @@ pub fn export_xliff(
   source_locale_source : String,
   target_locale_code : String,
   target_locale_source : String?,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   export_xliff_with_state(
     schema_source,
@@ -123,7 +123,7 @@ pub fn import_xliff(
   source_locale_source : String,
   target_locale_code : String,
   xliff_source : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   match
     import_xliff_with_state(
@@ -151,7 +151,7 @@ pub fn export_xliff_with_state(
   target_locale_code : String,
   target_locale_source : String?,
   exchange_state_source : String?,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[String, String] {
   let schema = match parse_schema(schema_source) {
     Ok(value) => value
@@ -361,7 +361,7 @@ pub fn import_xliff_with_state(
   target_locale_code : String,
   xliff_source : String,
   id_migrations_source : String?,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[XliffImportArtifacts, String] {
   if @utf8.encode(xliff_source).length() > XLIFF_MAX_SOURCE_BYTES {
     return Err("XLIFF exceeds the input size limit")
@@ -395,7 +395,7 @@ pub fn import_xliff_with_state(
         Ok(value) => value
         Err(message) => return Err(message)
       }
-    None => { renames: [], removed: [] }
+    None => { renames: [], removed: [], }
   }
   let parsed = match
     parse_xliff_exchange(
@@ -445,7 +445,7 @@ pub fn import_i18next_json(
   schema_source : String,
   locale_code : String,
   input_source : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
   import_ecosystem_json(
     schema_source,
@@ -464,7 +464,7 @@ pub fn import_flutter_arb(
   schema_source : String,
   locale_code : String,
   input_source : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
   import_ecosystem_json(
     schema_source,
@@ -482,7 +482,7 @@ fn import_ecosystem_json(
   locale_code : String,
   input_source : String,
   kind : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[LocaleMigrationArtifacts, String] {
   if @utf8.encode(input_source).length() > XLIFF_MAX_SOURCE_BYTES {
     return Err("\{kind} input exceeds the input size limit")
@@ -663,7 +663,7 @@ fn parse_xliff_exchange(
   let notices : Array[InterchangeNotice] = []
   let seen_ids : Map[String, Bool] = Map([])
   let stack : Array[String] = []
-  let content = StringBuilder::new()
+  let content = StringBuilder()
   let mut capture = 0
   let mut root_seen = false
   let mut file_seen = false
@@ -1447,10 +1447,10 @@ fn interchange_report_json(
   kind : String,
   source_locale : String,
   target_locale : String,
-  input_units : Int,
-  imported_units : Int,
-  renamed_units : Int,
-  removed_units : Int,
+  input_units : Int32,
+  imported_units : Int32,
+  renamed_units : Int32,
+  removed_units : Int32,
   notices : Array[InterchangeNotice],
 ) -> String {
   let entries : Array[Json] = []
@@ -1559,7 +1559,7 @@ fn parse_id_migrations(
     _ => return Err("XLIFF ID migration removed must be an array")
   }
   removed.sort_by((left, right) => left.lexical_compare(right))
-  Ok({ renames, removed })
+  Ok({ renames, removed, })
 }
 
 ///|
@@ -1594,7 +1594,7 @@ fn resolve_xliff_id(
 fn flatten_i18next(
   object : Map[String, Json],
   prefix : String,
-  depth : Int,
+  depth : Int32,
   values : Array[(String, Json)],
   notices : Array[InterchangeNotice],
 ) -> Result[Unit, String] {
@@ -1651,7 +1651,7 @@ fn validate_migrated_message(
   schema : Schema,
   entry : Entry,
   message : String,
-  message_profile? : String = @runtime.CATALOG_PROFILE,
+  message_profile~ : String = @runtime.CATALOG_PROFILE,
 ) -> Result[Unit, String] {
   if message_profile == @runtime.CATALOG_PROFILE {
     let params = entry.params.map(param => @runtime.MessageParamSpec::{
@@ -1712,7 +1712,7 @@ fn convert_i18next_placeholders(
   notices : Array[InterchangeNotice],
 ) -> Result[String, String] {
   let chars = source.to_array()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < chars.length() {
     if cursor + 1 < chars.length() &&
@@ -1769,7 +1769,7 @@ fn convert_arb_placeholders(
   notices : Array[InterchangeNotice],
 ) -> Result[String, String] {
   let chars = source.to_array()
-  let out = StringBuilder::new()
+  let out = StringBuilder()
   let mut cursor = 0
   while cursor < chars.length() {
     if chars[cursor] == '{' {
@@ -1836,7 +1836,7 @@ fn record_arb_metadata_notices(
 }
 
 ///|
-fn find_double_close(chars : Array[Char], start : Int) -> Int? {
+fn find_double_close(chars : Array[Char], start : Int32) -> Int32? {
   let mut cursor = start
   while cursor + 1 < chars.length() {
     if chars[cursor] == '}' && chars[cursor + 1] == '}' {
@@ -1848,7 +1848,7 @@ fn find_double_close(chars : Array[Char], start : Int) -> Int? {
 }
 
 ///|
-fn find_single_close(chars : Array[Char], start : Int) -> Int? {
+fn find_single_close(chars : Array[Char], start : Int32) -> Int32? {
   let mut cursor = start
   while cursor < chars.length() {
     if chars[cursor] == '}' {
@@ -1883,7 +1883,7 @@ fn notice(
   message : String,
   loss : Bool,
 ) -> InterchangeNotice {
-  { code, severity, id, field, message, loss }
+  { code, severity, id, field, message, loss, }
 }
 
 ///|
@@ -1938,7 +1938,7 @@ fn record_discarded_attributes(
   allowed : Array[String],
   id : String,
   notices : Array[InterchangeNotice],
-  allow_xml_space? : Bool = false,
+  allow_xml_space~ : Bool = false,
 ) -> Unit {
   for attribute in element.attributes {
     let plain_allowed = attribute.name.namespace_uri is None &&
@@ -2052,3 +2052,19 @@ fn json_optional_string(object : Map[String, Json], name : String) -> String? {
     _ => None
   }
 }
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend XliffImportArtifacts with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend XliffImportArtifacts with @debug.Debug::{to_repr}
+
+///|
+/// Compares derived values through the existing equality methods.
+pub extend LocaleMigrationArtifacts with Eq::{not_equal, equal}
+
+///|
+/// Returns the derived debug representation through the existing method.
+pub extend LocaleMigrationArtifacts with @debug.Debug::{to_repr}

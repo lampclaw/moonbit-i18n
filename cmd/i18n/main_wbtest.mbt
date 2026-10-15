@@ -66,7 +66,7 @@ fn test_transaction_state(
     catalog_contents: [],
   }
   let state = make_transaction_state(transaction, nonce)
-  { ..state, had_package, had_catalogs }
+  { ..state, had_package, had_catalogs, }
 }
 
 ///|
@@ -91,7 +91,7 @@ test "CLI accepts direct commands, help, and version" {
     "generate", "config",
   ])
   let help = usage()
-  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.9.2"))
+  assert_true(help.contains("moonx lampclaw/i18n/cmd/i18n@0.9.3"))
   assert_true(help.contains("scaffold <owner/module> <directory>"))
   assert_true(help.contains("<package-dir> <catalog-dir>"))
 }

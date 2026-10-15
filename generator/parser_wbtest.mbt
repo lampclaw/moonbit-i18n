@@ -37,7 +37,7 @@ test "parse final i18n config" {
   assert_eq(config.source_locale, "en-US")
   assert_eq(config.message_profile, @runtime.CATALOG_PROFILE)
   assert_true(config.message_profile_explicit)
-  assert_eq(config.locales[0], { code: "ar", direction: "rtl" })
+  assert_eq(config.locales[0], { code: "ar", direction: "rtl", })
   assert_eq(config.minimum_coverage, 0.8)
 }
 
@@ -190,7 +190,7 @@ test "parse schema and validate a partial locale" {
     fail("schema should parse")
   }
   assert_eq(schema.entries.length(), 2)
-  assert_eq(schema.entries[1].params, [{ name: "count", typ: "Int" }])
+  assert_eq(schema.entries[1].params, [{ name: "count", typ: "Int", }])
   let locale_source =
     #|{
     #|  "counter": {

@@ -46,7 +46,7 @@ structured `Intl` field。Framework 可以取得 `@runtime_js.mf2_registry()`，
 
 ## Catalog 兼容契约
 
-`0.9.2` 保持 `0.9.0` 冻结的 catalog format version `2` 契约，并要求显式选择
+`0.9.3` 保持 `0.9.0` 冻结的 catalog format version `2` 契约，并要求显式选择
 compatibility、legacy v1、
 stable v2 或 experimental datetime profile。Stable authoring 使用
 `unicode-mf2-ldml48.2-js-v2`；experimental date/time authoring 使用

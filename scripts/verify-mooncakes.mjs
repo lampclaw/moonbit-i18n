@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 
 const version = process.argv[2];
 assert.ok(version, "usage: verify-mooncakes.mjs <published-version> [sha256]");
@@ -52,7 +53,12 @@ const verify = async () => {
     assert.equal(packageData.name, `lampclaw/i18n/${path}`);
   }
 
-  await get(`https://download.mooncakes.io/user/lampclaw/i18n/${version}.zip`);
+  const archive = await (await get(
+    `https://download.mooncakes.io/user/lampclaw/i18n/${version}.zip`,
+  )).arrayBuffer();
+  const archiveChecksum = createHash("sha256").update(new Uint8Array(archive)).digest("hex");
+  assert.equal(archiveChecksum, manifest.metadata.checksum, "registry archive checksum disagrees with metadata");
+  if (expectedChecksum) assert.equal(archiveChecksum, expectedChecksum, "registry archive differs from reviewed archive");
   console.log(`Mooncakes assets passed for lampclaw/i18n@${version}`);
 };
 

@@ -13,6 +13,7 @@ const assert = (condition, message) => {
 
 const path = "docs/contracts/1.0-candidate.json";
 const snapshot = readJson(path);
+const maintenance = readJson("docs/contracts/0.9.3-toolchain.json");
 const profile = readJson("tests/unicode-mf2/profile.json");
 const runtime = read("runtime/catalog.mbt");
 const cli = read("cmd/i18n/main.mbt");
@@ -34,13 +35,43 @@ assert(
   "module layout drifted",
 );
 
+assert(maintenance.schemaVersion === 1, "unsupported toolchain maintenance record");
+assert(maintenance.candidateSnapshot === path, "maintenance candidate snapshot drifted");
+assert(maintenance.toolchain === "0.10.15+943464bfa", "maintenance toolchain drifted");
+assert(
+  JSON.stringify(Object.keys(maintenance.publicInterfaces)) ===
+    JSON.stringify(Object.keys(snapshot.publicInterfaces)),
+  "maintenance interface set drifted",
+);
 for (const [interfacePath, expected] of Object.entries(
   snapshot.publicInterfaces ?? {},
 )) {
-  assert(hash(interfacePath) === expected, `${interfacePath} public API drifted`);
+  assert(
+    hash(interfacePath) === maintenance.publicInterfaces[interfacePath],
+    `${interfacePath} reviewed toolchain representation drifted`,
+  );
+  // MoonBit 0.10.15 requires explicit exports for the Eq/Debug methods that
+  // were previously implicit. Only remove these exact derived declarations;
+  // the remaining bytes must still match the untouched 0.9.0 candidate.
+  const source = read(interfacePath);
+  const derived = new Set([...source.matchAll(
+    /^pub(?:\(all\))? (?:struct|enum) (\w+) \{[^}]*\} derive\(Eq, @debug.Debug\)/gmu,
+  )].map(match => match[1]));
+  const original = source.replace(
+    /^pub fn (\w+)::(?:(?:equal|not_equal)\(Self, Self\) -> Bool|to_repr\(Self\) -> @debug.Repr)\n/gmu,
+    (declaration, type) => {
+      assert(derived.has(type), `${interfacePath}: ${type} does not derive Eq and Debug`);
+      return "";
+    },
+  );
+  assert(
+    createHash("sha256").update(original).digest("hex") === expected,
+    `${interfacePath} frozen public API drifted`,
+  );
 }
 assert(
-  hash(snapshot.generatorTemplate.path) === snapshot.generatorTemplate.sha256,
+  maintenance.generatorTemplate.path === snapshot.generatorTemplate.path &&
+    hash(snapshot.generatorTemplate.path) === maintenance.generatorTemplate.sha256,
   "generated application template drifted",
 );
 
@@ -58,7 +89,7 @@ for (const [snapshotKey, profileKey] of profilePairs) {
 assert(snapshot.authoring?.messageProfileRequired === true, "profile must be explicit");
 
 const wireAnchors = {
-  catalogVersion: [runtime, "pub const CATALOG_VERSION : Int = 2"],
+  catalogVersion: [runtime, "pub const CATALOG_VERSION : Int32 = 2"],
   diagnosticVersion: [read("generator/diagnostic.mbt"), '"diagnosticVersion": Json::number(1.0)'],
   generationManifestVersion: [cli, '"manifestVersion": Json::number(1.0)'],
   deploymentManifestVersion: [read("generator/generate.mbt"), '"manifestVersion": Json::number(1.0)'],

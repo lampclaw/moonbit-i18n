@@ -1,9 +1,20 @@
 {
   "schemaVersion": 1,
   "unit": "bytes",
+  "maintenanceBaseline": {
+    "version": "0.9.3",
+    "reviewed": "2026-10-14",
+    "toolchain": "0.10.15+943464bfa",
+    "rabbita": "0.16.5",
+    "warren": "0.4.5",
+    "generatedJavaScript": 496495,
+    "generatedJavaScriptGzip": 145326,
+    "previousBudgets": { "generatedJavaScript": 458752, "generatedJavaScriptGzip": 131072 },
+    "rationale": "Approved toolchain migration exception; retain complete browser functionality and record the measured growth. See docs/web-delivery.mbt.md."
+  },
   "budgets": {
-    "generatedJavaScript": 458752,
-    "generatedJavaScriptGzip": 131072,
+    "generatedJavaScript": 524288,
+    "generatedJavaScriptGzip": 163840,
     "embeddedLocaleChunks": 8192,
     "dynamicChunk": 65536,
     "deploymentManifest": 65536

@@ -54,8 +54,14 @@ const check = () => {
   }
   assert.match(
     read("CHANGELOG.md"),
-    new RegExp(`^\\[Unreleased\\]: .*\\bv${version.replaceAll(".", "\\.")}\\.\\.\\.HEAD$`, "mu"),
-    "CHANGELOG Unreleased comparison must start at the current version",
+    /^\[Unreleased\]: https:\/\/github\.com\/lampclaw\/moonbit-i18n\/compare\/[0-9a-f]{40}\.\.\.HEAD$/mu,
+    "CHANGELOG Unreleased comparison must start at a full published source commit SHA",
+  );
+  assert.ok(
+    !/https:\/\/github\.com\/lampclaw\/moonbit-i18n\/(?:tree\/v|compare\/v|releases\/tag\/)/u.test(
+      [read("CHANGELOG.md"), read("README.mbt.md"), read("README.zh-CN.mbt.md")].join("\n"),
+    ),
+    "active documentation must not link to deleted release tags",
   );
   console.log(`version contract passed for ${version}`);
 };
@@ -71,11 +77,7 @@ if (mode === "get") {
   assert.notEqual(current, requestedVersion, `version is already ${current}`);
   replaceActiveVersion("moon.mod", current, requestedVersion);
   for (const path of activeFiles) replaceActiveVersion(path, current, requestedVersion);
-  const changelog = read("CHANGELOG.md").replace(
-    new RegExp(`(\\[Unreleased\\]: .*\\bv)${current.replaceAll(".", "\\.")}(\\.\\.\\.HEAD)`),
-    `$1${requestedVersion}$2`,
-  );
-  write("CHANGELOG.md", changelog);
+  // The published source SHA is immutable; a version bump does not move it.
   check();
   console.log(`updated active release references: ${current} -> ${requestedVersion}`);
 } else {
