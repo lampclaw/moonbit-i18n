@@ -69,7 +69,10 @@ blocking gates, not post-publish cleanup.
 
 After publishing a stable release, manually dispatch the `Registry smoke`
 workflow with its exact version, full 40-character source commit SHA, and
-archive SHA-256. Do not create release branches or tags. It validates `moon add`, pinned `moonx` execution,
+archive SHA-256. Operators using SSH without GitHub API authentication can
+instead commit and push `.github/workflows/registry-request.yml` with those
+same reviewed inputs after local Registry verification passes; see the release
+checklist. Do not create release branches or tags. It validates `moon add`, pinned `moonx` execution,
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
