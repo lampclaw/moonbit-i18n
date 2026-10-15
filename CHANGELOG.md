@@ -30,6 +30,10 @@ All notable changes to this project are documented here. The format follows
 - Replace deleted repository tag links with immutable source commits. Releases
   are identified by full source SHA, exact package version, and archive SHA-256;
   Registry smoke is dispatched manually with all three values.
+- Record the verified dry-run exit-255 mismatch for Moon `0.1.20261012` with
+  `mooncake-bin 0.1.20260911`. Accept it only after both archive checks and the
+  exact version-specific Registry success response; real publication retains
+  the single-attempt rule.
 
 ### Fixed
 

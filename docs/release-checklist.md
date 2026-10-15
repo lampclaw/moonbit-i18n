@@ -16,10 +16,11 @@ Before publishing, the reviewed release commit must be clean, pushed to
 package gates below with archive `0.10.15+943464bfa` (Moon
 `0.1.20261012`, moonc `0.10.15`), its bundled publishing client, and Node.js
 `26.7.0`. Verify `moon whoami` is `lampclaw`, then run
-`node scripts/publish-dry-run.mjs`. Older observed client pairs have returned
-255 after a successful dry run. That exception is limited to the recorded
-historical client pair; the current baseline must exit zero and satisfy both
-archive checks, exact `202 Accepted`, and the version-specific success detail.
+`node scripts/publish-dry-run.mjs`. The observed client pairs listed below
+return 255 after a successful dry run, including Moon `0.1.20261012` with
+`mooncake-bin 0.1.20260911`. That exception is limited to the exact recorded
+pairs and requires both archive checks, exact `202 Accepted`, and the
+version-specific success detail. Other client pairs must exit zero.
 The helper rejects every other non-zero status or incomplete
 response; never treat 255 as a general success code.
 
@@ -45,6 +46,24 @@ registry URL, publish timestamps/status, and known limitations under
 If a defect is found after the registry accepted a version, fix it in the next
 SemVer patch. Published Mooncakes versions and recorded release identities must never
 be overwritten.
+
+## `0.9.3` pinned publish-client observation — 2026-10-15
+
+Moon `0.1.20261012` with bundled `mooncake-bin 0.1.20260911` passed both
+archive checks and received the exact Registry response `202 Accepted`,
+including the version-specific detail that the dry run completed successfully
+and made no changes, then exited 255. The initially stricter helper correctly
+rejected this previously unrecorded pair. The helper now recognizes this exact
+pair alongside the two historical pairs; all archive, response-detail,
+freshness, and checksum gates remain mandatory. This rule applies only to
+`--dry-run`. A failed or ambiguous real publication still requires exact-version
+Registry inspection and must never be retried automatically.
+
+| Moon | Bundled publishing client | Observation |
+|---|---|---|
+| `0.1.20260803` | `mooncake-bin 0.1.20260731` | Historical `0.1.0` release below |
+| `0.1.20260819` | `mooncake-bin 0.1.20260805` | [Accepted `0.9.2` release](releases/0.9.2-acceptance.md) |
+| `0.1.20261012` | `mooncake-bin 0.1.20260911` | `0.9.3` preflight on 2026-10-15 |
 
 ## Historical `0.1.0` pinned publish-client behavior
 

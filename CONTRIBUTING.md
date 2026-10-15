@@ -76,10 +76,10 @@ checklist. Do not create release branches or tags. It validates `moon add`, pinn
 project-local `moon add --bin`, generation, JavaScript execution, and dynamic
 catalog installation on Linux, macOS, and Windows.
 
-Older Moon / `mooncake-bin` pairs used for earlier releases have a known
-dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
+The recorded Moon / `mooncake-bin` pairs, including the `0.9.3` release baseline,
+have a known dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry
 rules in the repository's release checklist; do not treat exit 255 as a
-general success code. The exception is restricted to the exact historical
-client pair that produced it. Maintainers should run
+general success code. The exception is restricted to the exact recorded
+client pairs that produced it. Maintainers should run
 `node scripts/publish-dry-run.mjs`; the helper can only perform a dry run and
 will reject every response that does not meet the documented conditions.
