@@ -8,7 +8,9 @@ only when it is named here and exercised by the release gates.
 The `0.9.4` maintenance release updates MoonBit, compatible
 dependencies, Node LTS, and browser tooling. It preserves the supported target
 set, public and generated APIs, profiles, and CLI/wire contracts. The matrix
-below describes `0.9.4`; published `0.9.3` keeps its recorded baseline.
+below describes the `0.9.4` runtime baseline and current development tooling.
+The post-release package-manager migration uses Bun; published releases keep
+the tooling recorded in their acceptance documents.
 
 ## Supported matrix
 
@@ -16,7 +18,7 @@ below describes `0.9.4`; published `0.9.3` keeps its recorded baseline.
 |---|---|---|
 | MoonBit toolchain | archive `0.10.20+65efd5b93`, Moon `0.1.20261104`, moonc `0.10.20` | Pinned compatibility and CI release gate |
 | JavaScript runtime | Node.js `26.13.1` | Sole server/runtime and product gate |
-| JavaScript package manager | npm `12.2.2` | Exact packageManager and CI install pin |
+| JavaScript package manager | Bun `1.4.4` | Exact packageManager pin and frozen `bun.lock` install |
 | Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.65.1` | Generated facade, upstream MF2 suites, differential cases, and application scenarios |
 | CLI operating systems | Ubuntu 24.04, macOS 15, Windows 2025 | Wasm `moonx`, native CLI, and installed launcher |
 | Portable core | Native, Wasm, Wasm-GC, JavaScript | Compile and target-independent behavior |

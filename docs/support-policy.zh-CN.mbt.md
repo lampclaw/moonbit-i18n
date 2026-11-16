@@ -6,8 +6,9 @@
 才属于受支持目标。
 
 `0.9.4` 维护版本更新 MoonBit、兼容依赖、Node LTS 与浏览器工具。
-受支持 target 集合、公开与生成 API、profile 和 CLI/wire 契约保持不变。下表描述当前
-`0.9.4`；已发布 `0.9.3` 仍对应其历史基线。
+受支持 target 集合、公开与生成 API、profile 和 CLI/wire 契约保持不变。下表描述
+`0.9.4` runtime 基线及当前开发工具。发布后的包管理器迁移采用 Bun；
+已发布版本仍对应其验收文档记录的工具链。
 
 ## 支持矩阵
 
@@ -15,7 +16,7 @@
 |---|---|---|
 | MoonBit 工具链 | archive `0.10.20+65efd5b93`、Moon `0.1.20261104`、moonc `0.10.20` | 固定的兼容性与 CI 发布门槛 |
 | JavaScript runtime | Node.js `26.13.1` | 唯一的服务端/runtime 与产品门槛 |
-| JavaScript 包管理器 | npm `12.2.2` | 精确 packageManager 与 CI 安装版本 |
+| JavaScript 包管理器 | Bun `1.4.4` | 精确 packageManager 版本与冻结 `bun.lock` 安装 |
 | 浏览器 runtime | 锁定 Playwright `1.65.1` 提供的 Chromium、Firefox、WebKit | 生成 facade、上游 MF2 suite、differential case 与应用场景 |
 | CLI 操作系统 | Ubuntu 24.04、macOS 15、Windows 2025 | Wasm `moonx`、Native CLI 和安装 launcher |
 | 可移植 core | Native、Wasm、Wasm-GC、JavaScript | 编译与目标无关行为 |

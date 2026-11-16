@@ -1,8 +1,10 @@
 # Contributing
 
 Use toolchain archive `0.10.20+65efd5b93` (Moon `0.1.20261104`, moonc `0.10.20`),
-Node.js LTS `26.13.1`, and npm `12.2.2` for the engineering and product gates. Dependency versions
-in `moon.mod` must stay exact.
+Node.js LTS `26.13.1`, and Bun `1.4.4` for the engineering and product gates.
+Dependency versions in `moon.mod` must stay exact. Bun manages JavaScript
+dependencies and package scripts; Node remains the JavaScript/Intl test host.
+Commit `bun.lock` so local and CI installs use the same dependency graph.
 
 ## Roadmap and architectural changes
 
@@ -33,7 +35,7 @@ moon test --frozen --deny-warn --target native
 moon test --frozen --deny-warn --target wasm
 moon test --frozen --deny-warn --target wasm-gc
 moon test --frozen --deny-warn --target js
-npm ci
+bun install --frozen-lockfile
 node scripts/check-coverage.mjs
 node scripts/check-api-docs.mjs
 node scripts/check-doc-sync.mjs
@@ -48,8 +50,8 @@ moon run --frozen --target wasm cmd/i18n -- check \
   examples/rabbita_todo/localization/locales \
   examples/rabbita_todo/i18n \
   examples/rabbita_todo/public/i18n
-npx playwright install chromium firefox webkit
-npm run test:browser
+bunx --no-install playwright install chromium firefox webkit
+bun run test:browser
 ```
 
 Tests should cover the observable success and failure contract. Do not weaken

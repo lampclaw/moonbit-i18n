@@ -23,7 +23,8 @@ Before publishing, the reviewed release commit must be clean, pushed to
 `origin/main`, and green in every required Test job. Run the full quality and
 package gates below with archive `0.10.20+65efd5b93` (Moon
 `0.1.20261104`, moonc `0.10.20`), its bundled publishing client, Node.js LTS
-`26.13.1`, and npm `12.2.2`. Verify `moon whoami` is `lampclaw`, then run
+`26.13.1`, and Bun `1.4.4`. Install JavaScript dependencies from `bun.lock`
+with `bun install --frozen-lockfile`. Verify `moon whoami` is `lampclaw`, then run
 `node scripts/publish-dry-run.mjs`. The observed client pairs listed below
 return 255 after a successful dry run, including Moon `0.1.20261012` with
 `mooncake-bin 0.1.20260911`. That exception is limited to the exact recorded
@@ -244,7 +245,7 @@ moon version --all
 mooncake --version
 moon whoami
 version="$(node scripts/version-contract.mjs get)"
-npm ci
+bun install --frozen-lockfile
 node scripts/check-doc-sync.mjs
 node scripts/check-api-docs.mjs
 node scripts/check-mf2-requirements.mjs

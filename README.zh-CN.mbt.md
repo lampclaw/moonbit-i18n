@@ -13,13 +13,17 @@ JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 ## 路线图与当前状态
 
-`0.9.4` 将维护基线更新为 MoonBit `0.10.20+65efd5b93`、Node LTS `26.13.1`、
-npm `12.2.2` 和 Playwright `1.65.1`。它保留 `0.9.0` 冻结的 JavaScript Unicode
+`0.9.4` 将维护基线更新为 MoonBit `0.10.20+65efd5b93`、Node LTS `26.13.1`
+和 Playwright `1.65.1`。它保留 `0.9.0` 冻结的 JavaScript Unicode
 MF2 candidate，以及应用 loader 的 10 秒超时、有界流式读取和重试请求隔离。
 新 scaffold 会端到端使用显式 stable `unicode-mf2-ldml48.2-js-v2`。Draft `:date`、
 `:time`、`:datetime` 必须使用单独命名的
 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`。省略 `messageProfile` 是 error
 `I18N1003`；legacy standards v1 作为带 warning 的迁移桥梁保留。
+
+`0.9.4` 发布后的开发使用 Bun `1.4.4` 管理 JavaScript 依赖和 package scripts，
+提交 `bun.lock`，通过 `bun install --frozen-lockfile` 安装。
+Node 继续作为固定版本的 JavaScript/Intl 测试宿主。
 
 候选契约冻结正式 Unicode LDML 48.2 source 与 77 行 anchored normative matrix。
 当前验证采用独立 `messageformat@4.1.0` differential 证据，以及真实 Chromium、Firefox、WebKit

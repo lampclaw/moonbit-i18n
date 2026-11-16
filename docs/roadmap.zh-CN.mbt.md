@@ -346,6 +346,11 @@ conformance、浏览器、打包与 registry 门禁。
 规范快照保持不可变。API、profile、wire、覆盖率、性能和 Web 体积门槛继续适用。
 发布前须完成该精确源码 commit 的全部发布门槛。
 
+`0.9.4` 发布后的开发依赖安装和 package scripts 改用 Bun `1.4.4`，提交
+`bun.lock` 并在 CI 中使用冻结安装。这项工具调整服务于同一 `0.9.x` 兼容性里程碑。
+Node 继续作为固定的 JavaScript/Intl 测试宿主，MF2 differential 与浏览器门槛继续
+适用。已发布 `0.9.4` 的验收记录保留其原始工具链。
+
 维护中的 Rabbita 应用因有意使用 Draft function 而选择 experimental datetime profile；
 不使用 Draft function 的稳定 consumer 迁移到 v2。原始 `0.9.0` candidate 发布门槛
 要求三个独立 consumer 精确固定该版本，并通过 generation、JavaScript build 与应用检查。

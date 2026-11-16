@@ -37,7 +37,7 @@ function 的应用应改用 stable `unicode-mf2-ldml48.2-js-v2`。
 ## 运行
 
 ~~~bash
-npm ci
+bun install --frozen-lockfile
 cd examples/rabbita_todo
 moon install moonbit-community/warren@0.4.5
 warren dev --browser-entry main
@@ -50,7 +50,8 @@ warren build --browser-entry main --dist dist
 ~~~
 
 Warren `0.4.5` 在 release 构建中使用随工具固定的 Evol minifier。当前 `0.9.4`
-浏览器验收固定 Node LTS `26.13.1`、npm `12.2.2` 和 Playwright `1.65.1`。
+示例的浏览器验收固定 Node LTS `26.13.1` 和 Playwright `1.65.1`；
+开发使用 Bun `1.4.4` 与提交到仓库的 `bun.lock`。
 
 ## 架构
 

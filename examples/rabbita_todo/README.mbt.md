@@ -43,7 +43,7 @@ different profile. Applications without date/time functions should use stable
 ## Run
 
 ~~~bash
-npm ci
+bun install --frozen-lockfile
 cd examples/rabbita_todo
 moon install moonbit-community/warren@0.4.5
 warren dev --browser-entry main
@@ -56,8 +56,8 @@ warren build --browser-entry main --dist dist
 ~~~
 
 Warren `0.4.5` bundles its pinned Evol minifier for release builds. The current
-`0.9.4` browser acceptance gates pin Node LTS `26.13.1`, npm `12.2.2`,
-and Playwright `1.65.1`.
+browser acceptance gates for the `0.9.4` example pin Node LTS `26.13.1` and
+Playwright `1.65.1`; development uses Bun `1.4.4` and committed `bun.lock`.
 
 ## Architecture
 

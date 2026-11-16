@@ -432,6 +432,12 @@ MF2/CLDR/IANA snapshots remain immutable. API, profile, wire, coverage,
 performance, and Web size gates continue to apply. Publication requires the
 complete release gates for this exact source commit.
 
+Following `0.9.4`, development dependency installation and package scripts use
+Bun `1.4.4` with a committed `bun.lock` and frozen CI installs. This tooling
+change serves the same `0.9.x` compatibility milestone. Node stays the pinned
+JavaScript/Intl test host, and all MF2 differential and browser gates remain
+required. The published `0.9.4` acceptance record retains its original tooling.
+
 The maintained Rabbita application deliberately selects the experimental
 datetime profile; stable consumers without Draft functions migrate to v2. The
 original `0.9.0` candidate release gate required three independent consumers

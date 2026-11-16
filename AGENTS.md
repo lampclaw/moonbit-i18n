@@ -21,3 +21,11 @@ catalog contract, runtime, generator, CLI, or supported target:
 
 Bug fixes that do not change a public contract still follow the current
 profile, compatibility, security, and quality gates.
+
+## JavaScript development tooling
+
+Use Bun for dependency installation and package scripts. Keep `bun.lock`
+committed and install with `bun install --frozen-lockfile`; use `bun run`
+and `bunx --no-install` instead of npm/npx. Do not introduce npm lockfiles.
+Node remains the pinned JavaScript/Intl test host; switching package managers
+does not change that runtime contract.

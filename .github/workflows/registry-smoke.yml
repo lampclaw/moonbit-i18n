@@ -40,7 +40,6 @@ env:
   MOON_VERSION: 0.1.20261104
   MOONC_VERSION: 0.10.20
   NODE_VERSION: 26.13.1
-  NPM_VERSION: 12.2.2
   LAMPCLAW_TEST_BIN: "1"
 
 jobs:
@@ -64,9 +63,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
-
-      - name: Setup pinned npm
-        run: npm install --global npm@${{ env.NPM_VERSION }}
 
       - name: Setup MoonBit on Unix
         if: runner.os != 'Windows'

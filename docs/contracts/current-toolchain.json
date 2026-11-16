@@ -24,7 +24,7 @@
     "unicode": "17.0",
     "timeZoneData": "2026e"
   },
-  "npm": "12.2.2",
+  "bun": "1.4.4",
   "playwright": "1.65.1",
   "messageformat": "4.1.0",
   "browserEngines": ["chromium", "firefox", "webkit"]

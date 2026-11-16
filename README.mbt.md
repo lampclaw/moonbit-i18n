@@ -17,7 +17,7 @@ embedding or lazy loading, not a second authoring format.
 ## Roadmap and status
 
 Version `0.9.4` updates the maintenance baseline to MoonBit `0.10.20+65efd5b93`,
-Node LTS `26.13.1`, npm `12.2.2`, and Playwright `1.65.1`.
+Node LTS `26.13.1` and Playwright `1.65.1`.
 It preserves the JavaScript Unicode MF2 candidate frozen in `0.9.0`, including
 the application loader's 10-second deadline, bounded streaming, and retry isolation.
 New scaffolds use the explicit stable
@@ -26,6 +26,10 @@ and `:datetime` require the separately named
 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1` profile. Omitted
 `messageProfile` is error `I18N1003`; legacy standards v1 remains a warned
 migration bridge.
+
+Development after `0.9.4` uses Bun `1.4.4` for JavaScript dependencies and
+package scripts, with committed `bun.lock` and `bun install --frozen-lockfile`.
+Node remains the pinned JavaScript/Intl test host.
 
 The candidate freezes official Unicode LDML 48.2 sources and a 77-row anchored
 normative matrix. Current validation uses independent `messageformat@4.1.0` differential evidence

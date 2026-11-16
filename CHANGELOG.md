@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Use Bun `1.4.4` for JavaScript dependency installation and package scripts.
+  Replace `package-lock.json` with `bun.lock`, preserving all resolved package
+  versions and integrity hashes. CI uses frozen installs and a pinned setup-bun
+  action. Node remains the pinned JavaScript/Intl test host, with the same
+  MF2 differential and browser acceptance gates.
+
 ## [0.9.4] - 2026-11-16
 
 ### Changed
