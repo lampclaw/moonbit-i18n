@@ -539,7 +539,8 @@ All notable changes to this project are documented here. The format follows
 - Crash recovery preserves any output directory that had not yet been backed
   up when a generation transaction was interrupted.
 
-[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/64f92c01c49d265cbfa02d4b7093ed1e5af58949...HEAD
+[Unreleased]: https://github.com/lampclaw/moonbit-i18n/compare/fa2871c8cbc3edc07cf8175919defeee52096873...HEAD
+[0.9.4]: https://github.com/lampclaw/moonbit-i18n/compare/64f92c01c49d265cbfa02d4b7093ed1e5af58949...fa2871c8cbc3edc07cf8175919defeee52096873
 [0.9.3]: https://github.com/lampclaw/moonbit-i18n/compare/53d04dddbb4e9982bba6342daa5d674ac3f328e6...64f92c01c49d265cbfa02d4b7093ed1e5af58949
 [0.9.2]: https://github.com/lampclaw/moonbit-i18n/compare/26726f59e510171b0e7905a460282acda52ace0c...53d04dddbb4e9982bba6342daa5d674ac3f328e6
 [0.9.1]: https://github.com/lampclaw/moonbit-i18n/compare/cc947d2224cbca74ffe2aebaf458e71fdceb4d7e...26726f59e510171b0e7905a460282acda52ace0c
