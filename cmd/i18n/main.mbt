@@ -1,7 +1,8 @@
 ///|
+#derive(Debug)
 priv suberror CliError {
   CommandFailed(String)
-} derive(Debug)
+}
 
 ///|
 priv struct GeneratedTransaction {
@@ -1178,7 +1179,7 @@ fn format_moonbit_source(source : String) -> String {
 }
 
 ///|
-const CLI_VERSION : String = "0.9.3"
+const CLI_VERSION : String = "0.9.4"
 
 ///|
 fn usage() -> String {
@@ -1186,15 +1187,15 @@ fn usage() -> String {
   (
     #|
     #|usage:
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 scaffold <owner/module> <directory>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 coverage <config-file> <schema-file> <locale-dir>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 pseudo --message-profile <profile> <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 export-xliff --message-profile <profile> [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-xliff --message-profile <profile> [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-i18next --message-profile <profile> <schema-file> <locale> <input.json> <output.json> <report.json>
-    #|  moonx lampclaw/i18n/cmd/i18n@0.9.3 import-arb --message-profile <profile> <schema-file> <locale> <input.arb> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 scaffold <owner/module> <directory>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 generate [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 check [--allow-partial] <config-file> <schema-file> <locale-dir> <package-dir> <catalog-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 coverage <config-file> <schema-file> <locale-dir>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 pseudo --message-profile <profile> <schema-file> <source-locale> <source.json> <en-XA|ar-XB> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 export-xliff --message-profile <profile> [--state <exchange-state.json>] <schema-file> <source-locale> <source.json> <target-locale> <target.json|-> <output.xlf>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 import-xliff --message-profile <profile> [--state-output <exchange-state.json>] [--report-output <report.json>] [--id-migrations <map.json>] <schema-file> <source-locale> <source.json> <target-locale> <input.xlf> <output.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 import-i18next --message-profile <profile> <schema-file> <locale> <input.json> <output.json> <report.json>
+    #|  moonx lampclaw/i18n/cmd/i18n@0.9.4 import-arb --message-profile <profile> <schema-file> <locale> <input.arb> <output.json> <report.json>
   )
 }
 
@@ -1252,7 +1253,7 @@ fn valid_module_name(name : String) -> Bool {
 ///|
 fn scaffold_moon_mod(module_name : String) -> String {
   "name = \"\{module_name}\"\n\n" +
-  "version = \"0.9.3\"\n\n" +
+  "version = \"0.9.4\"\n\n" +
   "preferred_target = \"js\"\n\n" +
   "import {\n  \"lampclaw/i18n@\{CLI_VERSION}\",\n}\n"
 }

@@ -20,15 +20,17 @@ pub const I18N_MAX_PART_TAGS_PER_MESSAGE : Int32 = @runtime.MF2_MAX_CONTRACT_TAG
 
 ///|
 /// A named parameter in the authoring schema.
+#derive(Eq, Debug)
 pub(all) struct Param {
   /// Parameter name used by generated MoonBit and MF2 variables.
   name : String
   /// Supported generator type name.
   typ : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// One schema or locale message entry.
+#derive(Eq, Debug)
 pub(all) struct Entry {
   /// Message group used in the dotted identifier and generated enum.
   group : String
@@ -38,10 +40,11 @@ pub(all) struct Entry {
   text : String
   /// Typed parameters declared for this message.
   params : Array[Param]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Canonical, validated message schema used by generation and tooling.
+#derive(Eq, Debug)
 pub(all) struct Schema {
   /// Sorted message entries.
   entries : Array[Entry]
@@ -49,19 +52,21 @@ pub(all) struct Schema {
   descriptions : Array[(String, String)]
   /// Sorted dotted identifiers and allowed rich-markup names.
   parts : Array[(String, Array[String])]
-} derive(Eq, Debug)
+}
 
 ///|
 /// One normalized locale declared by the generator configuration.
+#derive(Eq, Debug)
 pub(all) struct LocaleConfig {
   /// Normalized locale code.
   code : String
   /// Text direction, `ltr` or `rtl`.
   direction : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Canonical, validated generator configuration.
+#derive(Eq, Debug)
 pub(all) struct I18nConfig {
   /// Catalog authoring/runtime profile selected for generated messages.
   message_profile : String
@@ -81,25 +86,27 @@ pub(all) struct I18nConfig {
   locales : Array[LocaleConfig]
   /// Minimum translated fraction required during release generation.
   minimum_coverage : Double
-} derive(Eq, Debug)
+}
 
 ///|
 /// Raw locale resource supplied to the in-memory generator API.
+#derive(Eq, Debug)
 pub(all) struct LocaleSource {
   /// Locale code associated with `source`.
   code : String
   /// UTF-8 JSON locale resource.
   source : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parsed and schema-validated locale resource.
+#derive(Eq, Debug)
 pub(all) struct LocaleResource {
   /// Normalized locale code.
   locale : String
   /// Sorted translated entries present in this resource.
   entries : Array[Entry]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.

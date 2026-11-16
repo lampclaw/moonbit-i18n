@@ -1,5 +1,6 @@
 ///|
 /// One immutable, independently deployable locale/namespace catalog chunk.
+#derive(Eq, Debug)
 pub(all) struct CatalogChunkArtifact {
   /// Normalized locale code carried by the chunk.
   locale : String
@@ -15,10 +16,11 @@ pub(all) struct CatalogChunkArtifact {
   bytes : Int32
   /// Number of translated messages carried by this chunk.
   message_count : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Complete output of one deterministic generator run.
+#derive(Eq, Debug)
 pub(all) struct Artifacts {
   /// Message profile used by bindings, catalogs, and contract hashing.
   message_profile : String
@@ -38,7 +40,7 @@ pub(all) struct Artifacts {
   coverage_report : String
   /// SHA-256 contract hash shared by the facade and catalogs.
   contract_hash : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parses, validates, and generates typed bindings plus deployment catalogs.

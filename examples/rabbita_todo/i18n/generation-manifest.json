@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "generator": "lampclaw/i18n",
-  "generatorVersion": "0.9.3",
+  "generatorVersion": "0.9.4",
   "profile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   "contractHash": "495efa8700e48f48d81eba174107fd96a67590568ab4289105d73ec2edc0ab47",
   "inputs": [
@@ -34,8 +34,8 @@
     {
       "kind": "moonbit",
       "path": "../i18n/generated.mbt",
-      "sha256": "dd6925c4ae469169975d6ebee156fb9a265a0a9ac82e18c329b7b985256a1d34",
-      "bytes": 18874
+      "sha256": "7641de986919748e95dd650ae0395abaab8db9e1cdf2b95544a677ca4ebb1bb6",
+      "bytes": 18883
     },
     {
       "kind": "moon-package",

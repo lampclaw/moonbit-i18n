@@ -10,13 +10,13 @@ pub const BCP47_REGISTRY_DATE : String = "2026-08-08"
 
 pub const BCP47_REGISTRY_SHA256 : String = "be21e91b6851f750a7b1a687f11209d46ad5a8471d6b10a1efc8d1dac4c8a926"
 
-pub const CATALOG_MAX_MESSAGES : Int = 100000
+pub const CATALOG_MAX_MESSAGES : Int32 = 100000
 
-pub const CATALOG_MAX_SOURCE_BYTES : Int = 16777216
+pub const CATALOG_MAX_SOURCE_BYTES : Int32 = 16777216
 
 pub const CATALOG_PROFILE : String = "lampclaw-mf2-strict-v1+lampclaw-datetime-v1"
 
-pub const CATALOG_VERSION : Int = 2
+pub const CATALOG_VERSION : Int32 = 2
 
 pub const MF2_DEFAULT_REGISTRY_PROFILE : String = "unicode-mf2-ldml48.2-default-functions-v1"
 
@@ -24,25 +24,25 @@ pub const MF2_EXPERIMENTAL_DATETIME_MESSAGE_PROFILE : String = "unicode-mf2-ldml
 
 pub const MF2_LEGACY_STANDARD_MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v1"
 
-pub const MF2_MAX_ARGUMENTS : Int = 64
+pub const MF2_MAX_ARGUMENTS : Int32 = 64
 
-pub const MF2_MAX_CONTRACT_PARAMS : Int = 64
+pub const MF2_MAX_CONTRACT_PARAMS : Int32 = 64
 
-pub const MF2_MAX_CONTRACT_TAGS : Int = 64
+pub const MF2_MAX_CONTRACT_TAGS : Int32 = 64
 
-pub const MF2_MAX_DECLARATIONS : Int = 4096
+pub const MF2_MAX_DECLARATIONS : Int32 = 4096
 
-pub const MF2_MAX_MESSAGE_BYTES : Int = 65536
+pub const MF2_MAX_MESSAGE_BYTES : Int32 = 65536
 
-pub const MF2_MAX_OPTIONS : Int = 64
+pub const MF2_MAX_OPTIONS : Int32 = 64
 
-pub const MF2_MAX_OUTPUT_BYTES : Int = 65536
+pub const MF2_MAX_OUTPUT_BYTES : Int32 = 65536
 
-pub const MF2_MAX_PATTERN_PARTS : Int = 65536
+pub const MF2_MAX_PATTERN_PARTS : Int32 = 65536
 
-pub const MF2_MAX_SELECTORS : Int = 64
+pub const MF2_MAX_SELECTORS : Int32 = 64
 
-pub const MF2_MAX_VARIANTS : Int = 4096
+pub const MF2_MAX_VARIANTS : Int32 = 4096
 
 pub const MF2_RESOLUTION_PROFILE : String = "unicode-mf2-ldml48.2-resolution-v1"
 
@@ -106,7 +106,7 @@ pub fn validate_rich_tags(Array[RichPart], Array[String]) -> Result[Unit, String
 
 // Types and methods
 pub struct Catalog {
-  catalog_version : Int
+  catalog_version : Int32
   profile : String
   contract_hash : String
   locale_code : String
@@ -115,7 +115,7 @@ pub struct Catalog {
   entries : Map[String, String]
   validation_error : String?
 }
-pub fn Catalog::catalog_version(Self) -> Int
+pub fn Catalog::catalog_version(Self) -> Int32
 pub fn Catalog::chunk_namespace(Self) -> String?
 pub fn Catalog::compile_messages(Self) -> Result[Map[String, CompiledMessage], String]
 pub fn Catalog::contract_hash(Self) -> String
@@ -125,7 +125,7 @@ pub fn Catalog::find(Self, String) -> String?
 pub fn Catalog::from_generated_chunk_entries(locale_code~ : String, chunk_namespace~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String, profile? : String) -> Self
 pub fn Catalog::from_generated_entries(locale_code~ : String, contract_hash~ : String, entries~ : Array[CatalogEntry], direction? : String, profile? : String) -> Self
 pub fn Catalog::locale_code(Self) -> String
-pub fn Catalog::message_count(Self) -> Int
+pub fn Catalog::message_count(Self) -> Int32
 pub fn Catalog::profile(Self) -> String
 pub fn Catalog::to_json_string(Self) -> String
 
@@ -134,10 +134,11 @@ pub enum CatalogCompiledMessage {
   StandardCatalogMessage(Mf2MessageModel)
 }
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CatalogEntry {
   id : String
   message : String
-} derive(Eq, @debug.Debug)
+}
 pub fn CatalogEntry::equal(Self, Self) -> Bool
 pub fn CatalogEntry::not_equal(Self, Self) -> Bool
 pub fn CatalogEntry::to_repr(Self) -> @debug.Repr
@@ -149,57 +150,63 @@ pub struct CompiledMessage {
   pattern : Pattern?
 }
 
+#derive(Eq, @debug.Debug)
 pub enum Declaration {
   InputDeclaration(String, Expression)
   LocalDeclaration(String, Expression)
-} derive(Eq, @debug.Debug)
+}
 pub fn Declaration::equal(Self, Self) -> Bool
 pub fn Declaration::not_equal(Self, Self) -> Bool
 pub fn Declaration::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Diagnostic {
   kind : DiagnosticKind
   requested_locale : String
   used_locale : String
   message_id : String
   detail : String
-  occurrences : Int
-} derive(Eq, @debug.Debug)
+  occurrences : Int32
+}
 pub fn Diagnostic::equal(Self, Self) -> Bool
 pub fn Diagnostic::not_equal(Self, Self) -> Bool
 pub fn Diagnostic::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct DiagnosticBatch {
   entries : Array[Diagnostic]
-  dropped : Int
-} derive(Eq, @debug.Debug)
+  dropped : Int32
+}
 pub fn DiagnosticBatch::equal(Self, Self) -> Bool
 pub fn DiagnosticBatch::not_equal(Self, Self) -> Bool
 pub fn DiagnosticBatch::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum DiagnosticKind {
   MessageFallbackDiagnostic
   MissingMessageDiagnostic
   MessageFormatFailedDiagnostic
-} derive(Eq, @debug.Debug)
+}
 pub fn DiagnosticKind::equal(Self, Self) -> Bool
 pub fn DiagnosticKind::not_equal(Self, Self) -> Bool
 pub fn DiagnosticKind::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct Expression {
   operand : Operand
   function_name : String
   options : Array[ParsedOption]
-  offset : Int
-} derive(Eq, @debug.Debug)
+  offset : Int32
+}
 pub fn Expression::equal(Self, Self) -> Bool
 pub fn Expression::not_equal(Self, Self) -> Bool
 pub fn Expression::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct FormatOption {
   name : String
   value : String
-} derive(Eq, @debug.Debug)
+}
 pub fn FormatOption::equal(Self, Self) -> Bool
 pub fn FormatOption::not_equal(Self, Self) -> Bool
 pub fn FormatOption::to_repr(Self) -> @debug.Repr
@@ -214,28 +221,31 @@ pub(all) struct Formatter {
 }
 pub fn Formatter::basic() -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) enum FormatterIssue {
   UnsupportedOperation(String)
   InvalidFormatterOption(String)
   PlatformFormatterFailure(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn FormatterIssue::equal(Self, Self) -> Bool
 pub fn FormatterIssue::message(Self) -> String
 pub fn FormatterIssue::not_equal(Self, Self) -> Bool
 pub fn FormatterIssue::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct FormatterOutput {
   value : String
   parts : Array[FormatterPart]
-} derive(Eq, @debug.Debug)
+}
 pub fn FormatterOutput::equal(Self, Self) -> Bool
 pub fn FormatterOutput::not_equal(Self, Self) -> Bool
 pub fn FormatterOutput::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct FormatterPart {
   kind : String
   value : String
-} derive(Eq, @debug.Debug)
+}
 pub fn FormatterPart::equal(Self, Self) -> Bool
 pub fn FormatterPart::not_equal(Self, Self) -> Bool
 pub fn FormatterPart::to_repr(Self) -> @debug.Repr
@@ -249,8 +259,8 @@ pub struct I18n {
   compiled_catalogs : Map[String, Map[String, CatalogCompiledMessage]]
   formatter : Formatter
   diagnostics : Array[Diagnostic]
-  diagnostic_capacity : Int
-  mut diagnostic_dropped : Int
+  diagnostic_capacity : Int32
+  mut diagnostic_dropped : Int32
 }
 pub fn I18n::catalog_locale_codes(Self) -> Array[String]
 pub fn I18n::catalog_namespaces(Self, String) -> Array[String]
@@ -266,22 +276,24 @@ pub fn I18n::install_catalog_chunk_source_for(Self, String, String, String) -> R
 pub fn I18n::install_catalog_source(Self, String) -> Result[Unit, String]
 pub fn I18n::install_catalog_source_for(Self, String, String) -> Result[Unit, String]
 pub fn I18n::install_generated_catalog(Self, Catalog) -> Result[Unit, String]
-pub fn I18n::new(fallback_locale_code~ : String, contract_hash? : String, profile? : String, formatter? : Formatter, diagnostic_capacity? : Int) -> Self
+pub fn I18n::new(fallback_locale_code~ : String, contract_hash? : String, profile? : String, formatter? : Formatter, diagnostic_capacity? : Int32) -> Self
 pub fn I18n::profile(Self) -> String
 pub fn I18n::take_diagnostics(Self) -> DiagnosticBatch
 pub fn I18n::translator(Self, String) -> Translator
 pub fn I18n::translator_from_code(Self, String) -> Translator
 
+#derive(Eq, @debug.Debug)
 pub(all) struct LocaleError {
   code : LocaleErrorCode
   message : String
-  subtag_index : Int
-} derive(Eq, @debug.Debug)
+  subtag_index : Int32
+}
 pub fn LocaleError::equal(Self, Self) -> Bool
 pub fn LocaleError::not_equal(Self, Self) -> Bool
 pub fn LocaleError::to_repr(Self) -> @debug.Repr
 pub fn LocaleError::to_string(Self) -> String
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LocaleErrorCode {
   LocaleEmptyTagCode
   LocaleSyntaxCode
@@ -289,87 +301,96 @@ pub(all) enum LocaleErrorCode {
   LocaleDuplicateExtensionCode
   LocaleInvalidExtlangCode
   LocaleDuplicateSupportedCode
-} derive(Eq, @debug.Debug)
+}
 pub fn LocaleErrorCode::equal(Self, Self) -> Bool
 pub fn LocaleErrorCode::not_equal(Self, Self) -> Bool
 pub fn LocaleErrorCode::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MessageArg {
   name : String
   value : MessageValue
-} derive(Eq, @debug.Debug)
+}
 pub fn MessageArg::equal(Self, Self) -> Bool
 pub fn MessageArg::not_equal(Self, Self) -> Bool
 pub fn MessageArg::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MessageContract {
   params : Array[MessageParamSpec]
   allowed_tags : Array[String]
   enforce : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn MessageContract::equal(Self, Self) -> Bool
 pub fn MessageContract::new(Array[MessageParamSpec], allowed_tags? : Array[String]) -> Self
 pub fn MessageContract::not_equal(Self, Self) -> Bool
 pub fn MessageContract::open() -> Self
 pub fn MessageContract::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MessageParamSpec {
   name : String
   typ : String
-} derive(Eq, @debug.Debug)
+}
 pub fn MessageParamSpec::equal(Self, Self) -> Bool
 pub fn MessageParamSpec::not_equal(Self, Self) -> Bool
 pub fn MessageParamSpec::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum MessagePart {
   Text(String)
   Open(String, Array[FormatOption])
   Close(String)
   Standalone(String, Array[FormatOption])
-} derive(Eq, @debug.Debug)
+}
 pub fn MessagePart::equal(Self, Self) -> Bool
 pub fn MessagePart::not_equal(Self, Self) -> Bool
 pub fn MessagePart::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum MessageValue {
   TextValue(String)
-  IntValue(Int)
+  IntValue(Int32)
   DoubleValue(Double)
   BoolValue(Bool)
   InstantMillis(Int64)
-} derive(Eq, @debug.Debug)
+}
 pub fn MessageValue::equal(Self, Self) -> Bool
 pub fn MessageValue::not_equal(Self, Self) -> Bool
 pub fn MessageValue::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2BidiIsolation {
   Mf2DefaultBidiIsolation
   Mf2NoBidiIsolation
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2BidiIsolation::equal(Self, Self) -> Bool
 pub fn Mf2BidiIsolation::not_equal(Self, Self) -> Bool
 pub fn Mf2BidiIsolation::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2Direction {
   Mf2LeftToRight
   Mf2RightToLeft
   Mf2DirectionUnknown
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2Direction::equal(Self, Self) -> Bool
 pub fn Mf2Direction::not_equal(Self, Self) -> Bool
 pub fn Mf2Direction::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2Error {
   kind : Mf2ErrorKind
   code : Mf2ErrorCode
   message : String
-  offset : Int
-} derive(Eq, @debug.Debug)
+  offset : Int32
+}
 pub fn Mf2Error::equal(Self, Self) -> Bool
 pub fn Mf2Error::not_equal(Self, Self) -> Bool
 pub fn Mf2Error::to_repr(Self) -> @debug.Repr
 pub fn Mf2Error::to_string(Self) -> String
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ErrorCode {
   Mf2SyntaxCode
   Mf2DataModelCode
@@ -389,31 +410,34 @@ pub(all) enum Mf2ErrorCode {
   Mf2UnsupportedOperationCode
   Mf2FormattingCode
   Mf2LimitCode
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ErrorCode::equal(Self, Self) -> Bool
 pub fn Mf2ErrorCode::not_equal(Self, Self) -> Bool
 pub fn Mf2ErrorCode::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ErrorKind {
   Mf2SyntaxError
   Mf2DataModelError
   Mf2ResolutionError
   Mf2FormattingError
   Mf2LimitError
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ErrorKind::equal(Self, Self) -> Bool
 pub fn Mf2ErrorKind::not_equal(Self, Self) -> Bool
 pub fn Mf2ErrorKind::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2FormatResult {
   value : String
   parts : Array[Mf2FormattedPart]
   errors : Array[Mf2Error]
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FormatResult::equal(Self, Self) -> Bool
 pub fn Mf2FormatResult::not_equal(Self, Self) -> Bool
 pub fn Mf2FormatResult::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2FormattedExpression {
   value : String
   function_name : String?
@@ -423,28 +447,30 @@ pub(all) struct Mf2FormattedExpression {
   fields : Array[FormatterPart]
   attributes : Array[Mf2ModelAttribute]
   fallback : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FormattedExpression::equal(Self, Self) -> Bool
 pub fn Mf2FormattedExpression::not_equal(Self, Self) -> Bool
 pub fn Mf2FormattedExpression::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2FormattedMarkup {
   kind : Mf2ModelMarkupKind
   name : String
   options : Array[FormatOption]
   attributes : Array[Mf2ModelAttribute]
   id : String?
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FormattedMarkup::equal(Self, Self) -> Bool
 pub fn Mf2FormattedMarkup::not_equal(Self, Self) -> Bool
 pub fn Mf2FormattedMarkup::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2FormattedPart {
   Mf2FormattedText(String)
   Mf2FormattedExpressionPart(Mf2FormattedExpression)
   Mf2FormattedMarkupPart(Mf2FormattedMarkup)
   Mf2FormattedBidiIsolation(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FormattedPart::equal(Self, Self) -> Bool
 pub fn Mf2FormattedPart::not_equal(Self, Self) -> Bool
 pub fn Mf2FormattedPart::to_repr(Self) -> @debug.Repr
@@ -462,15 +488,17 @@ pub fn Mf2FormattingContext::locales(Self) -> Array[String]
 pub fn Mf2FormattingContext::new(locale~ : String, fallback_locales? : Array[String], inputs? : Array[Mf2Input], direction? : Mf2Direction, time_zone? : String, fallback? : String, bidi_isolation? : Mf2BidiIsolation) -> Result[Self, LocaleError]
 pub fn Mf2FormattingContext::time_zone(Self) -> String
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2FunctionCallContext {
   locales : Array[String]
   direction : Mf2Direction
   time_zone : String
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FunctionCallContext::equal(Self, Self) -> Bool
 pub fn Mf2FunctionCallContext::not_equal(Self, Self) -> Bool
 pub fn Mf2FunctionCallContext::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2FunctionFailure {
   Mf2FunctionBadOperand(String)
   Mf2FunctionBadOption(String)
@@ -478,7 +506,7 @@ pub(all) enum Mf2FunctionFailure {
   Mf2FunctionBadVariantKey(String)
   Mf2FunctionUnsupported(String)
   Mf2FunctionFormatting(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FunctionFailure::equal(Self, Self) -> Bool
 pub fn Mf2FunctionFailure::not_equal(Self, Self) -> Bool
 pub fn Mf2FunctionFailure::to_repr(Self) -> @debug.Repr
@@ -502,12 +530,13 @@ pub fn Mf2FunctionOperand::function_name(Self) -> String?
 pub fn Mf2FunctionOperand::inherited_options(Self) -> Array[FormatOption]
 pub fn Mf2FunctionOperand::raw(Self) -> MessageValue?
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2FunctionOption {
   name : String
   value : String
   raw : MessageValue?
   literal : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2FunctionOption::equal(Self, Self) -> Bool
 pub fn Mf2FunctionOption::not_equal(Self, Self) -> Bool
 pub fn Mf2FunctionOption::to_repr(Self) -> @debug.Repr
@@ -535,194 +564,216 @@ pub struct Mf2FunctionValue {
 pub fn Mf2FunctionValue::new(format~ : () -> Result[FormatterOutput, Mf2FunctionFailure], raw? : MessageValue?, match_key? : ((String) -> Result[Bool, Mf2FunctionFailure])?, better_than? : ((String, String) -> Result[Bool, Mf2FunctionFailure])?, direction? : Mf2Direction, isolate? : Bool, id? : String?, inherited_options? : Array[FormatOption], issues? : Array[Mf2FunctionFailure]) -> Self
 pub fn Mf2FunctionValue::text(String, direction? : Mf2Direction) -> Self
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2Input {
   name : String
   value : MessageValue
   direction : Mf2Direction
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2Input::equal(Self, Self) -> Bool
 pub fn Mf2Input::new(String, MessageValue, direction? : Mf2Direction) -> Self
 pub fn Mf2Input::not_equal(Self, Self) -> Bool
 pub fn Mf2Input::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2MessageModel {
   Mf2PatternMessage(Array[Mf2ModelDeclaration], Mf2ModelPattern)
   Mf2SelectMessage(Array[Mf2ModelDeclaration], Array[String], Array[Mf2ModelVariant])
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2MessageModel::equal(Self, Self) -> Bool
 pub fn Mf2MessageModel::not_equal(Self, Self) -> Bool
 pub fn Mf2MessageModel::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelAttribute {
   name : String
   value : String?
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelAttribute::equal(Self, Self) -> Bool
 pub fn Mf2ModelAttribute::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelAttribute::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ModelDeclaration {
   Mf2ModelInput(String, Mf2ModelExpression)
   Mf2ModelLocal(String, Mf2ModelExpression)
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelDeclaration::equal(Self, Self) -> Bool
 pub fn Mf2ModelDeclaration::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelDeclaration::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelExpression {
   arg : Mf2ModelValue?
   function_ref : Mf2ModelFunction?
   attributes : Array[Mf2ModelAttribute]
-  offset : Int
-} derive(Eq, @debug.Debug)
+  offset : Int32
+}
 pub fn Mf2ModelExpression::equal(Self, Self) -> Bool
 pub fn Mf2ModelExpression::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelExpression::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelFunction {
   name : String
   options : Array[Mf2ModelOption]
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelFunction::equal(Self, Self) -> Bool
 pub fn Mf2ModelFunction::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelFunction::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelMarkup {
   kind : Mf2ModelMarkupKind
   name : String
   options : Array[Mf2ModelOption]
   attributes : Array[Mf2ModelAttribute]
-  offset : Int
-} derive(Eq, @debug.Debug)
+  offset : Int32
+}
 pub fn Mf2ModelMarkup::equal(Self, Self) -> Bool
 pub fn Mf2ModelMarkup::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelMarkup::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ModelMarkupKind {
   Mf2MarkupOpen
   Mf2MarkupStandalone
   Mf2MarkupClose
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelMarkupKind::equal(Self, Self) -> Bool
 pub fn Mf2ModelMarkupKind::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelMarkupKind::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelOption {
   name : String
   value : Mf2ModelValue
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelOption::equal(Self, Self) -> Bool
 pub fn Mf2ModelOption::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelOption::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelPattern {
   parts : Array[Mf2ModelPatternPart]
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelPattern::equal(Self, Self) -> Bool
 pub fn Mf2ModelPattern::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelPattern::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ModelPatternPart {
   Mf2ModelText(String)
   Mf2ModelExpressionPart(Mf2ModelExpression)
   Mf2ModelMarkupPart(Mf2ModelMarkup)
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelPatternPart::equal(Self, Self) -> Bool
 pub fn Mf2ModelPatternPart::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelPatternPart::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ModelValue {
   Mf2ModelLiteral(String)
   Mf2ModelVariable(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelValue::equal(Self, Self) -> Bool
 pub fn Mf2ModelValue::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelValue::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Mf2ModelVariant {
   keys : Array[Mf2ModelVariantKey]
   value : Mf2ModelPattern
-  offset : Int
-} derive(Eq, @debug.Debug)
+  offset : Int32
+}
 pub fn Mf2ModelVariant::equal(Self, Self) -> Bool
 pub fn Mf2ModelVariant::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelVariant::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Mf2ModelVariantKey {
   Mf2ModelLiteralKey(String)
   Mf2ModelCatchallKey
-} derive(Eq, @debug.Debug)
+}
 pub fn Mf2ModelVariantKey::equal(Self, Self) -> Bool
 pub fn Mf2ModelVariantKey::not_equal(Self, Self) -> Bool
 pub fn Mf2ModelVariantKey::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub enum Operand {
   VariableOperand(String)
   LiteralOperand(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn Operand::equal(Self, Self) -> Bool
 pub fn Operand::not_equal(Self, Self) -> Bool
 pub fn Operand::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub enum OptionExpression {
   LiteralOption(String)
   VariableOption(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn OptionExpression::equal(Self, Self) -> Bool
 pub fn OptionExpression::not_equal(Self, Self) -> Bool
 pub fn OptionExpression::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct ParsedOption {
   name : String
   value : OptionExpression
-} derive(Eq, @debug.Debug)
+}
 pub fn ParsedOption::equal(Self, Self) -> Bool
 pub fn ParsedOption::not_equal(Self, Self) -> Bool
 pub fn ParsedOption::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub struct Pattern {
   nodes : Array[PatternNode]
   has_markup : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn Pattern::equal(Self, Self) -> Bool
 pub fn Pattern::not_equal(Self, Self) -> Bool
 pub fn Pattern::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub enum PatternNode {
   PatternText(String)
   PatternExpression(Expression)
   PatternOpen(String, Array[ParsedOption])
   PatternClose(String)
   PatternStandalone(String, Array[ParsedOption])
-} derive(Eq, @debug.Debug)
+}
 pub fn PatternNode::equal(Self, Self) -> Bool
 pub fn PatternNode::not_equal(Self, Self) -> Bool
 pub fn PatternNode::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum RichPart {
   RichText(String)
   RichOpen(String, Array[FormatOption])
   RichClose(String)
   RichStandalone(String, Array[FormatOption])
-} derive(Eq, @debug.Debug)
+}
 pub fn RichPart::equal(Self, Self) -> Bool
 pub fn RichPart::not_equal(Self, Self) -> Bool
 pub fn RichPart::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct TranslationError {
   kind : TranslationErrorKind
   requested_locale : String
   message_id : String
   format_errors : Array[Mf2Error]
-} derive(Eq, @debug.Debug)
+}
 pub fn TranslationError::equal(Self, Self) -> Bool
 pub fn TranslationError::not_equal(Self, Self) -> Bool
 pub fn TranslationError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum TranslationErrorKind {
   TranslationMissing
   TranslationFormattingFailed
-} derive(Eq, @debug.Debug)
+}
 pub fn TranslationErrorKind::equal(Self, Self) -> Bool
 pub fn TranslationErrorKind::not_equal(Self, Self) -> Bool
 pub fn TranslationErrorKind::to_repr(Self) -> @debug.Repr
@@ -738,10 +789,11 @@ pub fn Translator::translate_raw(Self, String, Array[MessageArg]) -> String?
 pub fn Translator::try_t(Self, String, Array[MessageArg]) -> Result[String, TranslationError]
 pub fn Translator::try_t_parts(Self, String, Array[MessageArg]) -> Result[Array[MessagePart], TranslationError]
 
+#derive(Eq, @debug.Debug)
 pub struct Variant {
   keys : Array[String]
   pattern : Pattern
-} derive(Eq, @debug.Debug)
+}
 pub fn Variant::equal(Self, Self) -> Bool
 pub fn Variant::not_equal(Self, Self) -> Bool
 pub fn Variant::to_repr(Self) -> @debug.Repr

@@ -3,7 +3,7 @@
 [English](README.mbt.md)
 
 `lampclaw/i18n` 是 MoonBit 的类型安全、生成优先 i18n 工作流。
-`0.9.3` 以一个模块提供 runtime、generator、可移植 `moonx` CLI，以及独立的固定
+`0.9.4` 以一个模块提供 runtime、generator、可移植 `moonx` CLI，以及独立的固定
 Unicode MF2 语法/data-model、resolution、stable 默认函数与公开 registry API。生成的应用 facade 当前面向
 JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
@@ -13,16 +13,16 @@ JavaScript，并通过 `Result` 错误边界使用宿主环境的 `Intl`。
 
 ## 路线图与当前状态
 
-`0.9.3` 保持 `0.9.0` 冻结的 JavaScript Unicode MF2 conformance candidate。
-它迁移到 MoonBit `0.10.15+943464bfa`，为应用 catalog loader 加入 10 秒超时、
-有界流式读取和重试请求隔离。Node `26.7.0` 与冻结的 MF2 profile 保持不变。
+`0.9.4` 将维护基线更新为 MoonBit `0.10.20+65efd5b93`、Node LTS `26.13.1`、
+npm `12.2.2` 和 Playwright `1.65.1`。它保留 `0.9.0` 冻结的 JavaScript Unicode
+MF2 candidate，以及应用 loader 的 10 秒超时、有界流式读取和重试请求隔离。
 新 scaffold 会端到端使用显式 stable `unicode-mf2-ldml48.2-js-v2`。Draft `:date`、
 `:time`、`:datetime` 必须使用单独命名的
 `unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1`。省略 `messageProfile` 是 error
 `I18N1003`；legacy standards v1 作为带 warning 的迁移桥梁保留。
 
-本版本冻结正式 Unicode LDML 48.2 source、77 行 anchored normative matrix、独立
-`messageformat@4.0.0` differential 证据，以及真实 Chromium、Firefox、WebKit
+候选契约冻结正式 Unicode LDML 48.2 source 与 77 行 anchored normative matrix。
+当前验证采用独立 `messageformat@4.1.0` differential 证据，以及真实 Chromium、Firefox、WebKit
 conformance run。公开 interface、生成 template、CLI 与 wire contract 已记录为 1.0
 候选；但不会声明 Draft function 或每个 backend 都具备项目自有 CLDR formatting。公开的
 [产品路线图](docs/roadmap.zh-CN.mbt.md) 以版本门槛定义从当前 Web profile，经
@@ -38,31 +38,32 @@ conformance 与真实消费者验收门槛。
 
 ## 安装与运行 CLI
 
-以下 registry 命令将库和 CLI 固定到 `0.9.3`。评估源码 checkout 时，请执行
+以下 registry 命令将库和 CLI 固定到 `0.9.4`。评估源码 checkout 时，请执行
 `moon run --target wasm cmd/i18n -- --help`，并参考
 [仓库示例](examples/rabbita_todo/README.zh-CN.mbt.md)。
 
 向应用模块添加库依赖：
 
 ~~~bash
-moon add lampclaw/i18n@0.9.3
+moon add lampclaw/i18n@0.9.4
 ~~~
 
 直接运行 registry 中固定版本的 CLI，无需全局安装：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 --help
+moonx lampclaw/i18n/cmd/i18n@0.9.4 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.9.3` 是可选的项目级二进制依赖，并非
-主流程。也可用
-`moon install lampclaw/i18n/cmd/i18n@0.9.3` 全局安装，命令名为
-`moon-i18n`。
+也可用 `moon install lampclaw/i18n/cmd/i18n@0.9.4 --bin ./bin` 安装原生程序。
+当前 Moon 按目录命名为 `i18n`（Windows 为 `i18n.exe`），不采用旧的二进制名称配置。
+保留 `moon-i18n` 命令名时，Unix 执行 `mv ./bin/i18n ./bin/moon-i18n`；PowerShell
+执行 `Rename-Item ./bin/i18n.exe moon-i18n.exe`。安装源码 checkout 时，使用
+`moon install ./cmd/i18n --bin ./bin` 后同样重命名。可移植 Wasm 执行使用上面的 `moonx`。
 
 在尚不存在的路径中创建完整双语言 JavaScript 模块：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.9.4 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -151,14 +152,14 @@ markup 名称。
 在应用模块中运行：
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.4 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.3 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.4 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \

@@ -3,7 +3,7 @@
 [中文](README.zh-CN.mbt.md)
 
 `lampclaw/i18n` is a typed, generator-first internationalization workflow for
-MoonBit. Version `0.9.3` contains the runtime, generator, a portable
+MoonBit. Version `0.9.4` contains the runtime, generator, a portable
 `moonx` CLI, and standalone pinned Unicode MF2 syntax/data-model, resolution,
 stable default-function, and public registry APIs.
 Generated application facades currently target JavaScript and use the host's
@@ -16,10 +16,10 @@ embedding or lazy loading, not a second authoring format.
 
 ## Roadmap and status
 
-`0.9.3` preserves the JavaScript Unicode MF2 conformance candidate frozen in
-`0.9.0`. It migrates to MoonBit `0.10.15+943464bfa` and hardens the application
-catalog loader with a 10-second deadline, bounded streaming, and isolation
-between retry attempts. Node `26.7.0` and the frozen MF2 profiles remain unchanged.
+Version `0.9.4` updates the maintenance baseline to MoonBit `0.10.20+65efd5b93`,
+Node LTS `26.13.1`, npm `12.2.2`, and Playwright `1.65.1`.
+It preserves the JavaScript Unicode MF2 candidate frozen in `0.9.0`, including
+the application loader's 10-second deadline, bounded streaming, and retry isolation.
 New scaffolds use the explicit stable
 `unicode-mf2-ldml48.2-js-v2` profile end to end. Draft `:date`, `:time`,
 and `:datetime` require the separately named
@@ -27,8 +27,8 @@ and `:datetime` require the separately named
 `messageProfile` is error `I18N1003`; legacy standards v1 remains a warned
 migration bridge.
 
-The release freezes official Unicode LDML 48.2 sources, a 77-row anchored
-normative matrix, independent `messageformat@4.0.0` differential evidence,
+The candidate freezes official Unicode LDML 48.2 sources and a 77-row anchored
+normative matrix. Current validation uses independent `messageformat@4.1.0` differential evidence
 and real Chromium, Firefox, and WebKit conformance runs. The public interfaces,
 generated template, CLI, and wire contracts are recorded as a 1.0 candidate.
 It deliberately stops short of claiming Draft functions or project-owned CLDR
@@ -49,7 +49,7 @@ and real-consumer acceptance gates must still pass.
 
 ## Install and run the CLI
 
-The registry commands below pin the library and CLI to `0.9.3`.
+The registry commands below pin the library and CLI to `0.9.4`.
 To evaluate a source checkout, run
 `moon run --target wasm cmd/i18n -- --help` and follow the
 [repository example](examples/rabbita_todo/README.mbt.md).
@@ -57,24 +57,28 @@ To evaluate a source checkout, run
 Add the library dependency to an application module:
 
 ~~~bash
-moon add lampclaw/i18n@0.9.3
+moon add lampclaw/i18n@0.9.4
 ~~~
 
 Run the pinned CLI directly from the registry; no global install is required:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 --help
+moonx lampclaw/i18n/cmd/i18n@0.9.4 --help
 ~~~
 
-`moon add --bin lampclaw/i18n@0.9.3` is an optional project-local binary
-dependency, not the primary workflow. A global command can alternatively be installed with
-`moon install lampclaw/i18n/cmd/i18n@0.9.3`; it is named `moon-i18n`.
+An optional native command can be installed with
+`moon install lampclaw/i18n/cmd/i18n@0.9.4 --bin ./bin`. Current Moon installs
+it as `i18n` (`i18n.exe` on Windows), ignoring the legacy binary-name metadata.
+To retain the `moon-i18n` command, run `mv ./bin/i18n ./bin/moon-i18n` on Unix,
+or `Rename-Item ./bin/i18n.exe moon-i18n.exe` in PowerShell.
+For a source checkout, use `moon install ./cmd/i18n --bin ./bin`
+followed by the same rename. Portable Wasm execution uses `moonx` above.
 
 Create a complete bilingual JavaScript module in a path that does not yet
 exist:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 scaffold acme/hello ./hello
+moonx lampclaw/i18n/cmd/i18n@0.9.4 scaffold acme/hello ./hello
 cd hello
 moon update
 moon run --target js main
@@ -169,14 +173,14 @@ independently.
 From the application module, run:
 
 ~~~bash
-moonx lampclaw/i18n/cmd/i18n@0.9.3 generate \
+moonx lampclaw/i18n/cmd/i18n@0.9.4 generate \
   localization/config.json \
   localization/schema.json \
   localization/locales \
   i18n \
   public/i18n
 
-moonx lampclaw/i18n/cmd/i18n@0.9.3 check \
+moonx lampclaw/i18n/cmd/i18n@0.9.4 check \
   localization/config.json \
   localization/schema.json \
   localization/locales \

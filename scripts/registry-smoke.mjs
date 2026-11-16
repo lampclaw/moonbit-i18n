@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -394,21 +395,16 @@ try {
       "binary",
       "smoke/binary",
     ]);
-    run("moon", ["add", "--bin", coordinate], { cwd: binRoot });
-    const launcher = join(
+    run("moon", ["install", cli, "--bin", join(binRoot, "bin")], { cwd: binRoot });
+    const installed = join(
       binRoot,
-      "_build",
-      "__moonbin__",
-      process.platform === "win32" ? "moon-i18n.ps1" : "moon-i18n",
+      "bin",
+      process.platform === "win32" ? "i18n.exe" : "i18n",
     );
-    assert.ok(existsSync(launcher), `binary launcher was not installed: ${launcher}`);
-    const binVersion = (process.platform === "win32"
-      ? run("pwsh", ["-File", launcher, "--version"], {
-          cwd: binRoot,
-          capture: true,
-        })
-      : run(launcher, ["--version"], { cwd: binRoot, capture: true })
-    ).trim();
+    assert.ok(existsSync(installed), `native executable was not installed: ${installed}`);
+    const launcher = join(binRoot, "bin", process.platform === "win32" ? "moon-i18n.exe" : "moon-i18n");
+    renameSync(installed, launcher);
+    const binVersion = run(launcher, ["--version"], { cwd: binRoot, capture: true }).trim();
     assert.equal(binVersion, `moon-i18n ${version}`);
   }
   console.log(`registry smoke passed for ${coordinate}`);

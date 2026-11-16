@@ -2,8 +2,8 @@
   "fixtureVersion": 2,
   "reference": {
     "package": "messageformat",
-    "version": "4.0.0",
-    "runtime": "Node 26.7.0"
+    "version": "4.1.0",
+    "runtime": "Node 26.13.1"
   },
   "cases": [
     {"id": "literal", "classification": "exact", "locale": "en-US", "bidiIsolation": "none", "source": "Hello, MoonBit!"},

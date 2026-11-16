@@ -1,5 +1,6 @@
 ///|
 /// A one-based source location plus its zero-based UTF-8 byte offset.
+#derive(Eq, Debug)
 pub(all) struct SourcePosition {
   /// Zero-based UTF-8 byte offset.
   byte_offset : Int32
@@ -7,28 +8,31 @@ pub(all) struct SourcePosition {
   line : Int32
   /// One-based Unicode-scalar column.
   column : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// A half-open source range carried by an authoring diagnostic.
+#derive(Eq, Debug)
 pub(all) struct SourceSpan {
   /// Inclusive beginning of the range.
   start : SourcePosition
   /// Exclusive end of the range.
   end : SourcePosition
-} derive(Eq, Debug)
+}
 
 ///|
 /// Stable severity for an authoring diagnostic.
+#derive(Eq, Debug)
 pub(all) enum DiagnosticSeverity {
   /// Generation cannot continue until the problem is repaired.
   Error
   /// Generation can continue, but migration or review is recommended.
   Warning
-} derive(Eq, Debug)
+}
 
 ///|
 /// A stable, path-aware authoring diagnostic suitable for editors and CI.
+#derive(Eq, Debug)
 pub(all) struct Diagnostic {
   /// Stable code. Code meanings are append-only within the `0.x` line.
   code : String
@@ -40,7 +44,7 @@ pub(all) struct Diagnostic {
   path : String
   /// Half-open range within `path`.
   span : SourceSpan
-} derive(Eq, Debug)
+}
 
 ///|
 /// Returns the lowercase wire spelling of this severity.

@@ -5,7 +5,7 @@
 这个浏览器示例基于 Rabbita 官方 Todo，展示完整的生成优先工作流。应用的维护源码
 导入自己的生成 package 和应用拥有的浏览器 adapter，不直接导入 i18n runtime。
 
-此示例使用 `0.9.3` 维护版本。下方命令使用匹配的本地 CLI，便于源码 checkout 重新生成产物。
+此示例使用 `0.9.4` 维护版本。下方命令使用匹配的本地 CLI，便于源码 checkout 重新生成产物。
 
 ## 生成与校验
 
@@ -49,8 +49,8 @@ release 构建：
 warren build --browser-entry main --dist dist
 ~~~
 
-Warren `0.4.5` 在 release 构建中使用随工具固定的 Evol minifier。浏览器验收仍固定
-Node `26.7.0` 和 Playwright `1.62.1`。
+Warren `0.4.5` 在 release 构建中使用随工具固定的 Evol minifier。当前 `0.9.4`
+浏览器验收固定 Node LTS `26.13.1`、npm `12.2.2` 和 Playwright `1.65.1`。
 
 ## 架构
 

@@ -12,12 +12,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  MOONBIT_TOOLCHAIN: 0.10.15+943464bfa
+  MOONBIT_TOOLCHAIN: 0.10.20+65efd5b93
   MOONBIT_INSTALLER_SHA256: 46495f8cdc0050f79b6cb195d66478d101cb3601d68506568fbe377fcdf2a9fe
   MOONBIT_WINDOWS_INSTALLER_SHA256: a5101e91ffa9905fb25cd009b9a4aa942971a294bd055c89836e3af89b710c64
-  MOON_VERSION: 0.1.20261012
-  MOONC_VERSION: 0.10.15
-  NODE_VERSION: 26.7.0
+  MOON_VERSION: 0.1.20261104
+  MOONC_VERSION: 0.10.20
+  NODE_VERSION: 26.13.1
+  NPM_VERSION: 12.2.2
 
 jobs:
   quality:
@@ -34,10 +35,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
+
+      - name: Setup pinned npm
+        run: npm install --global npm@${{ env.NPM_VERSION }}
 
       - name: Setup MoonBit
         run: |
@@ -99,6 +103,7 @@ jobs:
 
       - name: MF2 profile contract
         run: |
+          test "$(npm --version)" = "$NPM_VERSION"
           npm ci
           node scripts/sync-mf2-upstream-fixtures.mjs --check
           node scripts/generate-mf2-syntax-tests.mjs --check
@@ -217,10 +222,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
+
+      - name: Setup pinned npm
+        run: npm install --global npm@${{ env.NPM_VERSION }}
 
       - name: Setup MoonBit
         run: |
@@ -249,6 +257,7 @@ jobs:
       - name: Install browser tooling
         run: |
           moon install moonbit-community/warren@0.4.5
+          test "$(npm --version)" = "$NPM_VERSION"
           npm ci
           npx playwright install --with-deps "${{ matrix.browser }}"
 
@@ -269,10 +278,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
+
+      - name: Setup pinned npm
+        run: npm install --global npm@${{ env.NPM_VERSION }}
 
       - name: Setup MoonBit on Unix
         if: runner.os != 'Windows'
@@ -348,14 +360,18 @@ jobs:
           package_version="$(node scripts/version-contract.mjs get)"
           test "$(moon run --frozen --target native cmd/i18n -- --version)" = "moon-i18n $package_version"
 
-      - name: Installed CLI launcher
+      - name: Installed native CLI
         shell: bash
         run: |
           install_dir="$(mktemp -d)"
           package_version="$(node scripts/version-contract.mjs get)"
-          MOON_WORK=off moon tool build-binary-dep cmd/i18n --install-path "$install_dir"
+          MOON_WORK=off moon install ./cmd/i18n --bin "$install_dir"
+          # Current moon install uses the package directory name. Preserve
+          # the documented moon-i18n command with the explicit install rename.
           if [ "$RUNNER_OS" = "Windows" ]; then
-            test "$(pwsh -File "$install_dir/moon-i18n.ps1" --version)" = "moon-i18n $package_version"
+            mv "$install_dir/i18n.exe" "$install_dir/moon-i18n.exe"
+            test "$("$install_dir/moon-i18n.exe" --version)" = "moon-i18n $package_version"
           else
+            mv "$install_dir/i18n" "$install_dir/moon-i18n"
             test "$("$install_dir/moon-i18n" --version)" = "moon-i18n $package_version"
           fi

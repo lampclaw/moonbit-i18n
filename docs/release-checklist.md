@@ -11,16 +11,25 @@ Historical tag-verification records below describe the checks performed at the
 time; those references were removed on 2026-10-14. Their full commit SHAs and
 archive checksums remain the release identities.
 
+The current toolchain update uses version `0.9.4`. Before future releases,
+select the next unused patch version and synchronize the CLI, manifests,
+generated output, and bilingual documentation with `scripts/version-contract.mjs`.
+Moon `0.1.20261104` (`940aa18`) with `mooncake-bin 0.1.20261030` (`dbeb239`)
+has a reviewed status-only dry-run response: it must exit zero, pass both
+archive checks, and print `202 Accepted`. It no longer prints the older
+version-specific success detail. This exact pair has no exit-status exception.
+
 Before publishing, the reviewed release commit must be clean, pushed to
 `origin/main`, and green in every required Test job. Run the full quality and
-package gates below with archive `0.10.15+943464bfa` (Moon
-`0.1.20261012`, moonc `0.10.15`), its bundled publishing client, and Node.js
-`26.7.0`. Verify `moon whoami` is `lampclaw`, then run
+package gates below with archive `0.10.20+65efd5b93` (Moon
+`0.1.20261104`, moonc `0.10.20`), its bundled publishing client, Node.js LTS
+`26.13.1`, and npm `12.2.2`. Verify `moon whoami` is `lampclaw`, then run
 `node scripts/publish-dry-run.mjs`. The observed client pairs listed below
 return 255 after a successful dry run, including Moon `0.1.20261012` with
 `mooncake-bin 0.1.20260911`. That exception is limited to the exact recorded
 pairs and requires both archive checks, exact `202 Accepted`, and the
-version-specific success detail. Other client pairs must exit zero.
+version-specific success detail. The current exact pair uses the reviewed
+status-only rule above; other client pairs must exit zero and provide the detail.
 The helper rejects every other non-zero status or incomplete
 response; never treat 255 as a general success code.
 
@@ -46,6 +55,17 @@ registry URL, publish timestamps/status, and known limitations under
 If a defect is found after the registry accepted a version, fix it in the next
 SemVer patch. Published Mooncakes versions and recorded release identities must never
 be overwritten.
+
+## `0.9.4` pinned publish-client observation — 2026-11-16
+
+Moon `0.1.20261104` (`940aa18`) with `mooncake-bin 0.1.20261030` (`dbeb239`)
+passed local and extracted-archive checks, printed `Server status: 202 Accepted`,
+and exited zero. The older detail-text requirement rejected this changed
+response shape during preflight. A direct dry run confirmed the zero exit;
+Registry metadata remained at `0.9.3`. The helper now accepts the status-only
+response solely for this exact pair with exit zero, preserving archive
+validation, freshness, checksum, and every historical non-zero-exit restriction.
+This changes no real-publish behavior or retry rule.
 
 ## `0.9.3` pinned publish-client observation — 2026-10-15
 
@@ -123,7 +143,7 @@ from the published archive.
 ## Quality gates
 
 - [ ] Run the complete command list in `CONTRIBUTING.md` with the pinned
-      MoonBit toolchain and Node.js 26.7.0.
+      MoonBit toolchain and Node.js 26.13.1.
 - [ ] Run the portable CLI test matrix on Ubuntu, macOS, and Windows for both
       Wasm and native targets where supported by the runner.
 - [ ] Confirm runtime coverage is at least 90%, generator and CLI coverage are
@@ -161,11 +181,12 @@ from the published archive.
 - [ ] Extract the archive in a clean directory and run `moon doc` there.
 - [ ] Run `node scripts/package-smoke.mjs` to exercise the actual archive as a
       clean local workspace dependency, generate a bilingual app, run its
-      JavaScript output, install a dynamic catalog, and execute the Wasm binary
-      launcher.
+      JavaScript output, install a dynamic catalog, and execute the installed
+      native CLI after the documented `i18n` to `moon-i18n` rename. Keep the
+      separate Wasm CLI checks and registry `moonx` checks.
 - [ ] Confirm `moon add lampclaw/i18n@<version>` is the library workflow and
       `moonx lampclaw/i18n/cmd/i18n@<version>` is the primary CLI workflow.
-- [ ] Treat `moon add --bin lampclaw/i18n@<version>` and global
+- [ ] Treat `moon install lampclaw/i18n/cmd/i18n@<version> --bin ./bin` and global
       `moon install` as optional compatibility paths, not prerequisites for
       authoring.
 

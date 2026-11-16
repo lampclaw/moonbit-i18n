@@ -1,5 +1,6 @@
 ///|
 /// Compatibility representation for rich text and markup events.
+#derive(Eq, Debug)
 pub(all) enum RichPart {
   /// Plain text.
   RichText(String)
@@ -9,7 +10,7 @@ pub(all) enum RichPart {
   RichClose(String)
   /// Standalone markup with resolved options.
   RichStandalone(String, Array[FormatOption])
-} derive(Eq, Debug)
+}
 
 ///|
 /// Formats MF2 source into the compatibility rich-parts representation.

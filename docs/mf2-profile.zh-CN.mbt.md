@@ -2,12 +2,12 @@
 
 [English](mf2-profile.mbt.md)
 
-`0.9.3` 维护工作更新编译器表示与应用 loader 的可靠性，不改变此标准 profile。
+`0.9.4` 维护工作更新编译器表示、依赖与 host 验证版本，不改变此标准 profile。
 
 `0.9.0` 以 LDML 48.2 正式发布的 Unicode MessageFormat 2.0 文本为基线，冻结了
 JavaScript conformance candidate。`0.9.2` 保持该 candidate，修复只通过分块安装的
 locale 协商，并增量执行现有文本输出上限。精确 MoonBit 构建工具与依赖版本
-在 `0.9.3` 中见[支持政策](support-policy.zh-CN.mbt.md)。Authoring 必须显式选择以下 message profile 之一：
+在 `0.9.4` 中见[支持政策](support-policy.zh-CN.mbt.md)。Authoring 必须显式选择以下 message profile 之一：
 
 - `unicode-mf2-ldml48.2-js-v2` 是推荐的稳定 profile，包含稳定的 `:string`、
   `:number`、`:integer`、`:offset`、`:currency`、`:percent`，并拒绝 Draft
@@ -39,8 +39,10 @@ i18next 与 ARB 命令也必须传入 `--message-profile`。详见
 fixture 与 Unicode license 位于 `tests/unicode-mf2/`。
 
 `tests/unicode-mf2/standards.json` 还固定 CLDR 48.2、CLDR JSON 48.2.0、日期为
-2026-08-08 的 IANA Language Subtag Registry，以及 Node 26.7.0 `Intl` host policy。
-任何规范输入升级都必须显式审查 profile；CI 会拒绝移动引用或 hash 漂移。
+2026-08-08 的 IANA Language Subtag Registry，以及原始候选的 Node 26.7.0 `Intl` host policy。
+`0.9.4` 工具链与 host 补充记录 `docs/contracts/current-toolchain.json` 保存当前
+Node LTS 和浏览器验证版本，不覆盖历史快照。任何规范输入升级都必须显式审查 profile；
+CI 会拒绝移动引用或 hash 漂移。
 
 ## 兼容矩阵
 
@@ -59,7 +61,7 @@ conformance 声明。
 
 ## Conformance 声明
 
-`0.9.3` JavaScript backend 仍是固定 stable MF2 范围的 release candidate，证据包括：
+`0.9.4` JavaScript backend 仍是固定 stable MF2 范围的 release candidate，证据包括：
 
 - 270 个上游 syntax/data-model case（114 well-formed、133 syntax error、23
   data-model）；
@@ -69,18 +71,18 @@ conformance 声明。
   case；
 - 77 条与规范 anchor 一一对应的 requirement、全部 6 个 stable function 和 40 个
   stable option，无法解释的 gap 与 blocker 均为零；
-- 相对独立 `messageformat@4.0.0` 的 24 个 differential case，其中 20 个 stable、
+- 相对独立 `messageformat@4.1.0` 的 24 个 differential case，其中 20 个 stable、
   4 个 experimental date/time，无法解释的 semantic failure 为零；
 - 在真实 Chromium、Firefox、WebKit 中运行相同 syntax、resolution、function 与
   differential suite，并验证十三个 Rabbita 应用场景。
 
-记录的 Node host 是 26.7.0，包含 ICU 78.3、CLDR 48.0、Unicode 17.0、tz 2026c。
+当前 Node host 是 26.13.1，包含 ICU 78.3、CLDR 48.0、Unicode 17.0、tz 2026e。
 浏览器测试会记录自己的 `Intl` fingerprint，使 host data 差异可见，不会被误判为 engine
 bug。
 
 声明刻意限制在稳定 JavaScript profile。Draft date/time 属于 experimental，Draft
 `:unit` 暂缓，custom function 属于扩展，Native/Wasm 尚未携带项目自有 CLDR formatter。
-因此 `0.9.3` 不声明在所有 backend 上覆盖每个 optional 或 Draft MF2 功能。
+因此 `0.9.4` 不声明在所有 backend 上覆盖每个 optional 或 Draft MF2 功能。
 
 ## 契约纪律
 

@@ -6,6 +6,35 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-16
+
+### Changed
+
+- Upgrade the build baseline to MoonBit `0.10.20+65efd5b93` (Moon
+  `0.1.20261104`), XML `0.6.1`, x `0.5.7`, parser `0.4.8`, async `0.22.9`,
+  and example Rabbita `0.17.0`. Normalization `0.5.2` and Warren `0.4.5`
+  remain the latest formal releases.
+- Pin Node LTS `26.13.1`, npm `12.2.2`, Playwright `1.65.1`, and the
+  independent MF2 oracle `messageformat@4.1.0`; update setup-node to `v7.1.0`.
+  Record the current Intl fingerprint, including tz `2026e`, separately from
+  the immutable normative standards and original host snapshot.
+- Migrate source and generated code to prefix `#derive(...)`. Verify both the
+  new interface hashes and the original frozen API after normalizing only
+  derive placement, the `Int32` alias spelling, and the previously reviewed
+  explicit derived methods. Record this in `docs/contracts/current-toolchain.json`.
+- Replace removed binary-install commands with `moon install ... --bin <dir>`.
+  This installer builds native `i18n`/`i18n.exe`; explicitly rename it to
+  `moon-i18n`/`moon-i18n.exe` to retain the existing command. Portable execution
+  continues through `moonx`.
+  Keep the supported targets, MF2/CLDR/IANA inputs, profiles, wire contracts,
+  coverage thresholds, performance budgets, and Web delivery ceilings.
+- Recognize the reviewed dry-run response from Moon `0.1.20261104` (`940aa18`)
+  with `mooncake-bin 0.1.20261030` (`dbeb239`): exit zero, two archive checks,
+  and `202 Accepted`, without the older detail text. Restrict this rule to
+  that exact client pair; retain archive freshness/checksums and the historical
+  exit-255 allowlist. Real publication still requires a single attempt followed
+  by exact-version Registry verification.
+
 ## [0.9.3] - 2026-10-15
 
 ### Changed

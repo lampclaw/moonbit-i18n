@@ -73,6 +73,7 @@ priv struct ParsedXliff {
 
 ///|
 /// Files produced by state-aware XLIFF import.
+#derive(Eq, Debug)
 pub(all) struct XliffImportArtifacts {
   /// Canonical locale JSON containing imported MF2 payloads.
   locale_source : String
@@ -80,16 +81,17 @@ pub(all) struct XliffImportArtifacts {
   exchange_state : String
   /// Versioned machine-readable preservation and loss report.
   report : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Files produced by a deterministic one-way ecosystem migration.
+#derive(Eq, Debug)
 pub(all) struct LocaleMigrationArtifacts {
   /// Canonical locale JSON containing every safely converted message.
   locale_source : String
   /// Versioned machine-readable conversion and loss report.
   report : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Exports schema-ordered translation units as state-normalized XLIFF 2.1.

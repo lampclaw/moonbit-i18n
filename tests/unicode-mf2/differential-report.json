@@ -4,15 +4,15 @@
   "experimentalDatetimeProfile": "unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1",
   "reference": {
     "package": "messageformat",
-    "version": "4.0.0",
-    "runtime": "Node 26.7.0"
+    "version": "4.1.0",
+    "runtime": "Node 26.13.1"
   },
   "host": {
-    "node": "26.7.0",
+    "node": "26.13.1",
     "icu": "78.3",
     "cldr": "48.0",
     "unicode": "17.0",
-    "timeZoneData": "2026c"
+    "timeZoneData": "2026e"
   },
   "totalCases": 24,
   "stableCases": [

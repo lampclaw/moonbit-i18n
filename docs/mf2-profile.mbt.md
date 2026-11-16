@@ -2,14 +2,14 @@
 
 [中文](mf2-profile.zh-CN.mbt.md)
 
-The `0.9.3` maintenance work changes the compiler representation and
-application-owned loader reliability, without changing this standards profile.
+The `0.9.4` maintenance work updates the compiler representation, dependencies,
+and host validation pins without changing this standards profile.
 
 Version `0.9.0` froze the JavaScript conformance candidate against the
 official Unicode MessageFormat 2.0 text shipped with LDML 48.2. Version
 `0.9.2` preserved that candidate while fixing chunk-only locale negotiation
 and enforcing the existing text-output limit incrementally. The exact
-MoonBit build-tool and dependency pins for `0.9.3` are in the
+MoonBit build-tool and dependency pins for `0.9.4` are in the
 [support policy](support-policy.mbt.md).
 Authoring must select one of these explicit message profiles:
 
@@ -47,8 +47,11 @@ source set, hashes, generated fixtures, and Unicode license are vendored under
 
 `tests/unicode-mf2/standards.json` additionally freezes CLDR 48.2, CLDR JSON
 48.2.0, the IANA Language Subtag Registry dated 2026-08-08, and the Node
-26.7.0 `Intl` host policy. Updating any normative input requires an explicit
-profile review; CI rejects a moving reference or hash drift.
+26.7.0 `Intl` host policy from the original candidate. The `0.9.4` toolchain
+and host supplement in `docs/contracts/current-toolchain.json` records the current
+Node LTS and browser validation pins without rewriting that historical snapshot.
+Updating any normative input requires an explicit profile review; CI rejects a
+moving reference or hash drift.
 
 ## Compatibility matrix
 
@@ -68,7 +71,7 @@ claim.
 
 ## Conformance statement
 
-The `0.9.3` JavaScript backend remains the release candidate for the pinned stable
+The `0.9.4` JavaScript backend remains the release candidate for the pinned stable
 MF2 surface, backed by:
 
 - 270 upstream syntax and data-model cases (114 well-formed, 133 syntax
@@ -79,20 +82,20 @@ MF2 surface, backed by:
   experimental date/time cases;
 - 77 one-to-one anchored normative rows, all 6 stable functions, and all 40
   stable options, with zero unexplained gaps or blockers;
-- 24 differential cases against independent `messageformat@4.0.0`, split
+- 24 differential cases against independent `messageformat@4.1.0`, split
   into 20 stable and 4 experimental date/time cases, with zero unexplained
   semantic failures; and
 - the same syntax, resolution, function, and differential suites in real
   Chromium, Firefox, and WebKit, plus thirteen Rabbita application scenarios.
 
-The recorded Node host is 26.7.0 with ICU 78.3, CLDR 48.0, Unicode 17.0, and
-tz 2026c. Browser runs record their own `Intl` fingerprints so host-data
+The current Node host is 26.13.1 with ICU 78.3, CLDR 48.0, Unicode 17.0, and
+tz 2026e. Browser runs record their own `Intl` fingerprints so host-data
 differences remain visible instead of being mistaken for engine bugs.
 
 The claim is intentionally limited to the stable JavaScript profile. Draft
 date/time behavior is experimental, Draft `:unit` is deferred, custom
 functions are extensions, and Native/Wasm do not yet ship a project-owned
-CLDR formatter. Therefore `0.9.3` does not claim every optional or Draft MF2
+CLDR formatter. Therefore `0.9.4` does not claim every optional or Draft MF2
 feature on every backend.
 
 ## Contract discipline

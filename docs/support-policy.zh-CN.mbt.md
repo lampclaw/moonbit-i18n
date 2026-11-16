@@ -5,17 +5,18 @@
 本文档定义 `0.x` Web 发布线的支持范围。只有在这里列出且由发布门槛持续验证的目标，
 才属于受支持目标。
 
-`0.9.3` 更新 MoonBit 构建基线及兼容依赖，同时保持
-受支持 target 集合、公开与生成 API、profile、CLI/wire 契约以及 Node/浏览器 host
-政策不变。
+`0.9.4` 维护版本更新 MoonBit、兼容依赖、Node LTS 与浏览器工具。
+受支持 target 集合、公开与生成 API、profile 和 CLI/wire 契约保持不变。下表描述当前
+`0.9.4`；已发布 `0.9.3` 仍对应其历史基线。
 
 ## 支持矩阵
 
 | 界面 | 发布门槛 | 支持级别 |
 |---|---|---|
-| MoonBit 工具链 | archive `0.10.15+943464bfa`、Moon `0.1.20261012`、moonc `0.10.15` | 固定的兼容性与 CI 发布门槛 |
-| JavaScript runtime | Node.js `26.7.0` | 唯一的服务端/runtime 与产品门槛 |
-| 浏览器 runtime | 锁定 Playwright `1.62.1` 提供的 Chromium、Firefox、WebKit | 生成 facade、上游 MF2 suite、differential case 与应用场景 |
+| MoonBit 工具链 | archive `0.10.20+65efd5b93`、Moon `0.1.20261104`、moonc `0.10.20` | 固定的兼容性与 CI 发布门槛 |
+| JavaScript runtime | Node.js `26.13.1` | 唯一的服务端/runtime 与产品门槛 |
+| JavaScript 包管理器 | npm `12.2.2` | 精确 packageManager 与 CI 安装版本 |
+| 浏览器 runtime | 锁定 Playwright `1.65.1` 提供的 Chromium、Firefox、WebKit | 生成 facade、上游 MF2 suite、differential case 与应用场景 |
 | CLI 操作系统 | Ubuntu 24.04、macOS 15、Windows 2025 | Wasm `moonx`、Native CLI 和安装 launcher |
 | 可移植 core | Native、Wasm、Wasm-GC、JavaScript | 编译与目标无关行为 |
 | locale-sensitive formatter | JavaScript | 使用宿主 `Intl` 的产品后端 |
@@ -41,14 +42,18 @@ Playwright engine 是可复现的浏览器契约，并不表示支持基于这�
   `:lampclaw:datetime` 只保留在兼容 profile，并报告 `I18N3003`。
 - 公开 MoonBit interface hash、生成 template、CLI surface、wire version、profile 与
   diagnostic 记录在 `docs/contracts/1.0-candidate.json`；CI 会把未经审查的漂移视为发布失败。
-  本次审查过的编译器表示单独记录在 `docs/contracts/0.9.3-toolchain.json`。
+  `0.9.3` 审查过的编译器表示单独记录在 `docs/contracts/0.9.3-toolchain.json`。
   只移除已有派生 Eq/Debug 方法的显式声明后，接口必须恢复为原始 hash；不覆盖原始
   candidate 快照。
+  `docs/contracts/current-toolchain.json` 记录当前编译器表示和 host fingerprint。
+  CI 先将前缀 `#derive(...)` 与编译器对 `Int` 别名使用的 `Int32` 拼写还原为精确的
+  `0.9.3` 字节，再应用此前的兼容处理，还原原始 candidate。
 
-parser 与 async 分别固定为 `0.4.4` 和 `0.22.4`。
+parser 与 async 分别固定为 `0.4.8` 和 `0.22.9`。
 `moonbit-community/normalization@0.5.2` 替换原来的 package 坐标，但继续使用相同的
-Unicode 16.0.0 normalization 数据。本次构建迁移不推进固定的 Unicode/CLDR 或
-Node `Intl` 契约。
+Unicode 16.0.0 normalization 数据。本次构建迁移不推进 MF2/CLDR/IANA 规范输入。
+当前 Node `Intl` fingerprint 为 ICU 78.3、CLDR 48.0、Unicode 17.0、tz 2026e；
+原始 Node 26.7.0 fingerprint 保留在历史 standards 快照中。
 
 仓库只保留 `main`，不再使用发布标签。每次发布记录完整源码 commit SHA、精确包版本
 及归档 SHA-256；Registry smoke 手动触发，并要求同时提供这三个值。

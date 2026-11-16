@@ -5,42 +5,47 @@ pub const MF2_SYNTAX_PROFILE : String = "unicode-mf2-ldml48.2-syntax-v1"
 
 ///|
 /// A literal or variable reference in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2ModelValue {
   /// A cooked literal value with quotes and escapes removed.
   Mf2ModelLiteral(String)
   /// A variable name without its leading `$` sigil.
   Mf2ModelVariable(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// One function or markup option in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelOption {
   /// NFC-normalized option identifier.
   name : String
   /// Literal or variable option value.
   value : Mf2ModelValue
-} derive(Eq, Debug)
+}
 
 ///|
 /// One expression or markup attribute in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelAttribute {
   /// NFC-normalized attribute identifier.
   name : String
   /// Optional cooked literal value; `None` represents a valueless attribute.
   value : String?
-} derive(Eq, Debug)
+}
 
 ///|
 /// A function reference in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelFunction {
   /// NFC-normalized function identifier without its leading `:` sigil.
   name : String
   /// Function options in source order.
   options : Array[Mf2ModelOption]
-} derive(Eq, Debug)
+}
 
 ///|
 /// An expression in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelExpression {
   /// Optional literal or variable operand.
   arg : Mf2ModelValue?
@@ -50,10 +55,11 @@ pub(all) struct Mf2ModelExpression {
   attributes : Array[Mf2ModelAttribute]
   /// Character offset of the opening `{` in the source message.
   offset : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Kind of markup placeholder in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2ModelMarkupKind {
   /// An opening markup placeholder.
   Mf2MarkupOpen
@@ -61,10 +67,11 @@ pub(all) enum Mf2ModelMarkupKind {
   Mf2MarkupStandalone
   /// A closing markup placeholder.
   Mf2MarkupClose
-} derive(Eq, Debug)
+}
 
 ///|
 /// A markup placeholder in the normative MF2 interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelMarkup {
   /// Open, standalone, or close kind.
   kind : Mf2ModelMarkupKind
@@ -76,10 +83,11 @@ pub(all) struct Mf2ModelMarkup {
   attributes : Array[Mf2ModelAttribute]
   /// Character offset of the opening `{` in the source message.
   offset : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// One part of an MF2 pattern in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2ModelPatternPart {
   /// Non-empty literal pattern text with escapes processed.
   Mf2ModelText(String)
@@ -87,35 +95,39 @@ pub(all) enum Mf2ModelPatternPart {
   Mf2ModelExpressionPart(Mf2ModelExpression)
   /// A markup placeholder.
   Mf2ModelMarkupPart(Mf2ModelMarkup)
-} derive(Eq, Debug)
+}
 
 ///|
 /// A linear MF2 pattern in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelPattern {
   /// Text, expression, and markup parts in source order.
   parts : Array[Mf2ModelPatternPart]
-} derive(Eq, Debug)
+}
 
 ///|
 /// One MF2 declaration in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2ModelDeclaration {
   /// An input declaration; the expression operand names the bound variable.
   Mf2ModelInput(String, Mf2ModelExpression)
   /// A local declaration and its expression value.
   Mf2ModelLocal(String, Mf2ModelExpression)
-} derive(Eq, Debug)
+}
 
 ///|
 /// One matcher key in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2ModelVariantKey {
   /// A cooked literal key value.
   Mf2ModelLiteralKey(String)
   /// The catch-all `*` key.
   Mf2ModelCatchallKey
-} derive(Eq, Debug)
+}
 
 ///|
 /// One matcher variant in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) struct Mf2ModelVariant {
   /// Variant keys in selector order.
   keys : Array[Mf2ModelVariantKey]
@@ -123,10 +135,11 @@ pub(all) struct Mf2ModelVariant {
   value : Mf2ModelPattern
   /// Character offset of the first key in the source message.
   offset : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// A parsed MF2 message in the normative interchange model.
+#derive(Eq, Debug)
 pub(all) enum Mf2MessageModel {
   /// A message with declarations and one pattern.
   Mf2PatternMessage(Array[Mf2ModelDeclaration], Mf2ModelPattern)
@@ -136,7 +149,7 @@ pub(all) enum Mf2MessageModel {
     Array[String],
     Array[Mf2ModelVariant]
   )
-} derive(Eq, Debug)
+}
 
 ///|
 priv struct Mf2SyntaxParser {

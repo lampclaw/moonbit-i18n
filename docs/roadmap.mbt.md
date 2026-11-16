@@ -18,7 +18,7 @@ release. A planned item never authorizes a conformance claim.
 standards-driven internationalization infrastructure with a portable core and
 replaceable target formatters.
 
-The `0.9.3` maintenance version is beyond a prototype and preserves the
+The `0.9.4` maintenance version is beyond a prototype and preserves the
 1.0 candidate baseline frozen in `0.9.0`:
 
 - application code consumes a generated, typed MoonBit facade instead of raw
@@ -422,6 +422,15 @@ Before publishing, the same four-target, browser, coverage, performance, size,
 package, and cross-platform release gates apply. Competition materials and
 release records must distinguish local evidence from completed registry and CI
 results for the exact version.
+
+The `0.9.4` maintenance release advances the build and
+validation tools to MoonBit `0.10.20+65efd5b93`, Node LTS `26.13.1`, npm
+`12.2.2`, Playwright `1.65.1`, and `messageformat@4.1.0`. It serves the existing
+`0.9.x` compatibility milestone. The reviewed representation and host supplement
+is `docs/contracts/current-toolchain.json`; the original candidate and normative
+MF2/CLDR/IANA snapshots remain immutable. API, profile, wire, coverage,
+performance, and Web size gates continue to apply. Publication requires the
+complete release gates for this exact source commit.
 
 The maintained Rabbita application deliberately selects the experimental
 datetime profile; stable consumers without Draft functions migrate to v2. The

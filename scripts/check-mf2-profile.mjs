@@ -8,6 +8,8 @@ const pin = (await read("tests/unicode-mf2/PINNED_COMMIT")).trim();
 const matrix = JSON.parse(await read("tests/unicode-mf2/profile.json"));
 const requirements = JSON.parse(await read("tests/unicode-mf2/requirements.json"));
 const standards = JSON.parse(await read("tests/unicode-mf2/standards.json"));
+const current = JSON.parse(await read("docs/contracts/current-toolchain.json"));
+const tooling = JSON.parse(await read("package.json"));
 const differential = JSON.parse(
   await read("tests/unicode-mf2/differential-report.json"),
 );
@@ -81,7 +83,16 @@ assert.equal(
 );
 assert.equal(matrix.differential.unexplainedSemanticFailures, 0);
 assert.deepEqual(differential.unexplainedSemanticFailures, []);
-assert.equal(differential.host.node, "26.7.0");
+assert.equal(current.standardsFreeze, matrix.standardsFreeze);
+assert.deepEqual(differential.host, current.javascriptHost);
+assert.equal(tooling.engines.node, current.javascriptHost.node);
+assert.equal((await read(".node-version")).trim(), current.javascriptHost.node);
+assert.equal(tooling.engines.npm, current.npm);
+assert.equal(tooling.packageManager, `npm@${current.npm}`);
+assert.equal(tooling.devDependencies["@playwright/test"], current.playwright);
+assert.equal(tooling.devDependencies.messageformat, current.messageformat);
+assert.equal(differential.reference.version, current.messageformat);
+assert.deepEqual(current.browserEngines, matrix.browserConformance.engines);
 assert.equal(differential.stableCases.length, 20);
 assert.equal(differential.experimentalDatetimeCases.length, 4);
 

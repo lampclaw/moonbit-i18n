@@ -6,6 +6,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -341,18 +342,19 @@ fn main {
   const installDir = join(root, "bin");
   run(
     "moon",
-    ["tool", "build-binary-dep", "cmd/i18n", "--install-path", installDir],
+    ["install", "./cmd/i18n", "--bin", installDir],
     { cwd: library, env: { MOON_WORK: "off" } },
   );
-  const launcher = join(
+  const installed = join(
     installDir,
-    process.platform === "win32" ? "moon-i18n.ps1" : "moon-i18n",
+    process.platform === "win32" ? "i18n.exe" : "i18n",
   );
-  assert.ok(existsSync(launcher), `binary launcher is missing: ${launcher}`);
-  const binVersion = (process.platform === "win32"
-    ? run("pwsh", ["-File", launcher, "--version"], { capture: true })
-    : run(launcher, ["--version"], { capture: true })
-  ).trim();
+  // Moon 0.1.20261104 installs native executables under the package directory
+  // name, ignoring the legacy bin_name/bin_target fields used by binary deps.
+  assert.ok(existsSync(installed), `native executable is missing: ${installed}`);
+  const launcher = join(installDir, process.platform === "win32" ? "moon-i18n.exe" : "moon-i18n");
+  renameSync(installed, launcher);
+  const binVersion = run(launcher, ["--version"], { capture: true }).trim();
   assert.equal(binVersion, `moon-i18n ${version}`);
 
   const checksum = createHash("sha256")

@@ -19,8 +19,8 @@ assert.equal(process.versions.node.split(".")[0], "26", "differential tests supp
 assert.equal(fixture.fixtureVersion, 2);
 assert.deepEqual(fixture.reference, {
   package: "messageformat",
-  version: "4.0.0",
-  runtime: "Node 26.7.0",
+  version: "4.1.0",
+  runtime: "Node 26.13.1",
 });
 
 function parameterValues(parameters = {}) {
@@ -39,11 +39,9 @@ function runReference(testCase) {
   const errors = [];
   try {
     const formatter = new MessageFormat(testCase.locale, testCase.source, {
-      // messageformat@4.0.0 still exposes the newly stable :currency and
-      // :percent handlers through this compatibility registry. Case profile
-      // classification below, rather than the oracle's export name, defines
-      // the Lampclaw stable claim.
-      functions: DraftFunctions,
+      // 4.1.0 includes :currency and :percent in its stable registry.
+      // Only explicitly experimental cases receive the Draft datetime functions.
+      functions: testCase.profile === "experimental-datetime" ? DraftFunctions : undefined,
       bidiIsolation: testCase.bidiIsolation === "none" ? "none" : "default",
     });
     const value = formatter.format(parameterValues(testCase.params), error => {

@@ -1,7 +1,7 @@
 # Contributing
 
-Use toolchain archive `0.10.15+943464bfa` (Moon `0.1.20261012`, moonc `0.10.15`)
-and Node.js `26.7.0` for the engineering and product gates. Dependency versions
+Use toolchain archive `0.10.20+65efd5b93` (Moon `0.1.20261104`, moonc `0.10.20`),
+Node.js LTS `26.13.1`, and npm `12.2.2` for the engineering and product gates. Dependency versions
 in `moon.mod` must stay exact.
 
 ## Roadmap and architectural changes
@@ -73,8 +73,10 @@ archive SHA-256. Operators using SSH without GitHub API authentication can
 instead commit and push `.github/workflows/registry-request.yml` with those
 same reviewed inputs after local Registry verification passes; see the release
 checklist. Do not create release branches or tags. It validates `moon add`, pinned `moonx` execution,
-project-local `moon add --bin`, generation, JavaScript execution, and dynamic
-catalog installation on Linux, macOS, and Windows.
+directory-selected `moon install --bin`, generation, JavaScript execution, and dynamic
+catalog installation on Linux, macOS, and Windows. Current `moon install`
+builds a native executable named after the package directory; the smoke test
+applies the documented rename from `i18n` to `moon-i18n` before executing it.
 
 The recorded Moon / `mooncake-bin` pairs, including the `0.9.3` release baseline,
 have a known dry-run exit-status mismatch. Follow the exact acceptance and no-automatic-retry

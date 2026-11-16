@@ -10,17 +10,22 @@ import {
 // Errors
 
 // Types and methods
-type CatalogState derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type CatalogState
 
-type LocaleRequestSource derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type LocaleRequestSource
 
-type Model derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type Model
 
 type Msg
 
-type Todo derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type Todo
 
-type TodoTab derive(Eq, @debug.Debug)
+#derive(Eq, @debug.Debug)
+type TodoTab
 
 // Type aliases
 

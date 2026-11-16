@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "release": "0.9.4",
+  "reviewedAt": "2026-11-16",
+  "toolchain": "0.10.20+65efd5b93",
+  "moon": "0.1.20261104",
+  "candidateSnapshot": "docs/contracts/1.0-candidate.json",
+  "previousToolchain": "docs/contracts/0.9.3-toolchain.json",
+  "standardsFreeze": "tests/unicode-mf2/standards.json",
+  "reason": "Preserve the frozen public API while migrating derive syntax and the compiler's Int32 alias spelling. Refresh development dependencies and the Node LTS/browser host gates without advancing normative MF2, CLDR, or IANA inputs.",
+  "publicInterfaces": {
+    "runtime/pkg.generated.mbti": "93e3f0a421de4d0784dac6f42db8e74e30e5884a0b56b05c862c87f0bbde8347",
+    "runtime/js/pkg.generated.mbti": "2b02a16d373f668624bfdcbfd8ccf30604015b6f26651f1ddf4bbad36fdb027f",
+    "generator/pkg.generated.mbti": "3bff8930415e360373f6a03d2032d4d20bd8fe3fb60aa4e7ebc4a7c9d47d3b4e"
+  },
+  "generatorTemplate": {
+    "path": "generator/codegen.mbt",
+    "sha256": "0c9cb7c33c90abe9d7d368b14474fcdd14351ab68bc6c129258f6542399b194d"
+  },
+  "javascriptHost": {
+    "node": "26.13.1",
+    "icu": "78.3",
+    "cldr": "48.0",
+    "unicode": "17.0",
+    "timeZoneData": "2026e"
+  },
+  "npm": "12.2.2",
+  "playwright": "1.65.1",
+  "messageformat": "4.1.0",
+  "browserEngines": ["chromium", "firefox", "webkit"]
+}

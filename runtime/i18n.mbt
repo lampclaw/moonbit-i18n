@@ -1,5 +1,6 @@
 ///|
 /// Kind of non-fatal translation diagnostic recorded by the runtime.
+#derive(Eq, Debug)
 pub(all) enum DiagnosticKind {
   /// The requested locale missed and a fallback catalog supplied the message.
   MessageFallbackDiagnostic
@@ -7,10 +8,11 @@ pub(all) enum DiagnosticKind {
   MissingMessageDiagnostic
   /// A catalog message was found but formatting failed.
   MessageFormatFailedDiagnostic
-} derive(Eq, Debug)
+}
 
 ///|
 /// Deduplicated translation diagnostic returned to application telemetry.
+#derive(Eq, Debug)
 pub(all) struct Diagnostic {
   /// Diagnostic category.
   kind : DiagnosticKind
@@ -24,28 +26,31 @@ pub(all) struct Diagnostic {
   detail : String
   /// Number of equivalent occurrences coalesced into this entry.
   occurrences : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Diagnostics drained from an `I18n` instance in one operation.
+#derive(Eq, Debug)
 pub(all) struct DiagnosticBatch {
   /// Recorded, deduplicated entries.
   entries : Array[Diagnostic]
   /// Number of new diagnostic keys dropped after reaching capacity.
   dropped : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Stable category for a strict translation failure.
+#derive(Eq, Debug)
 pub(all) enum TranslationErrorKind {
   /// Neither the requested nor fallback catalog contained the message.
   TranslationMissing
   /// A message was found but could not be formatted.
   TranslationFormattingFailed
-} derive(Eq, Debug)
+}
 
 ///|
 /// Structured error returned by strict translation methods.
+#derive(Eq, Debug)
 pub(all) struct TranslationError {
   /// High-level failure category.
   kind : TranslationErrorKind
@@ -55,7 +60,7 @@ pub(all) struct TranslationError {
   message_id : String
   /// MF2 validation or formatting errors, when applicable.
   format_errors : Array[Mf2Error]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Mutable catalog registry, compiled-message cache, formatter, and diagnostics.

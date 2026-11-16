@@ -159,5 +159,10 @@ MoonBit `0.10.15+943464bfa`、Rabbita `0.16.5`、Warren `0.4.5`（内置 Evol mi
 保持不变，性能、profile 与 conformance 门槛仍须通过。这是有实测依据的构建基线
 变更，不代表格式化能力扩展或体积优化。
 
+2026-11-16 的 `0.9.4` 升级使用 MoonBit `0.10.20+65efd5b93`、Rabbita `0.17.0`
+和 Warren `0.4.5`，测得 raw 522,480 字节、gzip 149,178 字节，继续通过相同的
+512 KiB / 160 KiB 上限，余量分别为 1,808 和 14,662 字节。Chunk 与 manifest 体积
+保持不变；后续构建升级须关注较小的 raw JavaScript 余量。
+
 0.4 不新增 framework-specific package：目前还没有两个独立消费者需要同一套
 lifecycle adapter、且有明确维护者负责它的证据。

@@ -2,13 +2,18 @@
   "name": "moonbit-i18n-engineering",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "26.13.1",
+    "npm": "12.2.2"
+  },
+  "packageManager": "npm@12.2.2",
   "scripts": {
     "build:browser": "cd examples/rabbita_todo && warren build --browser-entry main --dist dist",
     "build:browser-conformance": "moon build --frozen --target js tests/mf2-browser",
     "test:browser": "npm run build:browser-conformance && npm run build:browser && playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1",
-    "messageformat": "4.0.0"
+    "@playwright/test": "1.65.1",
+    "messageformat": "4.1.0"
   }
 }

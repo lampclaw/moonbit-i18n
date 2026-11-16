@@ -38,7 +38,7 @@ for (const source of [readme, readmeZh]) {
   assert.ok(source.includes('"messageProfile": "unicode-mf2-ldml48.2-js-v2"'));
   assert.ok(source.includes("unicode-mf2-ldml48.2-js-v2+experimental-datetime-v1"));
   assert.ok(source.includes("message-profile-migration"));
-  assert.ok(source.includes("messageformat@4.0.0"));
+  assert.ok(source.includes("messageformat@4.1.0"));
   assert.ok(source.includes("Chromium") && source.includes("Firefox") && source.includes("WebKit"));
 }
 
@@ -52,7 +52,7 @@ for (const source of [profile, profileZh]) {
     "270",
     "67",
     "104",
-    "messageformat@4.0.0",
+    "messageformat@4.1.0",
     "I18N1003",
     "I18N1004",
   ]) {

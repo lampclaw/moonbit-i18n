@@ -9,12 +9,13 @@ pub const MESSAGE_PROFILE : String = "unicode-mf2-ldml48.2-js-v2+experimental-da
 
 ///|
 /// A locale supported by this generated application binding.
+#derive(Eq, Debug)
 pub(all) enum Locale {
   /// Locale `en-US`.
   EnUS
   /// Locale `zh-CN`.
   ZhCN
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -77,6 +78,7 @@ pub fn locale_from_code(code : String, fallback : Locale) -> Locale {
 
 ///|
 /// A catalog namespace that can be deployed and installed independently.
+#derive(Eq, Debug)
 pub(all) enum CatalogNamespace {
   /// Message namespace `common`.
   CatalogCommon
@@ -84,7 +86,7 @@ pub(all) enum CatalogNamespace {
   CatalogContract
   /// Message namespace `todo_ui`.
   CatalogTodoUi
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -112,6 +114,7 @@ pub fn catalog_namespaces() -> Array[CatalogNamespace] {
 
 ///|
 /// Immutable deployment metadata for one generated catalog chunk.
+#derive(Eq, Debug)
 pub(all) struct CatalogChunkMetadata {
   /// Locale carried by the chunk.
   locale : Locale
@@ -123,7 +126,7 @@ pub(all) struct CatalogChunkMetadata {
   sha256 : String
   /// Expected UTF-8 response byte count.
   bytes : Int
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -210,6 +213,7 @@ pub fn catalog_chunk_metadata(
 
 ///|
 /// A type-safe text message request.
+#derive(Eq, Debug)
 pub(all) enum I18nText {
   /// A message in the `common` group.
   Common(CommonText)
@@ -217,7 +221,7 @@ pub(all) enum I18nText {
   Contract(ContractText)
   /// A message in the `todo_ui` group.
   TodoUi(TodoUiText)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -229,6 +233,7 @@ pub extend I18nText with @debug.Debug::{ to_repr }
 
 ///|
 /// Text messages in the `common` group.
+#derive(Eq, Debug)
 pub(all) enum CommonText {
   /// Message `common.catalog_error`.
   CatalogError
@@ -240,7 +245,7 @@ pub(all) enum CommonText {
   CurrentLanguage
   /// Message `common.switch_language`.
   SwitchLanguage
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -252,12 +257,13 @@ pub extend CommonText with @debug.Debug::{ to_repr }
 
 ///|
 /// Text messages in the `contract` group.
+#derive(Eq, Debug)
 pub(all) enum ContractText {
   /// Browser conformance fixture for locale-aware number formatting.
   FormattedNumber(Int)
   /// Browser conformance fixture for locale-aware date formatting.
   LastUpdated(Int64)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -269,6 +275,7 @@ pub extend ContractText with @debug.Debug::{ to_repr }
 
 ///|
 /// Text messages in the `todo_ui` group.
+#derive(Eq, Debug)
 pub(all) enum TodoUiText {
   /// Number of active todo items shown in the panel header.
   ActiveCount(Int)
@@ -310,7 +317,7 @@ pub(all) enum TodoUiText {
   TabStats
   /// Message `todo_ui.title`.
   Title
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -410,10 +417,11 @@ fn message_args(text : I18nText) -> Array[@runtime.MessageArg] {
 
 ///|
 /// A type-safe rich-message request.
+#derive(Eq, Debug)
 pub(all) enum I18nParts {
   /// A rich message in the `contract` group.
   Contract(ContractParts)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.
@@ -425,10 +433,11 @@ pub extend I18nParts with @debug.Debug::{ to_repr }
 
 ///|
 /// Rich messages in the `contract` group.
+#derive(Eq, Debug)
 pub(all) enum ContractParts {
   /// Browser conformance fixture for structured rich-message rendering.
   RichNotice
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compares derived values through the existing equality methods.

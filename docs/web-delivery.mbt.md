@@ -175,6 +175,12 @@ The unchanged chunk/manifest measurements above and the unchanged performance,
 profile, and conformance gates remain required. This records a measured build
 baseline change, not a formatting-feature expansion or a size reduction.
 
+The `0.9.4` upgrade to MoonBit `0.10.20+65efd5b93` and Rabbita `0.17.0`,
+with Warren `0.4.5`, measures 522,480 raw bytes and 149,178 gzip bytes on
+2026-11-16. It passes the same 512 KiB / 160 KiB ceilings, with 1,808 raw
+bytes and 14,662 gzip bytes of headroom. Chunk and manifest sizes are unchanged.
+Future build upgrades must account for the small remaining raw-JavaScript margin.
+
 No framework-specific package is introduced in 0.4. The current evidence does
 not yet show two independent consumers needing the same owned lifecycle
 adapter and a dedicated maintainer.

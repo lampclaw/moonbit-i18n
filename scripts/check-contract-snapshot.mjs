@@ -14,6 +14,7 @@ const assert = (condition, message) => {
 const path = "docs/contracts/1.0-candidate.json";
 const snapshot = readJson(path);
 const maintenance = readJson("docs/contracts/0.9.3-toolchain.json");
+const current = readJson("docs/contracts/current-toolchain.json");
 const profile = readJson("tests/unicode-mf2/profile.json");
 const runtime = read("runtime/catalog.mbt");
 const cli = read("cmd/i18n/main.mbt");
@@ -38,6 +39,15 @@ assert(
 assert(maintenance.schemaVersion === 1, "unsupported toolchain maintenance record");
 assert(maintenance.candidateSnapshot === path, "maintenance candidate snapshot drifted");
 assert(maintenance.toolchain === "0.10.15+943464bfa", "maintenance toolchain drifted");
+assert(current.schemaVersion === 1, "unsupported current toolchain record");
+assert(current.toolchain === "0.10.20+65efd5b93", "current toolchain drifted");
+assert(current.candidateSnapshot === path, "current candidate snapshot drifted");
+assert(current.previousToolchain === "docs/contracts/0.9.3-toolchain.json", "previous toolchain record drifted");
+assert(
+  JSON.stringify(Object.keys(current.publicInterfaces)) ===
+    JSON.stringify(Object.keys(snapshot.publicInterfaces)),
+  "current interface set drifted",
+);
 assert(
   JSON.stringify(Object.keys(maintenance.publicInterfaces)) ===
     JSON.stringify(Object.keys(snapshot.publicInterfaces)),
@@ -47,13 +57,25 @@ for (const [interfacePath, expected] of Object.entries(
   snapshot.publicInterfaces ?? {},
 )) {
   assert(
-    hash(interfacePath) === maintenance.publicInterfaces[interfacePath],
+    hash(interfacePath) === current.publicInterfaces[interfacePath],
     `${interfacePath} reviewed toolchain representation drifted`,
   );
   // MoonBit 0.10.15 requires explicit exports for the Eq/Debug methods that
   // were previously implicit. Only remove these exact derived declarations;
   // the remaining bytes must still match the untouched 0.9.0 candidate.
-  const source = read(interfacePath);
+  // 0.10.20 prints prefix derives and the canonical Int32 name for Int.
+  // Recover the exact reviewed 0.9.3 bytes before applying its older bridge.
+  // Every other declaration, type, constant, and method must remain identical.
+  const source = read(interfacePath)
+    .replace(
+      /^#derive\(Eq, @debug.Debug\)\n(pub(?:\(all\))? (?:struct|enum) \w+ \{[^}]*\})/gmu,
+      "$1 derive(Eq, @debug.Debug)",
+    )
+    .replace(/\bInt32\b/gu, "Int");
+  assert(
+    createHash("sha256").update(source).digest("hex") === maintenance.publicInterfaces[interfacePath],
+    `${interfacePath} differs beyond the reviewed compiler representation changes`,
+  );
   const derived = new Set([...source.matchAll(
     /^pub(?:\(all\))? (?:struct|enum) (\w+) \{[^}]*\} derive\(Eq, @debug.Debug\)/gmu,
   )].map(match => match[1]));
@@ -70,8 +92,8 @@ for (const [interfacePath, expected] of Object.entries(
   );
 }
 assert(
-  maintenance.generatorTemplate.path === snapshot.generatorTemplate.path &&
-    hash(snapshot.generatorTemplate.path) === maintenance.generatorTemplate.sha256,
+  current.generatorTemplate.path === snapshot.generatorTemplate.path &&
+    hash(snapshot.generatorTemplate.path) === current.generatorTemplate.sha256,
   "generated application template drifted",
 );
 

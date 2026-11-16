@@ -57,12 +57,13 @@ pub const CATALOG_MAX_MESSAGES : Int32 = 100000
 
 ///|
 /// One identifier and MF2 message embedded in a generated catalog.
+#derive(Eq, Debug)
 pub(all) struct CatalogEntry {
   /// Stable dotted message identifier.
   id : String
   /// MF2 source for the message.
   message : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// A validated locale catalog. Construct it from generated entries or JSON.

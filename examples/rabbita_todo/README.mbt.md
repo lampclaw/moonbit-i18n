@@ -7,7 +7,7 @@ complete generator-first workflow. Maintained application source imports its
 own generated package and application-owned browser adapter; it does not
 import the i18n runtime.
 
-This example uses the `0.9.3` maintenance version. The commands below use the
+This example uses the `0.9.4` maintenance version. The commands below use the
 matching local CLI so source checkouts can regenerate their own artifacts.
 
 ## Generate and validate
@@ -55,8 +55,9 @@ For a release build:
 warren build --browser-entry main --dist dist
 ~~~
 
-Warren `0.4.5` bundles its pinned Evol minifier for release builds. Node remains
-`26.7.0` and Playwright remains `1.62.1` for the browser acceptance gates.
+Warren `0.4.5` bundles its pinned Evol minifier for release builds. The current
+`0.9.4` browser acceptance gates pin Node LTS `26.13.1`, npm `12.2.2`,
+and Playwright `1.65.1`.
 
 ## Architecture
 

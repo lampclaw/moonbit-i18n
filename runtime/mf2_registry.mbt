@@ -4,6 +4,7 @@ pub const MF2_DEFAULT_REGISTRY_PROFILE : String = "unicode-mf2-ldml48.2-default-
 
 ///|
 /// Portable context passed to a registered MF2 function handler.
+#derive(Eq, Debug)
 pub(all) struct Mf2FunctionCallContext {
   /// Canonical current locale followed by canonical fallback locales.
   locales : Array[String]
@@ -11,10 +12,11 @@ pub(all) struct Mf2FunctionCallContext {
   direction : Mf2Direction
   /// Application-provided default time-zone identifier.
   time_zone : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// One resolved option passed to a registered MF2 function handler.
+#derive(Eq, Debug)
 pub(all) struct Mf2FunctionOption {
   /// NFC-normalized option identifier.
   name : String
@@ -24,10 +26,11 @@ pub(all) struct Mf2FunctionOption {
   raw : MessageValue?
   /// Whether the source option value was a literal rather than a variable.
   literal : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Failure category available to portable custom-function handlers.
+#derive(Eq, Debug)
 pub(all) enum Mf2FunctionFailure {
   /// The operand is missing or has an unsupported type or value.
   Mf2FunctionBadOperand(String)
@@ -41,7 +44,7 @@ pub(all) enum Mf2FunctionFailure {
   Mf2FunctionUnsupported(String)
   /// The platform formatter failed operationally.
   Mf2FunctionFormatting(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Resolved operand passed to a portable custom-function handler.

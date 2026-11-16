@@ -5,18 +5,19 @@
 This document defines the supported `0.x` Web release line. A target is supported
 only when it is named here and exercised by the release gates.
 
-The `0.9.3` maintenance version updates the MoonBit build baseline
-and compatible dependencies. It preserves the supported target set,
-public and generated APIs, profiles, CLI and wire contracts, and Node/browser
-host policy.
+The `0.9.4` maintenance release updates MoonBit, compatible
+dependencies, Node LTS, and browser tooling. It preserves the supported target
+set, public and generated APIs, profiles, and CLI/wire contracts. The matrix
+below describes `0.9.4`; published `0.9.3` keeps its recorded baseline.
 
 ## Supported matrix
 
 | Surface | Release gate | Support level |
 |---|---|---|
-| MoonBit toolchain | archive `0.10.15+943464bfa`, Moon `0.1.20261012`, moonc `0.10.15` | Pinned compatibility and CI release gate |
-| JavaScript runtime | Node.js `26.7.0` | Sole server/runtime and product gate |
-| Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.62.1` | Generated facade, upstream MF2 suites, differential cases, and application scenarios |
+| MoonBit toolchain | archive `0.10.20+65efd5b93`, Moon `0.1.20261104`, moonc `0.10.20` | Pinned compatibility and CI release gate |
+| JavaScript runtime | Node.js `26.13.1` | Sole server/runtime and product gate |
+| JavaScript package manager | npm `12.2.2` | Exact packageManager and CI install pin |
+| Browser runtime | Chromium, Firefox, and WebKit supplied by locked Playwright `1.65.1` | Generated facade, upstream MF2 suites, differential cases, and application scenarios |
 | CLI operating systems | Ubuntu 24.04, macOS 15, Windows 2025 | Wasm `moonx`, native CLI, and installed launcher |
 | Portable core | Native, Wasm, Wasm-GC, JavaScript | Compile and target-independent behavior |
 | Locale-sensitive formatter | JavaScript | Product backend, using the host `Intl` implementation |
@@ -55,11 +56,17 @@ the JavaScript product-conformance statement.
   `docs/contracts/0.9.3-toolchain.json`. Removing only the explicit declarations
   of existing derived Eq/Debug methods must recover the original interface
   hashes; the original candidate snapshot is not overwritten.
+  `docs/contracts/current-toolchain.json` records the current representation
+  and host fingerprint. CI first normalizes prefix `#derive(...)` and the
+  compiler's `Int32` spelling of the `Int` alias back to the exact `0.9.3`
+  bytes, then applies that older bridge to the original candidate.
 
-The parser and async pins are `0.4.4` and `0.22.4`.
+The parser and async pins are `0.4.8` and `0.22.9`.
 `moonbit-community/normalization@0.5.2` replaces the earlier package coordinate
 while retaining the same Unicode 16.0.0 normalization tables. This build migration
-does not advance the pinned Unicode/CLDR or Node `Intl` contract.
+does not advance the normative MF2/CLDR/IANA inputs. The current Node `Intl`
+fingerprint is ICU 78.3, CLDR 48.0, Unicode 17.0, and tz 2026e; the original
+Node 26.7.0 fingerprint remains in the historical standards snapshot.
 
 The repository retains only `main` and has no release tags. Record each release
 with its full source commit SHA, exact package version, and archive SHA-256.

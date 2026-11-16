@@ -53,6 +53,7 @@ fn write_catalog_chunk_metadata(
     (
       #|///|
       #|/// Immutable deployment metadata for one generated catalog chunk.
+      #|#derive(Eq, Debug)
       #|pub(all) struct CatalogChunkMetadata {
       #|  /// Locale carried by the chunk.
       #|  locale : Locale
@@ -64,7 +65,7 @@ fn write_catalog_chunk_metadata(
       #|  sha256 : String
       #|  /// Expected UTF-8 response byte count.
       #|  bytes : Int
-      #|} derive(Eq, Debug)
+      #|}
       #|
       #|///|
       #|/// Compares derived values through the existing equality methods.
@@ -98,14 +99,14 @@ fn write_catalog_chunk_metadata(
 fn write_catalog_namespace_enum(out : StringBuilder, schema : Schema) -> Unit {
   let schema_namespaces = groups(schema.entries)
   out.write_string(
-    "///|\n/// A catalog namespace that can be deployed and installed independently.\npub(all) enum CatalogNamespace {\n",
+    "///|\n/// A catalog namespace that can be deployed and installed independently.\n#derive(Eq, Debug)\npub(all) enum CatalogNamespace {\n",
   )
   for chunk_namespace in schema_namespaces {
     out.write_string(
       "  /// Message namespace `\{chunk_namespace}`.\n  Catalog\{pascal(chunk_namespace)}\n",
     )
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "CatalogNamespace")
   out.write_string(
     "///|\n/// Returns the canonical schema-group name for this namespace.\npub fn CatalogNamespace::code(self : CatalogNamespace) -> String {\n  match self {\n",
@@ -146,14 +147,14 @@ pub fn generated_package_manifest() -> String {
 ///|
 fn write_locale_enum(out : StringBuilder, config : I18nConfig) -> Unit {
   out.write_string(
-    "///|\n/// A locale supported by this generated application binding.\npub(all) enum Locale {\n",
+    "///|\n/// A locale supported by this generated application binding.\n#derive(Eq, Debug)\npub(all) enum Locale {\n",
   )
   for locale in config.locales {
     out.write_string(
       "  /// Locale `\{locale.code}`.\n  \{locale_variant(locale.code)}\n",
     )
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "Locale")
   out.write_string(
     "///|\n/// Returns this locale's normalized BCP 47 code.\npub fn Locale::code(self : Locale) -> String {\n  match self {\n",
@@ -201,7 +202,7 @@ fn write_locale_enum(out : StringBuilder, config : I18nConfig) -> Unit {
 ///|
 fn write_i18n_text_enum(out : StringBuilder, entries : Array[Entry]) -> Unit {
   out.write_string(
-    "///|\n/// A type-safe text message request.\npub(all) enum I18nText {\n",
+    "///|\n/// A type-safe text message request.\n#derive(Eq, Debug)\npub(all) enum I18nText {\n",
   )
   for group in groups(entries) {
     let type_name = pascal(group)
@@ -209,7 +210,7 @@ fn write_i18n_text_enum(out : StringBuilder, entries : Array[Entry]) -> Unit {
       "  /// A message in the `\{group}` group.\n  \{type_name}(\{type_name}Text)\n",
     )
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "I18nText")
 }
 
@@ -221,7 +222,7 @@ fn write_group_enum(
   schema : Schema,
 ) -> Unit {
   out.write_string(
-    "///|\n/// Text messages in the `\{group}` group.\npub(all) enum \{pascal(group)}Text {\n",
+    "///|\n/// Text messages in the `\{group}` group.\n#derive(Eq, Debug)\npub(all) enum \{pascal(group)}Text {\n",
   )
   for entry in entries {
     write_entry_doc(out, schema, entry)
@@ -231,14 +232,14 @@ fn write_group_enum(
     }
     out.write_string("\n")
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "\{pascal(group)}Text")
 }
 
 ///|
 fn write_i18n_parts_enum(out : StringBuilder, entries : Array[Entry]) -> Unit {
   out.write_string(
-    "///|\n/// A type-safe rich-message request.\npub(all) enum I18nParts {\n",
+    "///|\n/// A type-safe rich-message request.\n#derive(Eq, Debug)\npub(all) enum I18nParts {\n",
   )
   for group in groups(entries) {
     let type_name = pascal(group)
@@ -246,7 +247,7 @@ fn write_i18n_parts_enum(out : StringBuilder, entries : Array[Entry]) -> Unit {
       "  /// A rich message in the `\{group}` group.\n  \{type_name}(\{type_name}Parts)\n",
     )
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "I18nParts")
 }
 
@@ -258,7 +259,7 @@ fn write_parts_group_enum(
   schema : Schema,
 ) -> Unit {
   out.write_string(
-    "///|\n/// Rich messages in the `\{group}` group.\npub(all) enum \{pascal(group)}Parts {\n",
+    "///|\n/// Rich messages in the `\{group}` group.\n#derive(Eq, Debug)\npub(all) enum \{pascal(group)}Parts {\n",
   )
   for entry in entries {
     write_entry_doc(out, schema, entry)
@@ -268,7 +269,7 @@ fn write_parts_group_enum(
     }
     out.write_string("\n")
   }
-  out.write_string("} derive(Eq, Debug)\n\n")
+  out.write_string("}\n\n")
   write_derived_methods(out, "\{pascal(group)}Parts")
 }
 

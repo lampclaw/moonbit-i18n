@@ -1,5 +1,6 @@
 ///|
 /// Stable category for strict BCP 47 processing failures.
+#derive(Eq, Debug)
 pub(all) enum LocaleErrorCode {
   /// The locale tag was empty.
   LocaleEmptyTagCode
@@ -13,10 +14,11 @@ pub(all) enum LocaleErrorCode {
   LocaleInvalidExtlangCode
   /// Two configured supported tags canonicalized to the same value.
   LocaleDuplicateSupportedCode
-} derive(Eq, Debug)
+}
 
 ///|
 /// Structured strict-locale failure with the zero-based subtag position.
+#derive(Eq, Debug)
 pub(all) struct LocaleError {
   /// Stable machine-readable failure code.
   code : LocaleErrorCode
@@ -24,7 +26,7 @@ pub(all) struct LocaleError {
   message : String
   /// Zero-based subtag position, or zero for a whole-tag failure.
   subtag_index : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Formats a strict locale failure with its subtag position.

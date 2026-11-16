@@ -8,6 +8,7 @@ pub const MF2_MAX_OUTPUT_BYTES : Int32 = 65536
 
 ///|
 /// Direction metadata used by MF2 bidirectional isolation.
+#derive(Eq, Debug)
 pub(all) enum Mf2Direction {
   /// Left-to-right formatted value or message context.
   Mf2LeftToRight
@@ -15,19 +16,21 @@ pub(all) enum Mf2Direction {
   Mf2RightToLeft
   /// Directionality is not known without inspecting formatted text.
   Mf2DirectionUnknown
-} derive(Eq, Debug)
+}
 
 ///|
 /// Bidirectional isolation strategy for standalone MF2 formatting.
+#derive(Eq, Debug)
 pub(all) enum Mf2BidiIsolation {
   /// Apply the normative default Unicode-isolate strategy.
   Mf2DefaultBidiIsolation
   /// Emit no added bidirectional controls.
   Mf2NoBidiIsolation
-} derive(Eq, Debug)
+}
 
 ///|
 /// One named input value with explicit direction metadata.
+#derive(Eq, Debug)
 pub(all) struct Mf2Input {
   /// NFC-normalized variable name without `$`.
   name : String
@@ -35,7 +38,7 @@ pub(all) struct Mf2Input {
   value : MessageValue
   /// Direction metadata supplied by the application, not inferred from text.
   direction : Mf2Direction
-} derive(Eq, Debug)
+}
 
 ///|
 /// Creates one standalone MF2 input. Names are normalized to Unicode NFC.
@@ -118,6 +121,7 @@ pub fn Mf2FormattingContext::time_zone(self : Mf2FormattingContext) -> String {
 
 ///|
 /// One resolved expression in structured MF2 output.
+#derive(Eq, Debug)
 pub(all) struct Mf2FormattedExpression {
   /// Formatted or fallback string representation.
   value : String
@@ -135,10 +139,11 @@ pub(all) struct Mf2FormattedExpression {
   attributes : Array[Mf2ModelAttribute]
   /// Whether `value` is the braces-included normative fallback rendering.
   fallback : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// One resolved markup placeholder in structured MF2 output.
+#derive(Eq, Debug)
 pub(all) struct Mf2FormattedMarkup {
   /// Open, close, or standalone markup kind.
   kind : Mf2ModelMarkupKind
@@ -150,10 +155,11 @@ pub(all) struct Mf2FormattedMarkup {
   attributes : Array[Mf2ModelAttribute]
   /// Resolved `u:id`, if present and valid.
   id : String?
-} derive(Eq, Debug)
+}
 
 ///|
 /// One safe, renderer-independent part of standalone MF2 output.
+#derive(Eq, Debug)
 pub(all) enum Mf2FormattedPart {
   /// Literal pattern text.
   Mf2FormattedText(String)
@@ -163,10 +169,11 @@ pub(all) enum Mf2FormattedPart {
   Mf2FormattedMarkupPart(Mf2FormattedMarkup)
   /// LRI, RLI, FSI, or PDI inserted by the selected bidi strategy.
   Mf2FormattedBidiIsolation(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Best-effort standalone formatting output and every discovered error.
+#derive(Eq, Debug)
 pub(all) struct Mf2FormatResult {
   /// Concatenated plain-text output. Markup contributes an empty string.
   value : String
@@ -174,7 +181,7 @@ pub(all) struct Mf2FormatResult {
   parts : Array[Mf2FormattedPart]
   /// Deterministically ordered syntax, model, resolution, or function errors.
   errors : Array[Mf2Error]
-} derive(Eq, Debug)
+}
 
 ///|
 priv enum Mf2HandlerFailure {

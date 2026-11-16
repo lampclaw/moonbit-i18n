@@ -11,18 +11,20 @@ using @rabbita {type Val, type Emit, type Html}
 using @html {button, div, form, h1, input, li, nav, p, span, ul}
 
 ///|
+#derive(Eq, Debug)
 struct Todo {
   title : String
   done : Bool
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 enum TodoTab {
   All
   Active
   Done
   Stats
-} derive(Eq, Debug)
+}
 
 ///|
 impl @rabbita.Enumerate for TodoTab with fn tag(self) {
@@ -71,6 +73,7 @@ fn other_locale(locale : @app_i18n.Locale) -> @app_i18n.Locale {
 }
 
 ///|
+#derive(Eq, Debug)
 struct Model {
   title : String
   items : SortedMap[Int32, Todo]
@@ -79,20 +82,22 @@ struct Model {
   locale : @app_i18n.Locale
   catalog_state : CatalogState
   catalog_request : Int32
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 enum CatalogState {
   CatalogReady
   CatalogLoading(@app_i18n.Locale, LocaleRequestSource)
   CatalogFailed(@app_i18n.Locale, String)
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 enum LocaleRequestSource {
   StartupPreference
   UserPreference
-} derive(Eq, Debug)
+}
 
 ///|
 enum Msg {

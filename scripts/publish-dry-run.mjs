@@ -71,8 +71,15 @@ const archiveValidationPassed =
   output.includes("validating packaged zip:") &&
   output.includes("running moon check on extracted package") &&
   passedChecks >= 2;
+// This exact newer client pair was observed exiting zero after the two archive
+// checks and 202 Accepted, without printing the older response-detail text.
+// The command above is always --dry-run; no non-zero exit is allowed here.
+const verifiedStatusOnlyResponse = result.status === 0 &&
+  moonVersion.includes("moon 0.1.20261104 (940aa18 ") &&
+  mooncakeVersion.includes("mooncake-bin 0.1.20261030 (dbeb239 ");
 const registryConfirmed =
-  output.includes(expectedStatus) && output.includes(expectedDetail);
+  output.includes(expectedStatus) &&
+  (output.includes(expectedDetail) || verifiedStatusOnlyResponse);
 
 if (!archiveValidationPassed || !registryConfirmed) {
   throw new Error(
@@ -106,7 +113,9 @@ const checksum = createHash("sha256")
 const statusSummary =
   verifiedExitMismatch
     ? "accepted fully verified publish-client exit mismatch (255)"
-    : "client exited successfully (0)";
+    : verifiedStatusOnlyResponse
+      ? "verified status-only client response; client exited successfully (0)"
+      : "client exited successfully (0)";
 console.log(`release dry run passed: ${statusSummary}`);
 console.log(`archive: ${archive}`);
 console.log(`archive sha256: ${checksum}`);

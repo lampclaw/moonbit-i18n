@@ -36,6 +36,7 @@ pub const MF2_MAX_OPTIONS : Int32 = 64
 
 ///|
 /// Typed values that may be supplied to an MF2 message.
+#derive(Eq, Debug)
 pub(all) enum MessageValue {
   /// A Unicode string value.
   TextValue(String)
@@ -47,25 +48,27 @@ pub(all) enum MessageValue {
   BoolValue(Bool)
   /// An instant represented as Unix epoch milliseconds.
   InstantMillis(Int64)
-} derive(Eq, Debug)
+}
 
 ///|
 /// A named, typed argument supplied to a message.
+#derive(Eq, Debug)
 pub(all) struct MessageArg {
   /// Parameter name without the leading MF2 `$` marker.
   name : String
   /// Parameter value.
   value : MessageValue
-} derive(Eq, Debug)
+}
 
 ///|
 /// A resolved name/value option passed to a formatter or markup renderer.
+#derive(Eq, Debug)
 pub(all) struct FormatOption {
   /// Option name without its leading `@` or `u:` syntax.
   name : String
   /// Resolved option value.
   value : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// One implementation-defined field emitted by a platform formatter.
@@ -73,24 +76,27 @@ pub(all) struct FormatOption {
 /// `kind` follows the host formatter's stable part vocabulary, such as
 /// `integer`, `fraction`, `currency`, `year`, or `literal`. The value remains
 /// inert text and is never interpreted as renderer source.
+#derive(Eq, Debug)
 pub(all) struct FormatterPart {
   /// Host formatter part category.
   kind : String
   /// Text contributed by this part.
   value : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// One formatted string together with its renderer-independent field parts.
+#derive(Eq, Debug)
 pub(all) struct FormatterOutput {
   /// Concatenated formatted text.
   value : String
   /// Ordered platform fields whose values concatenate to `value`.
   parts : Array[FormatterPart]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Failure reported by a platform formatter implementation.
+#derive(Eq, Debug)
 pub(all) enum FormatterIssue {
   /// The selected backend does not implement the requested operation.
   UnsupportedOperation(String)
@@ -98,7 +104,7 @@ pub(all) enum FormatterIssue {
   InvalidFormatterOption(String)
   /// The platform formatter raised or returned an operational failure.
   PlatformFormatterFailure(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Returns the human-readable detail carried by this formatter issue.
@@ -215,6 +221,7 @@ pub fn Formatter::basic() -> Formatter {
 
 ///|
 /// Stable category assigned to a compile or formatting failure.
+#derive(Eq, Debug)
 pub(all) enum Mf2ErrorKind {
   /// The input does not match the supported MF2 grammar.
   Mf2SyntaxError
@@ -226,10 +233,11 @@ pub(all) enum Mf2ErrorKind {
   Mf2FormattingError
   /// A configured resource limit was exceeded.
   Mf2LimitError
-} derive(Eq, Debug)
+}
 
 ///|
 /// Stable machine-readable error code within an MF2 error category.
+#derive(Eq, Debug)
 pub(all) enum Mf2ErrorCode {
   /// A grammar production could not be parsed.
   Mf2SyntaxCode
@@ -267,10 +275,11 @@ pub(all) enum Mf2ErrorCode {
   Mf2FormattingCode
   /// A configured resource limit was exceeded.
   Mf2LimitCode
-} derive(Eq, Debug)
+}
 
 ///|
 /// Structured MF2 failure with a source offset.
+#derive(Eq, Debug)
 pub(all) struct Mf2Error {
   /// Stable error category.
   kind : Mf2ErrorKind
@@ -280,7 +289,7 @@ pub(all) struct Mf2Error {
   message : String
   /// Character offset associated with the failure.
   offset : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Formats this error as a compact message with its source offset.
@@ -290,15 +299,17 @@ pub fn Mf2Error::to_string(self : Mf2Error) -> String {
 
 ///|
 /// One declared parameter in a generated message contract.
+#derive(Eq, Debug)
 pub(all) struct MessageParamSpec {
   /// Parameter name without the leading MF2 `$` marker.
   name : String
   /// Generator type name such as `String`, `Int`, or `InstantMillis`.
   typ : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parameters and rich-markup names allowed while compiling a message.
+#derive(Eq, Debug)
 pub(all) struct MessageContract {
   /// Declared parameter names and types.
   params : Array[MessageParamSpec]
@@ -306,7 +317,7 @@ pub(all) struct MessageContract {
   allowed_tags : Array[String]
   /// Whether the compiler must enforce this contract.
   enforce : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Creates a permissive contract for low-level runtime integration.
@@ -325,6 +336,7 @@ pub fn MessageContract::new(
 
 ///|
 /// One item in structured rich-message output.
+#derive(Eq, Debug)
 pub(all) enum MessagePart {
   /// Plain text content.
   Text(String)
@@ -334,44 +346,49 @@ pub(all) enum MessagePart {
   Close(String)
   /// Standalone markup with resolved options.
   Standalone(String, Array[FormatOption])
-} derive(Eq, Debug)
+}
 
 ///|
 /// Operand stored in the compiled MF2 data model.
+#derive(Eq, Debug)
 pub enum Operand {
   /// A reference to a variable binding.
   VariableOperand(String)
   /// A quoted or unquoted literal.
   LiteralOperand(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Option value stored in the compiled MF2 data model.
+#derive(Eq, Debug)
 pub enum OptionExpression {
   /// A literal option value.
   LiteralOption(String)
   /// An option value resolved from a variable binding.
   VariableOption(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Parsed, unresolved option in a compiled expression or markup node.
+#derive(Eq, Debug)
 pub struct ParsedOption {
   name : String
   value : OptionExpression
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compiled MF2 expression with its operand, function, options, and offset.
+#derive(Eq, Debug)
 pub struct Expression {
   operand : Operand
   function_name : String
   options : Array[ParsedOption]
   offset : Int32
-} derive(Eq, Debug)
+}
 
 ///|
 /// Node in a compiled MF2 pattern.
+#derive(Eq, Debug)
 pub enum PatternNode {
   /// Literal pattern text.
   PatternText(String)
@@ -383,30 +400,33 @@ pub enum PatternNode {
   PatternClose(String)
   /// Standalone markup node.
   PatternStandalone(String, Array[ParsedOption])
-} derive(Eq, Debug)
+}
 
 ///|
 /// Compiled MF2 pattern and its markup-presence flag.
+#derive(Eq, Debug)
 pub struct Pattern {
   nodes : Array[PatternNode]
   has_markup : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// Variable declaration stored in a compiled MF2 message.
+#derive(Eq, Debug)
 pub enum Declaration {
   /// An `.input` declaration.
   InputDeclaration(String, Expression)
   /// A `.local` declaration.
   LocalDeclaration(String, Expression)
-} derive(Eq, Debug)
+}
 
 ///|
 /// One matcher variant with selector keys and a compiled pattern.
+#derive(Eq, Debug)
 pub struct Variant {
   keys : Array[String]
   pattern : Pattern
-} derive(Eq, Debug)
+}
 
 ///|
 /// Validated MF2 data model produced once and reused for formatting.
